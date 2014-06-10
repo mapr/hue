@@ -35,12 +35,12 @@ from desktop.lib.i18n import force_unicode
 from desktop.lib.exceptions_renderable import PopupException
 
 from desktop import appmanager
-
+from desktop.conf import DEFAULT_USER
 
 LOG = logging.getLogger(__name__)
 
 
-SAMPLE_USERNAME = 'sample'
+SAMPLE_USERNAME = DEFAULT_USER.get()
 
 
 class UserPreferences(models.Model):

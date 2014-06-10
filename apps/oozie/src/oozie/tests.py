@@ -68,17 +68,17 @@ class MockOozieApi:
   WORKFLOW_DICT = dict([(wf['id'], wf) for wf in JSON_WORKFLOW_LIST])
 
   JSON_COORDINATOR_LIST = [{u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000041-120717205528122-oozie-oozi-C] status[RUNNING]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'RUNNING', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/test/demo2', u'timeUnit': u'DAY', u'coordJobId': u'0000041-120717205528122-oozie-oozi-C', u'coordJobName': u'DailyWordCount1', u'nextMaterializedTime': u'Wed, 04 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Wed, 04 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 00:00:00 GMT'},
-                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000011-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/hue/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000011-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount2', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
-                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000010-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/hue/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000010-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount3', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
-                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000009-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/hue/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000009-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount4', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
-                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[00000012-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/hue/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000009-120706144403213-oozie-oozi-C', u'coordJobName': u'DåilyWordCount5', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'}]
+                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000011-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000011-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount2', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
+                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000010-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000010-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount3', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
+                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[0000009-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000009-120706144403213-oozie-oozi-C', u'coordJobName': u'DailyWordCount4', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'},
+                           {u'startTime': u'Sun, 01 Jul 2012 00:00:00 GMT', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coornidator application id[00000012-120706144403213-oozie-oozi-C] status[DONEWITHERROR]', u'consoleUrl': None, u'mat_throttling': 0, u'status': u'DONEWITHERROR', u'conf': None, u'user': u'test', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/jobsub/_romain_-design-2', u'timeUnit': u'DAY', u'coordJobId': u'0000009-120706144403213-oozie-oozi-C', u'coordJobName': u'DåilyWordCount5', u'nextMaterializedTime': u'Thu, 05 Jul 2012 00:00:00 GMT', u'coordExternalId': None, u'acl': None, u'lastAction': u'Thu, 05 Jul 2012 00:00:00 GMT', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Wed, 04 Jul 2012 18:54:00 GMT'}]
   COORDINATOR_IDS = [coord['coordJobId'] for coord in JSON_COORDINATOR_LIST]
   COORDINATOR_DICT = dict([(coord['coordJobId'], coord) for coord in JSON_COORDINATOR_LIST])
 
   JSON_BUNDLE_LIST = [
-     {u'status': u'SUCCEEDED', u'toString': u'Bundle id[0000021-130210132208494-oozie-oozi-B] status[SUCCEEDED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-5-1360649203.07</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle1', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 22:06:44 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000021-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'},
-     {u'status': u'KILLED', u'toString': u'Bundle id[0000020-130210132208494-oozie-oozi-B] status[KILLED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-5-1360648977.2</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle2', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 22:02:58 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000020-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'},
-     {u'status': u'KILLED', u'toString': u'Bundle id[0000019-130210132208494-oozie-oozi-B] status[KILLED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-5-1360639372.41</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle3', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 19:22:53 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000019-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'}
+     {u'status': u'SUCCEEDED', u'toString': u'Bundle id[0000021-130210132208494-oozie-oozi-B] status[SUCCEEDED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/oozie/deployments/_romain_-oozie-5-1360649203.07</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle1', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 22:06:44 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000021-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'},
+     {u'status': u'KILLED', u'toString': u'Bundle id[0000020-130210132208494-oozie-oozi-B] status[KILLED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/oozie/deployments/_romain_-oozie-5-1360648977.2</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle2', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 22:02:58 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000020-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'},
+     {u'status': u'KILLED', u'toString': u'Bundle id[0000019-130210132208494-oozie-oozi-B] status[KILLED]', u'group': None, u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/oozie/deployments/_romain_-oozie-5-1360639372.41</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'bundleJobName': u'MyBundle3', u'startTime': None, u'bundleCoordJobs': [], u'kickoffTime': u'Mon, 11 Feb 2013 08:33:00 PST', u'acl': None, u'bundleJobPath': u'hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69', u'createdTime': u'Mon, 11 Feb 2013 19:22:53 PST', u'timeOut': 0, u'consoleUrl': None, u'bundleExternalId': None, u'timeUnit': u'NONE', u'pauseTime': None, u'bundleJobId': u'0000019-130210132208494-oozie-oozi-B', u'endTime': None, u'user': u'test'}
   ]
   BUNDLE_IDS = [bundle['bundleJobId'] for bundle in JSON_BUNDLE_LIST]
   BUNDLE_DICT = dict([(bundle['bundleJobId'], bundle) for bundle in JSON_BUNDLE_LIST])
@@ -91,7 +91,7 @@ class MockOozieApi:
       {u'status': u'SUCCEEDED', u'toString': u'WorkflowAction name[0000000-130117135211239-oozie-oozi-C@3] status[SUCCEEDED]', u'runConf': None, u'errorMessage': None, u'missingDependencies': u'', u'coordJobId': u'0000000-130117135211239-oozie-oozi-C', u'errorCode': None, u'actionNumber': 3, u'consoleUrl': None, u'nominalTime': u'Wed, 02 Jan 2013 16:00:00 PST', u'externalStatus': u'', u'createdConf': None, u'createdTime': u'Fri, 25 Jan 2013 08:59:38 PST', u'externalId': u'0000026-130124125317829-oozie-oozi-W', u'lastModifiedTime': u'Fri, 25 Jan 2013 09:00:05 PST', u'type': None, u'id': u'0000000-130117135211239-oozie-oozi-C@3', u'trackerUri': None},
       {u'status': u'SUCCEEDED', u'toString': u'WorkflowAction name[0000000-130117135211239-oozie-oozi-C@4] status[SUCCEEDED]', u'runConf': None, u'errorMessage': None, u'missingDependencies': u'', u'coordJobId': u'0000000-130117135211239-oozie-oozi-C', u'errorCode': None, u'actionNumber': 4, u'consoleUrl': None, u'nominalTime': u'Thu, 03 Jan 2013 16:00:00 PST', u'externalStatus': u'', u'createdConf': None, u'createdTime': u'Fri, 25 Jan 2013 10:53:39 PST', u'externalId': u'0000037-130124125317829-oozie-oozi-W', u'lastModifiedTime': u'Fri, 25 Jan 2013 10:54:17 PST', u'type': None, u'id': u'0000000-130117135211239-oozie-oozi-C@4', u'trackerUri': None}
   ]
-  BUNDLE_ACTION = {u'startTime': u'Mon, 31 Dec 2012 16:00:00 PST', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coordinator application id[0000022-130210132208494-oozie-oozi-C] status[SUCCEEDED]', u'consoleUrl': None, u'mat_throttling': 12, u'status': u'SUCCEEDED', u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.coord.application.path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-6-1360649203.56</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>market</name>\r\n    <value>France</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.bundle.id</name>\r\n    <value>0000021-130210132208494-oozie-oozi-B</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-5-1360649203.07</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'user': u'romain', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/user/hue/oozie/deployments/_romain_-oozie-6-1360649203.56', u'timeUnit': u'DAY', u'coordJobId': u'0000022-130210132208494-oozie-oozi-C', u'coordJobName': u'DailySleep', u'nextMaterializedTime': u'Fri, 04 Jan 2013 16:00:00 PST', u'coordExternalId': None, u'acl': None, u'lastAction': u'Fri, 04 Jan 2013 16:00:00 PST', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Fri, 04 Jan 2013 16:00:00 PST'}
+  BUNDLE_ACTION = {u'startTime': u'Mon, 31 Dec 2012 16:00:00 PST', u'actions': [], u'frequency': 1, u'concurrency': 1, u'pauseTime': None, u'group': None, u'toString': u'Coordinator application id[0000022-130210132208494-oozie-oozi-C] status[SUCCEEDED]', u'consoleUrl': None, u'mat_throttling': 12, u'status': u'SUCCEEDED', u'conf': u'<configuration>\r\n  <property>\r\n    <name>oozie.coord.application.path</name>\r\n    <value>hdfs://localhost:8020/oozie/deployments/_romain_-oozie-6-1360649203.56</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.bundle.application.path</name>\r\n    <value>hdfs://localhost:8020/oozie/workspaces/_romain_-oozie-22-1360636939.69</value>\r\n  </property>\r\n  <property>\r\n    <name>market</name>\r\n    <value>France</value>\r\n  </property>\r\n  <property>\r\n    <name>user.name</name>\r\n    <value>romain</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.use.system.libpath</name>\r\n    <value>true</value>\r\n  </property>\r\n  <property>\r\n    <name>oozie.bundle.id</name>\r\n    <value>0000021-130210132208494-oozie-oozi-B</value>\r\n  </property>\r\n  <property>\r\n    <name>nameNode</name>\r\n    <value>hdfs://localhost:8020</value>\r\n  </property>\r\n  <property>\r\n    <name>wf_application_path</name>\r\n    <value>hdfs://localhost:8020/oozie/deployments/_romain_-oozie-5-1360649203.07</value>\r\n  </property>\r\n  <property>\r\n    <name>jobTracker</name>\r\n    <value>localhost:8021</value>\r\n  </property>\r\n  <property>\r\n    <name>hue-id-b</name>\r\n    <value>22</value>\r\n  </property>\r\n</configuration>', u'user': u'romain', u'timeOut': 120, u'coordJobPath': u'hdfs://localhost:8020/oozie/deployments/_romain_-oozie-6-1360649203.56', u'timeUnit': u'DAY', u'coordJobId': u'0000022-130210132208494-oozie-oozi-C', u'coordJobName': u'DailySleep', u'nextMaterializedTime': u'Fri, 04 Jan 2013 16:00:00 PST', u'coordExternalId': None, u'acl': None, u'lastAction': u'Fri, 04 Jan 2013 16:00:00 PST', u'executionPolicy': u'FIFO', u'timeZone': u'America/Los_Angeles', u'endTime': u'Fri, 04 Jan 2013 16:00:00 PST'}
 
   WORKFLOWS_SLAS = [
       {u'actualDuration': 68406, u'appType': u'WORKFLOW_JOB', u'appName': u'Forks', u'actualStart': u'Fri, 06 Dec 2013 14:01:53 PST', u'jobStatus': u'SUCCEEDED', u'id': u'0000002-131206135002457-oozie-oozi-W', u'expectedDuration': 1800000, u'nominalTime': u'Mon, 17 Jun 2013 17:01:00 PDT', u'slaStatus': u'MISS', u'lastModified': u'Fri, 06 Dec 2013 14:03:05 PST', u'actualEnd': u'Fri, 06 Dec 2013 14:03:01 PST', u'expectedEnd': u'Mon, 17 Jun 2013 17:31:00 PDT', u'expectedStart': u'Mon, 17 Jun 2013 17:11:00 PDT', u'user': u'romain'}
@@ -238,7 +238,7 @@ class OozieMockBase(object):
     action1 = add_node(self.wf, 'action-name-1', 'mapreduce', [self.wf.start], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -246,7 +246,7 @@ class OozieMockBase(object):
     action2 = add_node(self.wf, 'action-name-2', 'mapreduce', [action1], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -254,7 +254,7 @@ class OozieMockBase(object):
     action3 = add_node(self.wf, 'action-name-3', 'mapreduce', [action2], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -335,7 +335,7 @@ class OozieBase(OozieServerProvider):
     action1 = add_node(self.wf, 'action-name-1', 'mapreduce', [self.wf.start], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -343,7 +343,7 @@ class OozieBase(OozieServerProvider):
     action2 = add_node(self.wf, 'action-name-2', 'mapreduce', [action1], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -351,7 +351,7 @@ class OozieBase(OozieServerProvider):
     action3 = add_node(self.wf, 'action-name-3', 'mapreduce', [action2], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -576,7 +576,7 @@ class TestAPI(OozieMockBase):
       oozie.views.api._workflow = old_method
 
   def test_workflow_validate_node(self):
-    data = {"files":"[\"hive-site.xml\"]","job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/user/hue/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"hive.sql","id":76,"name":"Hive"}
+    data = {"files":"[\"hive-site.xml\"]","job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"hive.sql","id":76,"name":"Hive"}
     response = self.c.post(reverse('oozie:workflow_validate_node', kwargs={'workflow': self.wf.pk, 'node_type': 'hive'}), data={'node': json.dumps(data)}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     test_response_json = response.content
     test_response_json_object = json.loads(test_response_json)
@@ -603,7 +603,7 @@ class TestAPI(OozieMockBase):
 
   def test_workflow_validate_node_fail(self):
     # Empty files field
-    data = {"job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/user/hue/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"hive.sql","id":76,"name":"Hive"}
+    data = {"job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"hive.sql","id":76,"name":"Hive"}
     response = self.c.post(reverse('oozie:workflow_validate_node', kwargs={'workflow': self.wf.pk, 'node_type': 'hive'}), data={'node': json.dumps(data)}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     test_response_json = response.content
     test_response_json_object = json.loads(test_response_json)
@@ -629,7 +629,7 @@ class TestAPI(OozieMockBase):
     assert_equal(0, len(test_response_json_object['data']['archives']), test_response_json_object['data'])
 
     # Empty script path
-    data = {"files":"[\"hive-site.xml\"]","job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/user/hue/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"","id":76,"name":"Hive"}
+    data = {"files":"[\"hive-site.xml\"]","job_xml":"hive-site.xml","description":"Show databases","workflow":17,"child_links":[{"comment":"","name":"ok","id":106,"parent":76,"child":74},{"comment":"","name":"error","id":107,"parent":76,"child":73}],"job_properties":"[{\"name\":\"oozie.hive.defaults\",\"value\":\"hive-site.xml\"}]","node_type":"hive","params":"[{\"value\":\"INPUT=/oozie/workspaces/data\",\"type\":\"param\"}]","archives":"[]","node_ptr":76,"prepares":"[]","script_path":"","id":76,"name":"Hive"}
     response = self.c.post(reverse('oozie:workflow_validate_node', kwargs={'workflow': self.wf.pk, 'node_type': 'hive'}), data={'node': json.dumps(data)}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     test_response_json = response.content
     test_response_json_object = json.loads(test_response_json)
@@ -961,7 +961,7 @@ class TestEditor(OozieMockBase):
         "files":'["my_file","my_file2"]',
         "job_xml":"",
         "java_opts":"-Dexample-property=natty",
-        "jar_path":"/user/hue/oozie/workspaces/lib/hadoop-examples.jar",
+        "jar_path":"/oozie/workspaces/lib/hadoop-examples.jar",
         "prepares":'[{"value":"/test","type":"mkdir"}]',
         "archives":'[{"dummy":"","name":"my_archive"},{"dummy":"","name":"my_archive2"}]',
         "capture_output": "on",
@@ -1171,7 +1171,7 @@ class TestEditor(OozieMockBase):
 
     assert_true(re.search(
         '<sub-workflow>\W+'
-            '<app-path>\${nameNode}/user/hue/oozie/workspaces/_test_-oozie-(.+?)</app-path>\W+'
+            '<app-path>\${nameNode}/oozie/workspaces/_test_-oozie-(.+?)</app-path>\W+'
             '<propagate-configuration/>\W+'
                 '<configuration>\W+'
                 '<property>\W+'
@@ -1958,23 +1958,23 @@ class TestEditor(OozieMockBase):
 
     workflow_metadata_json = reformat_json("""{
   "attributes": {
-    "deployment_dir": "/user/hue/oozie/workspaces/_test_-oozie-13-1383539302.62",
+    "deployment_dir": "/oozie/workspaces/_test_-oozie-13-1383539302.62",
     "description": ""
   },
   "nodes": {
     "action-name-1": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     },
     "action-name-2": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     },
     "action-name-3": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     }
   },
@@ -2226,7 +2226,7 @@ class TestImportWorkflow04(OozieMockBase):
     workflow.save()
     assert_equal(4, len(Node.objects.filter(workflow=workflow)))
     assert_equal(4, len(Link.objects.filter(parent__workflow=workflow)))
-    assert_equal('[{"type":"arg","value":"-overwrite"},{"type":"arg","value":"-m"},{"type":"arg","value":"${MAP_NUMBER}"},{"type":"arg","value":"/user/hue/oozie/workspaces/data"},{"type":"arg","value":"${OUTPUT}"}]', Node.objects.get(workflow=workflow, node_type='distcp').get_full_node().params)
+    assert_equal('[{"type":"arg","value":"-overwrite"},{"type":"arg","value":"-m"},{"type":"arg","value":"${MAP_NUMBER}"},{"type":"arg","value":"/oozie/workspaces/data"},{"type":"arg","value":"${OUTPUT}"}]', Node.objects.get(workflow=workflow, node_type='distcp').get_full_node().params)
     workflow.delete(skip_trash=True)
 
 

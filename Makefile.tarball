@@ -20,6 +20,8 @@
 
 PROD_INCLUDES := \
 	apps \
+	bin \
+	build/env/bin \
 	desktop \
 	ext/thirdparty \
 	LICENSE.txt \
@@ -35,8 +37,9 @@ PROD_INCLUDES := \
 PROD_EXCLUDES := \
 	apps/beeswax/thrift \
 	apps/hello \
+	build/env/lib \
+	build/env/include \
 	apps/jframegallery \
-	build \
 	desktop/conf \
 	desktop/desktop.db \
 	desktop/devtools.mk \
@@ -51,7 +54,6 @@ define remove_devtree_exclusions
 		      -name '.*~' -o \
 		      -name '.#*' -o \
 		      -name '.pylintrc' -o \
-		      -name 'build' -o \
 		      -name 'logs' -o \
 		      -name 'tags' -o \
 		      -name 'target' -o \
@@ -96,7 +98,7 @@ $(BLD_DIR_PROD): apps docs locales
 	@$(call STRIP_DEV, $(APPS_DIR)/Makefile, $(BLD_DIR_PROD)/apps/Makefile)
 	@$(call STRIP_DEV, $(DESKTOP_DIR)/Makefile, $(BLD_DIR_PROD)/desktop/Makefile)
 	@echo "---- Removing build directories"
-	find $(BLD_DIR_PROD) -name build -prune -exec rm -rf {} \;
+	#find $(BLD_DIR_PROD) -name build -prune -exec rm -rf {} \;
 	@$(MAKE) -C $(BLD_DIR_PROD) ext-clean
 
 # END DEV ONLY >>>>

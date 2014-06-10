@@ -24,7 +24,7 @@
     <groupId>com.cloudera.hue</groupId>
     <artifactId>hue-parent</artifactId>
     <relativePath>../../../../maven/pom.xml</relativePath>
-    <version>3.8.0-SNAPSHOT</version>
+    <version>3.8.0-mapr</version>
   </parent>
 
   <groupId>com.cloudera.hue</groupId>
@@ -34,15 +34,15 @@
   <name>Hue Hadoop</name>
   
   <scm>
-   <connection>scm:git:git://github.com/cloudera/hue.git</connection>
-   <developerConnection>scm:git:git@github.com:cloudera/hue.git</developerConnection>
-   <url>https://github.com/cloudera/hue</url>
+   <connection>scm:git:git://github.com/mapr/hue.git</connection>
+   <developerConnection>scm:git:git@github.com:mapr/hue.git</developerConnection>
+   <url>https://github.com/mapr/hue</url>
   </scm>  
 
   <dependencies>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
+      <artifactId>hadoop-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

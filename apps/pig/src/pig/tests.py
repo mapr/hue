@@ -75,8 +75,8 @@ def test_make_log_links():
       OozieApi._make_links('output: /user/romain/tmp  <dir>')
   )
   assert_equal(
-      'Successfully read 3760 records (112648 bytes) from: &quot;<a href="/filebrowser/view/user/hue/pig/examples/data/midsummer.txt" target="_blank">/user/hue/pig/examples/data/midsummer.txt</a>&quot;',
-      OozieApi._make_links('Successfully read 3760 records (112648 bytes) from: "/user/hue/pig/examples/data/midsummer.txt"')
+      'Successfully read 3760 records (112648 bytes) from: &quot;<a href="/filebrowser/view/oozie/pig/examples/data/midsummer.txt" target="_blank">/oozie/pig/examples/data/midsummer.txt</a>&quot;',
+      OozieApi._make_links('Successfully read 3760 records (112648 bytes) from: "/oozie/pig/examples/data/midsummer.txt"')
   )
   assert_equal(
       'data,upper_case  MAP_ONLY  <a href="/filebrowser/view/user/romain/out/fffff" target="_blank">hdfs://localhost:8020/user/romain/out/fffff</a>,',
