@@ -519,6 +519,9 @@ class HiveServerClient:
 
     if self.query_server['server_name'] == 'beeswax': # All the time
       kwargs['configuration'].update({'hive.server2.proxy.user': user.username})
+      if LDAP_PASSWORD.get(): # HiveServer2 supports pass-through LDAP authentication.
+        kwargs['username'] = DEFAULT_USER
+        kwargs['password'] = LDAP_PASSWORD.get()
 
     req = TOpenSessionReq(**kwargs)
     res = self._client.OpenSession(req)
