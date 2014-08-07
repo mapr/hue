@@ -157,7 +157,7 @@ from django.template.defaultfilters import escape, escapejs
     %if collect_usage:
 
       var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-40351920-1']);
+      _gaq.push(['_setAccount', 'UA-53225225-2']);
 
       // We collect only 2 path levels: not hostname, no IDs, no anchors...
       var _pathName = location.pathname;
