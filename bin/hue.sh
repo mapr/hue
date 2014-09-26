@@ -8,7 +8,7 @@ export HUE_HOME=${bin}/..
 # activate the Python virtual environment
 #
 source $HUE_HOME/build/env/bin/activate
-
+export LD_LIBRARY_PATH=$HUE_HOME/build/env/lib:$LD_LIBRARY_PATH
 
 # get arguments
 command=$1
