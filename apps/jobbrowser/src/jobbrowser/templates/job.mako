@@ -67,7 +67,8 @@
             % for i, val in enumerate(splitArray):
             <%
                 url_splitted = request.fs.urlsplit(val)
-                is_hdfs_uri = bool(url_splitted[1])
+                scheme = url_splitted[0]
+                is_hdfs_uri = bool(url_splitted[1]) and scheme not in ['thrift']
             %>
             % if is_hdfs_uri:
                 <a href="${location_to_url(val)}" title="${val}">${val}</a>
