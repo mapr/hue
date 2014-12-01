@@ -1,0 +1,101 @@
+/* Copyright (c) 2009 & onwards. MapR Tech, Inc., All rights reserved */
+package mapr.fs;
+
+option java_package = "com.mapr.fs.proto";
+option optimize_for = LITE_RUNTIME;
+
+enum SecurityProg {
+  ChallengeResponseProc = 1;
+}
+
+message CredentialsMsg {
+  optional uint32 uid = 1;  // used id
+  repeated uint32 gids = 2;  //list of groups
+  optional bool isRoot = 3;
+  optional string userName = 4;   // username
+}
+
+// 0xFFFFFFFF is reserved for ALL
+// high bit: set indicates group; clear indicates user
+message SecurityPrincipal {
+  optional uint32   princId = 1;
+}
+
+message AclEntry {
+  required SecurityPrincipal principal = 1;
+  optional uint32    allow = 2;   // bitmask, defined by the object
+  optional uint32    deny = 3;   // deny list
+}
+
+// One entry per principal
+message AccessControlList  {
+  repeated AclEntry acl = 1;
+}
+
+message Key {
+  optional bytes key = 1; // key as byte array    
+}
+
+message Ticket {
+  optional CredentialsMsg userCreds = 1; // user creds
+  optional Key userKey = 2;       // user key
+  optional uint64 expiryTime = 3; // expiry time in seconds since epoch
+
+  // Creation time in seconds since epoch
+  optional uint64 creationTimeSec = 4;
+
+  // Max duration till which ticket can be renewed
+  // If it is zero then ticket can't be renewed
+  optional uint64 maxRenewalDurationSec = 5;
+
+  // This field indicates if the ticket is given to an external
+  // component, e.g. via a call to maprlogin.
+  //
+  // Some tickets are internally generated (e.g. tickets used by
+  // mfs's to communicate with each other). Such tickets cannot be
+  // stolen and hence these connections should not be closed when
+  // the user ticket for user mapr is blacklisted
+  optional bool isExternal = 6;
+}
+
+message TicketAndKey {
+  optional bytes encryptedTicket = 1;    // ticket encrypted with ServerKey
+  optional Key userKey = 2;              // User Key
+  optional CredentialsMsg userCreds = 3; // user creds
+  optional uint64 expiryTime = 4;        // expiry time in seconds since epoch
+
+  // Creation time in seconds since epoch
+  optional uint64 creationTimeSec = 5;
+
+  // Max duration till which ticket can be renewed
+  // If it is zero then ticket can't be renewed
+  optional uint64 maxRenewalDurationSec = 6;
+}
+
+message AuthenticationReq {
+  optional uint64 challenge = 1;    // random challenge
+}
+
+message AuthenticationReqFull {
+  optional bytes encryptedRandomSecret = 1;
+  optional bytes encryptedTicket = 2;
+}
+
+message AuthenticationResp {
+  optional int32 status = 1;
+  optional uint64 challengeResponse = 2; // response for challenge
+  optional Key sessionKey = 3; // session key for communication
+  optional int32 encodingType = 4; // used in Hadoop to get server encoding level
+}
+
+enum ServerKeyType {
+  CldbKey = 0;
+  ServerKey = 1;
+  MfsUtilKey = 2;
+  ClusterKey = 3;
+  ServerKeyTypeMax = 4;
+}
+
+message TicketDescriptor {
+  optional ServerKeyType keyType = 1;
+}

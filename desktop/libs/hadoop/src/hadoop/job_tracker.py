@@ -68,13 +68,15 @@ class LiveJobTracker(object):
                thrift_port,
                logical_name=None,
                security_enabled=False,
-               kerberos_principal="mapred"):
+               kerberos_principal="mapred",
+               mechanism='none'):
     self.client = thrift_util.get_client(
       Jobtracker.Client, host, thrift_port,
       service_name="Hadoop MR JobTracker HUE Plugin",
       use_sasl=security_enabled,
       kerberos_principal=kerberos_principal,
-      timeout_seconds=JT_THRIFT_TIMEOUT)
+      timeout_seconds=JT_THRIFT_TIMEOUT,
+      mechanism=mechanism)
     self.host = host
     self.thrift_port = thrift_port
     self.logical_name = logical_name
@@ -92,7 +94,8 @@ class LiveJobTracker(object):
       conf.JT_THRIFT_PORT.get(),
       conf.LOGICAL_NAME.get(),
       security_enabled=conf.SECURITY_ENABLED.get(),
-      kerberos_principal=conf.JT_KERBEROS_PRINCIPAL.get())
+      kerberos_principal=conf.JT_KERBEROS_PRINCIPAL.get(),
+      mechanism=conf.MECHANISM.get())
 
   def thriftjobid_from_string(self, jobid):
     """The jobid looks like this: job_201001301455_0001"""
