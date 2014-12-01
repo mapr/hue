@@ -109,6 +109,8 @@ MR_CLUSTERS = UnspecifiedConfigSection(
                               default=False, type=coerce_bool),
       SUBMIT_TO=Config('submit_to', help="Whether Hue should use this cluster to run jobs",
                        default=True, type=coerce_bool), # True here for backward compatibility
+      MECHANISM=Config("mechanism", help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+                       default='none', type=str)
     )
   )
 )

@@ -26,11 +26,14 @@ import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Map;
 
+import com.mapr.security.callback.MaprSaslCallbackHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
 import org.apache.hadoop.security.*;
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod;
+import org.apache.hadoop.security.rpcauth.RpcAuthMethod;
+import org.apache.hadoop.security.rpcauth.RpcAuthRegistry;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSaslServerTransport;
@@ -162,7 +165,7 @@ class HadoopThriftAuthBridge {
 
     public Server(UserGroupInformation serverUgi) throws TTransportException {
       this.realUgi = serverUgi;
-      if (realUgi == null || !realUgi.hasKerberosCredentials()) {
+      if (realUgi == null) {
         throw new TTransportException("UGI " + realUgi + " has no kerberos credentials");
       }
 
@@ -170,6 +173,22 @@ class HadoopThriftAuthBridge {
         LOG.warn("Thrift server starting with a non-keytab login user: " + realUgi);
       }
     }
+
+    public TTransportFactory createMaprSaslTransportFactory(Configuration conf) {
+      try {
+        TSaslServerTransport.Factory transFactory = new TSaslServerTransport.Factory();
+        RpcAuthMethod authMethod = realUgi.getRpcAuthMethodList().get(0);
+        String mechanism = authMethod.getMechanismName();
+        String protocol = authMethod.getProtocol();
+        String serverId = authMethod.getServerId();
+        transFactory.addServerDefinition(mechanism, protocol, serverId, SASL_PROPS, new MaprSaslCallbackHandler(realUgi.getSubject(), realUgi.getUserName()));
+        return new TUGIAssumingTransportFactory(transFactory, realUgi);
+      } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+
 
     /**
      * Create a TTransportFactory that, upon connection of a client socket,

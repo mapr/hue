@@ -71,7 +71,11 @@ public class ThriftPluginServer implements Configurable, Runnable {
 
       this.processorFactory = authBridge.wrapProcessorFactory(
         processorFactory);
-      transportFactory = authBridge.createTransportFactory(conf);
+      try {
+        transportFactory = authBridge.createTransportFactory(conf);
+      } catch (Exception ex) {
+        transportFactory = authBridge.createMaprSaslTransportFactory(conf);
+      }
     } else {
       this.processorFactory = processorFactory;
       transportFactory = new TTransportFactory();
