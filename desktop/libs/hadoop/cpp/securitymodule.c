@@ -2,14 +2,6 @@
 #include <common/credentials.h>
 #include "proto/security.pb.h"
 #include <string.h>
-int
-_fib(int n)
-{
-    if (n < 2)
-        return n;
-    else
-        return _fib(n-1) + _fib(n-2);
-}
 
 static PyObject*
 fib(PyObject* self, PyObject* args)
@@ -42,26 +34,16 @@ GetTicketAndKeyForClusterInternal(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "si", &clusterName, &keyType))
         return NULL;
 
-    printf("Hello =%s %d \n", clusterName, keyType);
-
-
     int err = 0;
 
     mapr::fs::TicketAndKey ticketAndKey;
     mapr::fs::Security *security = mapr::fs::Security::GetSecurityInstance();
-    printf("Hello =%s!\n", clusterName);
 
     err = security->GetTicketAndKeyForCluster((mapr::fs::ServerKeyType) keyType, clusterName, &ticketAndKey);
-    printf("Hello error =%d!\n", err);
     int bufSize = ticketAndKey.ByteSize();
-	printf("Size = %d\n", bufSize); 
     uint8_t *serializedBuf = new uint8_t[bufSize];
 
     err = ticketAndKey.SerializeToArray(serializedBuf, bufSize);
-    printf("Hello error =%d!\n", err);
-    for (int i = 0; i < bufSize; i++)
-        printf("%d ", serializedBuf[i]);
-    printf("\n");
 
     return Py_BuildValue("s#", serializedBuf, bufSize);
 }
@@ -84,7 +66,6 @@ Decrypt(PyObject* self, PyObject* args)
  if (!PyArg_ParseTuple(args, "s#s#", &keyBase, &keyLen, &data, &dataLen))
         return NULL;
  
-printf("data len = %d; key len = %d\n", dataLen, keyLen);
     mapr::fs::Security *security = mapr::fs::Security::GetSecurityInstance();
 
   int maxDecryptedSize = security->GetDecryptedSize(dataLen);
@@ -111,7 +92,6 @@ Encrypt(PyObject* self, PyObject* args)
  if (!PyArg_ParseTuple(args, "s#s#", &keyBase, &keyLen, &data, &dataLen))
         return NULL;
 
-printf("data len = %d; key len = %d\n", dataLen, keyLen);
     mapr::fs::Security *security = mapr::fs::Security::GetSecurityInstance();
 
   int maxEncryptedSize = security->GetEncryptedSize(dataLen);
@@ -129,8 +109,6 @@ printf("data len = %d; key len = %d\n", dataLen, keyLen);
 
 
 static PyMethodDef SecurityMethods[] = {
-    {"fib", fib, METH_VARARGS, "Calculate the Fibonacci numbers."},
-    {"add", add, METH_VARARGS, "ADD."},
     {"GetTicketAndKeyForClusterInternal", GetTicketAndKeyForClusterInternal, METH_VARARGS, "SECURITY."},
     {"GenerateRandomNumber", GenerateRandomNumber, METH_VARARGS, "SECURITY."},
     {"Encrypt", Encrypt, METH_VARARGS, "SECURITY."},
