@@ -204,7 +204,7 @@ class Hdfs(object):
     the standard urlsplit's 5-tuple.
     """
     i = url.find(':/')
-    if i == -1:
+    if i == -1 or (i + 2 < len(url) and url[i + 2] != '/' and url[:i] != 'maprfs'):
       # Not found. Treat the entire argument as an HDFS path
       return ('hdfs', '', normpath(url), '', '')
     schema = url[:i]
