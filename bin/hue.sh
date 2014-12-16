@@ -8,6 +8,7 @@ export HUE_HOME=${bin}/..
 # activate the Python virtual environment
 #
 source $HUE_HOME/build/env/bin/activate
+pip install protobuf
 export LD_LIBRARY_PATH=$HUE_HOME/build/env/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/opt/mapr/lib:$JAVA_HOME/jre/lib/amd64/server:$LD_LIBRARY_PATH
 
