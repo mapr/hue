@@ -71,7 +71,7 @@ echo '[INFO] Converting pkcs12 to pem using OpenSSL...'
 openssl pkcs12 -in $DEST_KEYSTORE -out $OPENSSL_PKCS12_OUT -passin pass:${DEST_STORE_PASSWD} -passout pass:${DEST_STORE_PASSWD}
 
 if [[ $? -ne 0 ]]; then
-    echo '[ERROR] No pkcs12 has been converted.'
+    log '[ERROR] No pkcs12 has been converted. Warning, check if openssl package is installed.'
     exit 0
 fi
 
