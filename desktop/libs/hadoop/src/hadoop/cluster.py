@@ -23,6 +23,13 @@ from hadoop.fs import webhdfs, LocalSubFileSystem
 from hadoop.job_tracker import LiveJobTracker
 
 from desktop.lib.paths import get_build_dir
+from hadoop import conf
+from urlparse import urlparse
+from desktop.conf import DEFAULT_JOBTRACKER_HOST
+
+import os
+import logging
+import subprocess
 
 
 LOG = logging.getLogger(__name__)
@@ -92,6 +99,28 @@ def get_default_mrcluster():
       return candidates.values()[0]
     return None
 
+def get_mrcluster_from_maprcli():
+  config = conf.MR_CLUSTERS[MR_NAME_CACHE]
+  jt = get_default_mrcluster()
+  default_jt_host=DEFAULT_JOBTRACKER_HOST.get()
+
+  if default_jt_host == "maprfs:///":
+    try:
+      maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "jobtracker"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      maprcli_stdout, maprcli_stderr = maprcli_popen.communicate()
+    except Exception, ex:
+      LOG.info('Error in marcli: %s' %  ex)
+      return None
+
+    if not maprcli_stdout.startswith("ERROR"):
+      jobtracker_url = maprcli_stdout.split("\n")[1]
+      jobtracker_host = urlparse(jobtracker_url).hostname
+      LOG.info('New JobTracker found: %s.' % jobtracker_host)
+      jt.host = jobtracker_host
+      jt.client.conf.host = jobtracker_host
+      return (config, jt)
+
+  return None
 
 def get_default_yarncluster():
   """
@@ -105,15 +134,9 @@ def get_default_yarncluster():
     return get_yarn()
 
 
-def get_next_ha_mrcluster():
-  """
-  Return the next available JT instance and cache its name.
-
-  This method currently works for distincting between active/standby JT as a standby JT does not respond.
-  A cleaner but more complicated way would be to do something like the MRHAAdmin tool and
-  org.apache.hadoop.ha.HAServiceStatus#getServiceStatus().
-  """
+def get_mrcluster_from_config():
   global MR_NAME_CACHE
+
   candidates = all_mrclusters()
   has_ha = sum([conf.MR_CLUSTERS[name].SUBMIT_TO.get() for name in conf.MR_CLUSTERS.keys()]) >= 2
 
@@ -142,6 +165,21 @@ def get_next_ha_mrcluster():
       else:
         return (config, jt)
   return None
+
+def get_next_ha_mrcluster():
+  """
+  Return the next available JT instance and cache its name.
+
+  This method currently works for distincting between active/standby JT as a standby JT does not respond.
+  A cleaner but more complicated way would be to do something like the MRHAAdmin tool and
+  org.apache.hadoop.ha.HAServiceStatus#getServiceStatus().
+  """
+
+  config_and_jt = get_mrcluster_from_maprcli()
+  if (config_and_jt == None):
+    config_and_jt = get_mrcluster_from_config()
+
+  return config_and_jt
 
 
 def get_mrcluster(identifier="default"):
