@@ -60,6 +60,11 @@ USE_DOAS = Config(
   type=coerce_bool
 )
 
+MECHANISM=Config(
+    "mechanism",
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+    default='none',
+    type=str)
 
 def config_validator(user):
   res = []
