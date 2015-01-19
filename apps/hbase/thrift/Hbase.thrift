@@ -122,7 +122,7 @@ struct TIncrement {
 }
 
 /**
- * Holds row name and then a map of columns to cells. 
+ * Holds row name and then a map of columns to cells.
  */
 struct TRowResult {
   1:Text row,
@@ -213,6 +213,15 @@ service Hbase {
    */
   list<Text> getTableNames()
     throws (1:IOError io)
+
+  /**
+   * List all the mapr tables.
+   *
+   * @return returns a list of names
+   */
+  list<string> getTableNamesByPath(1:string path)
+    throws (1:IOError io)
+
 
   /**
    * List all the column families assoicated with a table.
