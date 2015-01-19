@@ -127,6 +127,49 @@ def api_dump(response):
     })
 
 
+
+
+
+def to_json(path, dirs, tables):
+    r = map (lambda dir: {'id': (path+dir + '/'), 'text': dir, 'children': True}, dirs)
+    r += map (lambda dir: {'id': (path+dir), 'text': dir, 'icon': False, 'li_attr': {'onClick':'referToTable(this)'}}, map(lambda x: x.split('/')[-1], tables))
+    return json.dumps(r)
+
+
+
+def getList(request):
+
+    global dirs, tables
+
+    if request.GET['id'] == "#":
+        return HttpResponse('[{"id" : "/", "text" : "/", "children" : true}]', content_type="application/json")
+    path = request.GET['id']
+    #http-fs request
+    import urllib2
+    import json
+    #get httpfs conf
+    from desktop.lib import conf
+    global_conf = conf.GLOBAL_CONFIG.get_data_dict().get('hadoop')
+    httpfs_url = global_conf['hdfs_clusters']['default']['webhdfs_url']
+    try:
+        resp = urllib2.urlopen(httpfs_url +path + "?user.name=mapr&op=LISTSTATUS").read()
+        parse_json = json.loads(resp)
+        # container for directories
+        dirs = []
+        for item in parse_json.get("FileStatuses").get("FileStatus"):
+            if item.get('type') == 'DIRECTORY':
+                dirs.append(item.get('pathSuffix'))
+    except:
+        pass
+    #tables request
+    try:
+        tables = HbaseApi().getTableListByPath(str(request.GET['cluster']), path + ".*")
+    except:
+        pass
+    resp = to_json(path,dirs,tables)
+    return HttpResponse(resp,content_type="application/json")
+
+
 def install_examples(request):
   result = {'status': -1, 'message': ''}
 
