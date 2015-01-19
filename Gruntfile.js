@@ -62,6 +62,7 @@ module.exports = function(grunt) {
           'apps/jobbrowser/src/jobbrowser/static/jobbrowser/css/jobbrowser-embeddable.css': 'apps/jobbrowser/src/jobbrowser/static/jobbrowser/less/jobbrowser-embeddable.less',
           'apps/useradmin/src/useradmin/static/useradmin/css/useradmin.css': 'apps/useradmin/src/useradmin/static/useradmin/less/useradmin.less',
           'apps/hbase/src/hbase/static/hbase/css/hbase.css': 'apps/hbase/src/hbase/static/hbase/less/hbase.less',
+          'apps/hbase/src/hbase/static/hbase/css/maprtables.css': 'apps/hbase/src/hbase/static/hbase/less/maprtables.less',
           'apps/security/src/security/static/security/css/security.css': 'apps/security/src/security/static/security/less/security.less',
           'apps/sqoop/src/sqoop/static/sqoop/css/sqoop.css': 'apps/sqoop/src/sqoop/static/sqoop/less/sqoop.less',
           'desktop/libs/indexer/src/indexer/static/indexer/css/indexes.css': 'desktop/libs/indexer/src/indexer/static/indexer/less/indexes.less',

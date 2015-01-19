@@ -19,6 +19,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns('hbase.views',
   url(r'^$', 'app', name='index'),
+  url(r'^api/getlist/$', 'getList', name='getlist'),
   url(r'api/(?P<url>.+)$', 'api_router'),
 
   url(r'^install_examples$', 'install_examples', name='install_examples'),
