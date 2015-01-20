@@ -112,7 +112,7 @@ class HbaseApi(object):
       kerberos_principal_short_name = principal.split('/', 1)[0]
     else:
       kerberos_principal_short_name = None
-    use_sasl = get_server_authentication() == 'KERBEROS'
+    use_sasl = get_server_authentication() == 'KERBEROS' or get_server_authentication() == 'MAPR-SECURITY'
 
     if use_sasl and kerberos_principal_short_name is None:
       raise PopupException(_("The kerberos principal name is missing from the hbase-site.xml configuration file."))
