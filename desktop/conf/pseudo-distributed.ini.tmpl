@@ -978,7 +978,7 @@
   ## hbase_clusters=(Cluster|localhost:9090)
 
   # HBase configuration directory, where hbase-site.xml is located.
-  ## hbase_conf_dir=/etc/hbase/conf
+  ## hbase_conf_dir=/opt/mapr/hbase/hbase-0.98.4/conf
 
   # Hard limit of rows or columns per row fetched before truncating.
   ## truncate_limit = 500
@@ -987,6 +987,9 @@
   # 'framed' can be used to chunk up responses,
   # which is useful when used in conjunction with the nonblocking server in Thrift.
   ## thrift_transport=buffered
+
+  # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY
+  ## mechanism=MAPR-SECURITY
 
 
 ###########################################################################
