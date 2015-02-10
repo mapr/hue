@@ -168,6 +168,15 @@ app.initialize().done(function() {
         resetElements();
         routed = true;
       },
+      ':cluster/*': function(cluster, maprtable){
+        $.totalStorage('hbase_cluster', cluster);
+        Router.setTable(cluster, maprtable);
+        resetSearch();
+        resetElements();
+        app.station('table');
+        Views.render('dataview');
+        routed = true;
+      },
       'error': function() {
         logGA('error');
         routed = true;
