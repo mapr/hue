@@ -78,7 +78,7 @@ QUERY_TIMEOUT_S = Config(
   help=_t("If QUERY_TIMEOUT_S > 0, the query will be timed out (i.e. cancelled) if Impala does not do any work"
           " (compute or send back results) for that query within QUERY_TIMEOUT_S seconds."),
   type=int,
-  default=600
+  default=0
 )
 
 SSL = ConfigSection(
