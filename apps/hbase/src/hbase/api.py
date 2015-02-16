@@ -97,8 +97,7 @@ class HbaseApi(object):
                                   kerberos_principal=_security['kerberos_principal_short_name'],
                                   use_sasl=_security['use_sasl'],
                                   timeout_seconds=30,
-                                  transport=conf.THRIFT_TRANSPORT.get(),
-                                  mechanism=conf.MECHANISM.get(),
+
                                   transport_mode='http' if is_using_thrift_http() else 'socket',
                                   http_url=('https://' if is_using_thrift_ssl() else 'http://') + target['host'] + ':' + str(target['port']))
 
