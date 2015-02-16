@@ -2389,6 +2389,32 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
           resetElements();
           routed = true;
         },
+        ':cluster/*/query': function(cluster, table) {
+            routie(cluster + '/' + table);
+        },
+        ':cluster/*/query/:query': function(cluster, table, query) {
+          hueAnalytics.log('hbase', 'query_maprdb_table');
+          $.totalStorage('hbase_cluster', cluster);
+          app.station('table');
+          app.search.cur_input(query);
+          Router.setTable(cluster, table);
+          resetElements();
+          Views.render('dataview');
+          app.views.tabledata._reloadcfs(function(){
+            app.search.evaluate();
+            app.views.tabledata.searchQuery(query);
+          });
+          routed = true;
+        },
+        ':cluster/*': function(cluster, maprtable){
+          $.totalStorage('hbase_cluster', cluster);
+          Router.setTable(cluster, maprtable);
+          resetSearch();
+          resetElements();
+          app.station('table');
+          Views.render('dataview');
+          routed = true;
+        },
         'error': function () {
           hueAnalytics.log('hbase', 'error');
           routed = true;
