@@ -159,12 +159,15 @@ def getList(request):
         for item in parse_json.get("FileStatuses").get("FileStatus"):
             if item.get('type') == 'DIRECTORY':
                 dirs.append(item.get('pathSuffix'))
-    except:
+    except Exception, e:
+        LOG.exception(e)
+        return HttpResponse(json.dumps(result), mimetype="application/json")
         pass
     #tables request
     try:
         tables = HbaseApi().getTableListByPath(str(request.GET['cluster']), path + ".*")
-    except:
+    except Exception, e:
+        LOG.exception(e)
         pass
     resp = to_json(path,dirs,tables)
     return HttpResponse(resp,content_type="application/json")

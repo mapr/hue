@@ -172,6 +172,23 @@ app.initialize().done(function () {
       resetElements();
       routed = true;
     },
+      ':cluster/*/query': function(cluster, table) {
+          routie(cluster + '/' + table);
+      },
+      ':cluster/*/query/:query': function(cluster, table, query) {
+        logGA('query_maprdb_table');
+        $.totalStorage('hbase_cluster', cluster);
+        app.station('table');
+        app.search.cur_input(query);
+        Router.setTable(cluster, table);
+        resetElements();
+        Views.render('dataview');
+        app.views.tabledata._reloadcfs(function(){
+          app.search.evaluate();
+          app.views.tabledata.searchQuery(query);
+        });
+        routed = true;
+      },
       ':cluster/*': function(cluster, maprtable){
         $.totalStorage('hbase_cluster', cluster);
         Router.setTable(cluster, maprtable);
