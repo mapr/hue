@@ -28,7 +28,7 @@ var Router = {
 
     var bulkUploader = new qq.FileUploaderBasic({
       button: document.getElementById("bulk-upload-btn"),
-      action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"',
+      action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"',
       fileFieldLabel: 'hbase_file',
       multiple: false,
       onComplete: function (id, fileName, response) {
