@@ -176,7 +176,7 @@ class HadoopThriftAuthBridge {
 
     public TTransportFactory createTransportFactory(Configuration conf) throws Exception {
       Map<String, String> saslProps = SASL_PROPS;
-      RpcAuthMethod authMethod = realUgi.getRpcAuthMethodList().get(0);
+      RpcAuthMethod authMethod = RpcAuthRegistry.getAuthMethod(realUgi.getAuthenticationMethod());
       String mechanism = authMethod.getMechanismName();
       String protocol = authMethod.getProtocol();
       String serverId = authMethod.getServerId();
