@@ -5,7 +5,7 @@ SECURITY_LIB_PATH = '/build/env/lib'
 sys.path.append(os.getcwd() + PROTOBUF_LIB_PATH)
 sys.path.append(os.getcwd() + SECURITY_LIB_PATH)
 from requests.auth import AuthBase
-import security
+import maprsecurity
 import security_pb2
 import base64
 
@@ -25,13 +25,13 @@ class MaprSasl(object):
         pass
 
     def get_init_response(self):
-        serverKeyBytes = security.GetTicketAndKeyForClusterInternal(get_cluster_name(), 1)
+        serverKeyBytes = maprsecurity.GetTicketAndKeyForClusterInternal(get_cluster_name(), 1)
         tk = security_pb2.TicketAndKey()
         tk.ParseFromString(serverKeyBytes)
 
-        self.randomNumber = security.GenerateRandomNumber()
+        self.randomNumber = maprsecurity.GenerateRandomNumber()
         import struct
-        encr = security.Encrypt(tk.userKey.key, struct.pack('l', self.randomNumber)[::-1])
+        encr = maprsecurity.Encrypt(tk.userKey.key, struct.pack('l', self.randomNumber)[::-1])
         if (self.randomNumber < 0): self.randomNumber += (1 << 64)
         auth = security_pb2.AuthenticationReqFull()
         auth.encryptedRandomSecret = encr
@@ -58,7 +58,7 @@ class MaprSasl(object):
     def step(self, payload):
         token = payload
         challenge = base64.b64decode(token)
-        decodedResponse = security.Decrypt(self.tk.userKey.key, challenge)
+        decodedResponse = maprsecurity.Decrypt(self.tk.userKey.key, challenge)
         authResponse = security_pb2.AuthenticationResp()
         authResponse.ParseFromString(decodedResponse)
         result = authResponse.challengeResponse == self.randomNumber

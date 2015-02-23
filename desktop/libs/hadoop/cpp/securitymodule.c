@@ -117,7 +117,7 @@ static PyMethodDef SecurityMethods[] = {
 };
 
 PyMODINIT_FUNC
-initsecurity(void)
+initmaprsecurity(void)
 {
-    Py_InitModule("security", SecurityMethods);
+    Py_InitModule("maprsecurity", SecurityMethods);
 }
