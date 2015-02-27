@@ -4,6 +4,30 @@ PROTOBUF_LIB_PATH = '/build/env/build/protobuf'
 SECURITY_LIB_PATH = '/build/env/lib'
 sys.path.append(os.getcwd() + PROTOBUF_LIB_PATH)
 sys.path.append(os.getcwd() + SECURITY_LIB_PATH)
+
+def get_java_home():
+  import os
+  import subprocess
+
+  def get_out(cmd):
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    out, ignore = proc.communicate()
+    if proc.poll() != 0:
+      raise Exception("[ERROR] JAVA_HOME not found: %s" % cmd)
+    out = out.strip()
+    return out
+
+  java_bin = get_out(["bash", "-c", "type -p java"])
+  java_dir = get_out(["readlink", "-f", java_bin])
+  jdk_dir = os.path.join(java_dir, "..", "..")
+  jdk_dir = os.path.abspath(jdk_dir)
+  return jdk_dir
+
+from ctypes import *
+java_home = get_java_home()
+print(str(java_home))
+lib1 = cdll.LoadLibrary(java_home + '/lib/amd64/server/libjvm.so')
+
 from requests.auth import AuthBase
 import maprsecurity
 import security_pb2
