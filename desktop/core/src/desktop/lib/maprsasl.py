@@ -19,14 +19,16 @@ def get_java_home():
 
   java_bin = get_out(["bash", "-c", "type -p java"])
   java_dir = get_out(["readlink", "-f", java_bin])
-  jdk_dir = os.path.join(java_dir, "..", "..")
+  if "jre/bin/java" in java_dir:
+    jdk_dir = os.path.join(java_dir, "..", "..", "..")
+  elif "bin/java" in java_dir:
+    jdk_dir = os.path.join(java_dir, "..", "..")
   jdk_dir = os.path.abspath(jdk_dir)
   return jdk_dir
 
 from ctypes import *
 java_home = get_java_home()
-print(str(java_home))
-lib1 = cdll.LoadLibrary(java_home + '/lib/amd64/server/libjvm.so')
+lib1 = cdll.LoadLibrary(java_home + '/jre/lib/amd64/server/libjvm.so')
 
 from requests.auth import AuthBase
 import maprsecurity
