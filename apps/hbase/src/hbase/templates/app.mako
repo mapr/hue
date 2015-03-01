@@ -729,7 +729,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
           data.content.history.reload();
 
           if (data.content.parent) {
-            var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
+            var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
             var uploader = new qq.FileUploaderBasic({
               button: document.getElementById("file-upload-btn"),
               action: path,
@@ -764,7 +764,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
               }
             },
             onSubmit: function () {
-              uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
+              uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
             }
           });
           break;
@@ -2098,7 +2098,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 
         var bulkUploader = new qq.FileUploaderBasic({
           button: document.getElementById("bulk-upload-btn"),
-          action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"',
+          action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"',
           fileFieldLabel: 'hbase_file',
           multiple: false,
           onComplete: function (id, fileName, response) {
