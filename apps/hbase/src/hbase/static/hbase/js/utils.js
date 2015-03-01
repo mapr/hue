@@ -112,7 +112,7 @@ function launchModal(modal, data) {
       data.content.history.reload();
 
       if(data.content.parent) {
-        var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
+        var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
         var uploader = new qq.FileUploaderBasic({
           button: document.getElementById("file-upload-btn"),
           action: path,
@@ -144,7 +144,7 @@ function launchModal(modal, data) {
           }
         },
         onSubmit: function() {
-          uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
+          uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
         }
       });
       break;
