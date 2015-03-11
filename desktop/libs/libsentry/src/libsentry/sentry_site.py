@@ -55,7 +55,7 @@ def get_conf(name='sentry'):
 
 
 def get_hive_sentry_provider():
-  return get_conf(name='hive').get(_CONF_HIVE_PROVIDER, 'server1')
+  return get_conf(name='hive').get(_CONF_HIVE_PROVIDER, 'HS2')
 
 
 def get_sentry_server_principal():
@@ -68,10 +68,10 @@ def get_sentry_server_principal():
     return None
 
 def get_sentry_server_authentication():
-  return get_conf().get(_CONF_SENTRY_SERVER_SECURITY_MODE, 'NOSASL').upper()
+  return get_conf().get(_CONF_SENTRY_SERVER_SECURITY_MODE, 'NONE').upper()
 
 def get_sentry_server_admin_groups():
-  return get_conf().get(_CONF_SENTRY_SERVER_ADMIN_GROUP, '').split(',')
+  return get_conf().get(_CONF_SENTRY_SERVER_ADMIN_GROUP, 'mapr').split(',')
 
 
 def get_sentry_server_ha_enabled():
@@ -97,7 +97,7 @@ def _parse_sites():
 
   try:
     from beeswax.conf import HIVE_CONF_DIR
-    paths.append(('hive', os.path.join(HIVE_CONF_DIR.get(), 'sentry-site.xml')))
+    paths.append(('hive', os.path.join(HIVE_CONF_DIR.get(), 'hive-site.xml')))
   except Exception, e:
     LOG.error('Cannot read Hive sentry site: %s' % e)
 
