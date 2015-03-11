@@ -17,7 +17,7 @@
 
 import errno
 import logging
-import os.path
+import os
 import random
 
 from django.utils.translation import ugettext as _
@@ -35,7 +35,8 @@ LOG = logging.getLogger(__name__)
 
 _SITE_DICT = None
 
-_CONF_HIVE_PROVIDER = 'hive.sentry.server'
+_CONF_HIVE_PROVIDER_DEPRECATED = 'hive.sentry.server'
+_CONF_HIVE_PROVIDER = 'sentry.hive.server'
 
 _CONF_SENTRY_SERVER_PRINCIPAL = 'sentry.service.server.principal'
 _CONF_SENTRY_SERVER_SECURITY_MODE = 'sentry.service.security.mode'
@@ -57,7 +58,7 @@ def get_conf(name='sentry'):
 
 
 def get_hive_sentry_provider():
-  return get_conf(name='hive').get(_CONF_HIVE_PROVIDER, 'server1')
+  return get_conf(name='hive').get(_CONF_HIVE_PROVIDER) or get_conf(name='hive').get(_CONF_HIVE_PROVIDER_DEPRECATED) or 'HS2'
 
 
 def get_solr_sentry_provider():
@@ -75,11 +76,11 @@ def get_sentry_server_principal():
 
 
 def get_sentry_server_authentication():
-  return get_conf().get(_CONF_SENTRY_SERVER_SECURITY_MODE, 'NOSASL').upper()
+  return get_conf().get(_CONF_SENTRY_SERVER_SECURITY_MODE, 'NONE').upper()
 
 
 def get_sentry_server_admin_groups():
-  return get_conf().get(_CONF_SENTRY_SERVER_ADMIN_GROUP, '').split(',')
+  return get_conf().get(_CONF_SENTRY_SERVER_ADMIN_GROUP, os.environ.get('MAPR_USER', 'mapr')).split(',')
 
 
 def get_sentry_server_rpc_addresses():
