@@ -61,7 +61,11 @@ class WebHdfs(Hdfs):
                security_enabled=False,
                mechanism=None,
                temp_dir="/tmp",
-               umask=01022):
+               umask=01022,
+               ssl=False,
+               ssl_cert="",
+               ssl_key="",
+               ca_verify=False):
     self._url = url
     self._superuser = hdfs_superuser
     self._security_enabled = security_enabled
@@ -71,7 +75,13 @@ class WebHdfs(Hdfs):
     self._fs_defaultfs = fs_defaultfs
     self._logical_name = logical_name
 
-    self._client = self._make_client(url, security_enabled, mechanism)
+    # SSL certificate based authentication
+    self._ssl = ssl
+    self._ssl_cert = ssl_cert
+    self._ssl_key = ssl_key
+    self._ca_verify = ca_verify
+
+    self._client = self._make_client(url, security_enabled, mechanism, ssl, ssl_cert, ssl_key, ca_verify)
     self._root = resource.Resource(self._client)
 
     # To store user info
@@ -89,14 +99,23 @@ class WebHdfs(Hdfs):
                security_enabled=hdfs_config.SECURITY_ENABLED.get(),
                mechanism=hdfs_config.MECHANISM.get(),
                temp_dir=hdfs_config.TEMP_DIR.get(),
-               umask=hdfs_config.UMASK.get())
+               umask=hdfs_config.UMASK.get(),
+               ssl=hdfs_config.SSL.get(),
+               ssl_cert=hdfs_config.SSL_CERT.get(),
+               ssl_key=hdfs_config.SSL_KEY.get(),
+               ca_verify=hdfs_config.CA_VERIFY.get())
 
   def __str__(self):
     return "WebHdfs at %s" % self._url
 
-  def _make_client(self, url, security_enabled, mechanism):
+  def _make_client(self, url, security_enabled, mechanism, ssl, cert, key, ca_verify):
     client = http_client.HttpClient(
         url, exc_class=WebHdfsException, logger=LOG)
+
+    if(ssl):
+      client._session.cert = (cert, key)
+      client._session.verify = ca_verify
+
     if security_enabled:
       auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
       if mechanism in auth_clients:

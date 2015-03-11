@@ -80,6 +80,14 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
                       default='/tmp', type=str),
       UMASK=Config("umask", help="Default umask for file and directory creation, specified in an octal value",
                    default='022', type=coerce_umask),
+      SSL=Config("ssl", help="Is running with SSL authentication",
+                              default=False, type=coerce_bool),
+      SSL_CERT=Config("ssl_cert", help="Certificate for SSL connection",
+                         type=str, default="/opt/mapr/conf/ssl_client-cert.pem"),
+      SSL_KEY=Config("ssl_key", help="Private key for SSL connection",
+                         type=str, default="/opt/mapr/conf/ssl_client-key.pem"),
+      CA_VERIFY=Config("ca_verify", help="If certificate verified against certificate authority",
+                              default=False, type=coerce_bool),
     )
   )
 )
