@@ -20,6 +20,8 @@ import logging
 import lxml.html
 import re
 import urllib2
+import urllib2_kerberos
+from desktop.lib.maprsasl import MaprSasl
 
 from urlparse import urlparse, urlunparse
 
@@ -27,6 +29,7 @@ from desktop.lib.view_util import format_duration_in_millis
 from desktop.lib import i18n
 from hadoop import job_tracker
 from hadoop import confparse
+from hadoop import cluster
 from hadoop.api.jobtracker.ttypes import JobNotFoundException
 
 import hadoop.api.jobtracker.ttypes as ttypes
@@ -451,29 +454,47 @@ class TaskAttempt(object):
       &start=<offset>   : specify the start offset of the log section, when using a filter.
       &end=<offset>     : specify the end offset of the log section, when using a filter.
     """
+
+    log_filters = ('stdout', 'stderr', 'syslog')
+    logs = [self.get_specific_log(filter) for filter in log_filters]
+    return logs
+  
+  def get_specific_log(self, log_filter):
     tracker = self.get_tracker()
-    url = urlunparse(('http',
+    mapred_cluster = cluster.get_cluster_conf_for_job_submission()
+    scheme = 'https' if mapred_cluster.SECURITY_ENABLED.get() else 'http'
+
+    url = urlunparse((scheme,
                       '%s:%s' % (tracker.host, tracker.httpPort),
                       'tasklog',
                       None,
-                      'attemptid=%s' % (self.attemptId,),
+                      'attemptid=%s&filter=%s&plaintext=true' % (self.attemptId, log_filter),
                       None))
     LOGGER.info('Retrieving %s' % (url,))
     try:
-      data = urllib2.urlopen(url)
+      data = self.get_url_data(url)
     except urllib2.URLError:
       raise urllib2.URLError(_("Cannot retrieve logs from TaskTracker %(id)s.") % {'id': self.taskTrackerId})
 
-    et = lxml.html.parse(data)
-    log_sections = et.findall('body/pre')
-    logs = [section.text or '' for section in log_sections]
-    if len(logs) < 3:
-      LOGGER.warn('Error parsing task attempt log for %s at "%s". Found %d (not 3) log sections' %
-                  (self.attemptId, url, len(log_sections)))
-      err = _("Hue encountered an error while retrieving logs from '%s'.") % (url,)
-      logs += [err] * (3 - len(logs))
-    return logs
+    return data
 
+  def get_url_data(self, url):
+    LOGGER.info('Retrieving %s' % (url,))
+
+    if self.task.jt.client.conf.mechanism in ['GSSAPI']:
+      handlers = urllib2_kerberos.HTTPKerberosAuthHandler()
+      headers = {}
+    elif self.task.jt.client.conf.mechanism in ['MAPR-SECURITY']:
+      mapr = MaprSasl()
+      handlers = urllib2.HTTPSHandler()
+      headers = {"Authorization" : 'MAPR-Negotiate ' + mapr.get_init_response()}
+    else:
+      return urllib2.urlopen(url).read()
+
+    opener = urllib2.build_opener(handlers)
+    request = urllib2.Request(url, headers=headers)
+
+    return opener.open(request).read()
 
 class Tracker(object):
 
