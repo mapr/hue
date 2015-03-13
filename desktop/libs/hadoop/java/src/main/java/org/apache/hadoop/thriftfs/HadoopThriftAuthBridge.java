@@ -176,10 +176,24 @@ class HadoopThriftAuthBridge {
 
     public TTransportFactory createTransportFactory(Configuration conf) throws Exception {
       Map<String, String> saslProps = SASL_PROPS;
-      RpcAuthMethod authMethod = RpcAuthRegistry.getAuthMethod(realUgi.getAuthenticationMethod());
-      String mechanism = authMethod.getMechanismName();
-      String protocol = authMethod.getProtocol();
-      String serverId = authMethod.getServerId();
+      RpcAuthMethod authMethod;
+      String mechanism;
+      String protocol = null;
+      String serverId = null;
+
+      try {
+          Class rpcAuthRegistryClass = HadoopThriftAuthBridge.class.getClassLoader()
+                  .loadClass("org.apache.hadoop.security.rpcauth.RpcAuthRegistry");
+          Method getAuthMethod = rpcAuthRegistryClass.getMethod("getAuthMethod", UserGroupInformation.AuthenticationMethod.class);
+          authMethod = (RpcAuthMethod) getAuthMethod.invoke(null, realUgi.getAuthenticationMethod());
+          mechanism = authMethod.getMechanismName();
+          protocol = authMethod.getProtocol();
+          serverId = authMethod.getServerId();
+      } catch (Exception e) {
+          LOG.warn("Error with class org.apache.hadoop.security.rpcauth.RpcAuthRegistry" + e);
+          authMethod = realUgi.getRpcAuthMethodList().get(0);
+          mechanism = authMethod.getMechanismName();
+      }
       if (AuthMethod.KERBEROS.getMechanismName().equals(mechanism)) {
         String kerberosName = realUgi.getUserName();
         final String names[] = SaslRpcServer.splitKerberosName(kerberosName);
