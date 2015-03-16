@@ -23,11 +23,13 @@ from desktop.conf import DEFAULT_USER
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
+from desktop.lib.maprsasl import HttpMaprAuth
 from hadoop import cluster
 from hadoop.yarn.resource_manager_api import get_resource_manager
 
 
 LOG = logging.getLogger(__name__)
+DEFAULT_USER = 'hue'
 
 _API_VERSION = 'v1'
 _JSON_CONTENT_TYPE = 'application/json'
@@ -45,7 +47,7 @@ def get_mapreduce_api(username):
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('No Resource Manager are available.'))
-        API_CACHE = MapreduceApi(yarn_cluster.PROXY_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get())
+        API_CACHE = MapreduceApi(yarn_cluster.PROXY_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -56,15 +58,20 @@ def get_mapreduce_api(username):
 
 class MapreduceApi(object):
 
-  def __init__(self, mr_url, security_enabled=False, ssl_cert_ca_verify=False):
-    self._url = posixpath.join(mr_url, 'proxy')
+  def __init__(self, oozie_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
+    self._user = username
+    self._url = posixpath.join(oozie_url, 'proxy')
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
     self._thread_local = threading.local()  # To store user info
 
     if self._security_enabled:
-      self._client.set_kerberos_auth()
+      auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+      if mechanism in auth_clients:
+          self._client._session.auth = auth_clients[mechanism]()
+      else:
+          self._client.set_kerberos_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 
@@ -93,7 +100,7 @@ class MapreduceApi(object):
       return DEFAULT_USER.get()
 
   def setuser(self, user):
-    curr = self.username
+    curr = self._user
     self._thread_local.user = user
     return curr
 
@@ -143,4 +150,4 @@ class MapreduceApi(object):
 
   def kill(self, job_id):
     app_id = job_id.replace('job', 'application')
-    get_resource_manager(self.username).kill(app_id) # We need to call the RM
+    get_resource_manager(self._user).kill(app_id) # We need to call the RM

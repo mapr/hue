@@ -23,6 +23,7 @@ from desktop.conf import DEFAULT_USER
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
+from desktop.lib.maprsasl import HttpMaprAuth
 from hadoop import cluster
 
 
@@ -44,7 +45,7 @@ def get_history_server_api(username):
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('YARN cluster is not available.'))
-        API_CACHE = HistoryServerApi(yarn_cluster.HISTORY_SERVER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get())
+        API_CACHE = HistoryServerApi(yarn_cluster.HISTORY_SERVER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -55,7 +56,7 @@ def get_history_server_api(username):
 
 class HistoryServerApi(object):
 
-  def __init__(self, oozie_url, security_enabled=False, ssl_cert_ca_verify=False):
+  def __init__(self, oozie_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
     self._url = posixpath.join(oozie_url, 'ws/%s/history' % _API_VERSION)
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
@@ -63,7 +64,11 @@ class HistoryServerApi(object):
     self._thread_local = threading.local()  # To store user info
 
     if self._security_enabled:
-      self._client.set_kerberos_auth()
+      auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+      if mechanism in auth_clients:
+          self._client._session.auth = auth_clients[mechanism]()
+      else:
+          self._client.set_kerberos_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 
