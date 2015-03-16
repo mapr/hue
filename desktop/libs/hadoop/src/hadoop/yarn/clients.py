@@ -22,6 +22,7 @@ import urlparse
 import heapq
 
 from desktop.lib.rest.http_client import HttpClient
+from desktop.lib.maprsasl import HttpMaprAuth
 
 from hadoop import cluster
 
@@ -54,8 +55,15 @@ def get_log_client(log_link):
       client = HttpClient(base_url, logger=LOG)
       yarn_cluster = cluster.get_cluster_conf_for_job_submission()
       client.set_verify(yarn_cluster.SSL_CERT_CA_VERIFY.get())
+
       if yarn_cluster.SECURITY_ENABLED.get():
-        client.set_kerberos_auth()
+        auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+        mechanism = yarn_cluster.MECHANISM.get()
+        if mechanism in auth_clients:
+          client._session.auth = auth_clients[mechanism]()
+        else:
+          client.set_kerberos_auth()
+
     else:
       _log_client_heap.remove(client_tuple)
       client = client_tuple[1]
