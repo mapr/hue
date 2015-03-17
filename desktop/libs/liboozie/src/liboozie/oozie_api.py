@@ -26,9 +26,11 @@ from desktop.lib.rest.resource import Resource
 
 from liboozie.conf import SECURITY_ENABLED
 from liboozie.conf import OOZIE_URL
+from liboozie.conf import MECHANISM
 from liboozie.types import WorkflowList, CoordinatorList, Coordinator, Workflow,\
   CoordinatorAction, WorkflowAction, BundleList, Bundle, BundleAction
 from liboozie.utils import config_gen
+from desktop.lib.maprsasl import HttpMaprAuth
 
 
 LOG = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ def get_oozie(user, api_version=API_VERSION):
     try:
       if _api_cache is None or _api_cache.api_version != api_version:
         secure = SECURITY_ENABLED.get()
-        _api_cache = OozieApi(OOZIE_URL.get(), secure, api_version)
+        _api_cache = OozieApi(OOZIE_URL.get(), secure, api_version, MECHANISM.get())
     finally:
       _api_cache_lock.release()
   _api_cache.setuser(user)
@@ -56,11 +58,17 @@ def get_oozie(user, api_version=API_VERSION):
 
 
 class OozieApi(object):
-  def __init__(self, oozie_url, security_enabled=False, api_version=API_VERSION):
+  def __init__(self, oozie_url, security_enabled=False, api_version=API_VERSION, mechanism='none'):
     self._url = posixpath.join(oozie_url, api_version)
     self._client = HttpClient(self._url, logger=LOG)
+
     if security_enabled:
-      self._client.set_kerberos_auth()
+      auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+      if mechanism in auth_clients:
+          self._client._session.auth = auth_clients[mechanism]()
+      else:
+          self._client.set_kerberos_auth()
+
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
     # To store username info
