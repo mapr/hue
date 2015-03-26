@@ -8,7 +8,6 @@ export HUE_HOME=${bin}/..
 # activate the Python virtual environment
 #
 source $HUE_HOME/build/env/bin/activate
-pip install protobuf
 
 # Look for installed JDK
 if [ -z "$JAVA_HOME" ]; then
