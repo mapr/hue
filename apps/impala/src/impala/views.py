@@ -43,9 +43,8 @@ def refresh_tables(request):
     try:
       database = json.loads(request.POST['database'])
       added = json.loads(request.POST['added'])
-      removed = json.loads(request.POST['removed'])
 
-      db.invalidate_tables(database, added + removed)
+      db.invalidate_tables(database, added)
     except Exception, e:
       response['message'] = str(e)
 
