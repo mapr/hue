@@ -717,7 +717,7 @@ class WebHdfs(Hdfs):
         _("Failed to create '%s'. HDFS did not return a redirect") % path)
 
     # Now talk to the real thing. The redirect url already includes the params.
-    client = self._make_client(next_url, self.security_enabled, self.mechanism)
+    client = self._make_client(next_url, self.security_enabled, self.mechanism, self._ssl, self._ssl_cert, self._ssl_key, self._ca_verify)
     headers = {'Content-Type': 'application/octet-stream'}
     return resource.Resource(client).invoke(method, data=data, headers=headers)
 
