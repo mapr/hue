@@ -54,6 +54,8 @@ mkdir -p "$HUE_PID_DIR"
 
 log=$HUE_LOG_DIR/hue-$HUE_IDENT_STRING-$command-$HOSTNAME.out
 pid=$HUE_PID_DIR/hue-$HUE_IDENT_STRING-$command.pid
+secure_sh_log=$HUE_LOG_DIR/secure-sh-log.out
+
 
 case $startStop in
   (start)
@@ -64,6 +66,8 @@ case $startStop in
     fi
   fi
   cd $HUE_HOME
+  # Generate secure keys
+  nohup $HUE_HOME/bin/secure.sh >> "$secure_sh_log" 2>&1 < /dev/null &
   nohup $HUE_HOME/build/env/bin/hue $command >> "$log" 2>&1 < /dev/null &
   echo $! > $pid
   echo "`date` $command started, pid `cat $pid`" >> "$log" 2>&1 < /dev/null
