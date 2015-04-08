@@ -31,6 +31,7 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
+from django.core import urlresolvers
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import stringformat, filesizeformat
 from django.http import Http404, HttpResponse, HttpResponseNotModified
@@ -55,7 +56,8 @@ from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.fs import splitpath
 from hadoop.fs.hadoopfs import Hdfs
 from hadoop.fs.exceptions import WebHdfsException
-from hadoop.fs.fsutils import do_overwrite_save
+from hadoop.fs.fsutils import do_newfile_save, do_overwrite_save
+from hadoop import conf
 
 from filebrowser.conf import MAX_SNAPPY_DECOMPRESSION_SIZE
 from filebrowser.conf import SHOW_DOWNLOAD_BUTTON
@@ -662,6 +664,13 @@ def read_contents(codec_type, path, fs, offset, length):
     try:
         fhandle = fs.open(path)
         stats = fs.stats(path)
+
+        # If file size more than configured value do not show contents
+        file_size = conf.HDFS_CLUSTERS['default'].FILE_SIZE.get()
+        if file_size != 0 and stats.size > file_size*1024*1024*1024:
+            message = "File %s can not be viewed, as it's size is greater then %s GB" % (path, file_size)
+            logging.info(message)
+            raise PopupException(message)
 
         # Auto codec detection for [gzip, avro, snappy, none]
         if not codec_type:
