@@ -78,6 +78,8 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
                        default='none', type=str),
       TEMP_DIR=Config("temp_dir", help="HDFS directory for temporary files",
                       default='/tmp', type=str),
+      FILE_SIZE=Config("file_size",
+                       help="File size restriction for viewing file", default=1.0, type=float),
       UMASK=Config("umask", help="Default umask for file and directory creation, specified in an octal value",
                    default='022', type=coerce_umask),
       SSL=Config("ssl", help="Is running with SSL authentication",
