@@ -62,6 +62,7 @@ from desktop.views import serve_403_error
 from hadoop.fs.hadoopfs import Hdfs
 from hadoop.fs.exceptions import WebHdfsException
 from hadoop.fs.fsutils import do_overwrite_save
+from hadoop import conf
 
 from filebrowser.conf import ENABLE_EXTRACT_UPLOADED_ARCHIVE
 from filebrowser.conf import MAX_SNAPPY_DECOMPRESSION_SIZE
@@ -715,6 +716,13 @@ def read_contents(codec_type, path, fs, offset, length):
     try:
         fhandle = fs.open(path)
         stats = fs.stats(path)
+
+        # If file size more than configured value do not show contents
+        file_size = conf.HDFS_CLUSTERS['default'].FILE_SIZE.get()
+        if file_size != 0 and stats.size > file_size*1024*1024*1024:
+            message = "File %s can not be viewed, as it's size is greater than %s GB" % (path, file_size)
+            logging.info(message)
+            raise PopupException(message)
 
         # Auto codec detection for [gzip, avro, snappy, none]
         if not codec_type:
