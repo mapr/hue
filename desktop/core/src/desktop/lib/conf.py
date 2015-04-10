@@ -69,6 +69,8 @@ from django.utils.encoding import smart_str
 
 from desktop.lib.paths import get_desktop_root, get_build_dir
 
+import mapr_config_changer
+
 import configobj
 import json
 import logging
@@ -517,7 +519,7 @@ def load_confs(conf_source=None):
   conf = configobj.ConfigObj()
   for in_conf in conf_source:
     conf.merge(in_conf)
-  return conf
+  return mapr_config_changer.fill_templates(conf)
 
 def _bind_module_members(module, data, section):
   """
