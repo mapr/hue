@@ -206,6 +206,58 @@ def get_yarn():
 
 
 def get_next_ha_yarncluster():
+  config_and_rm = get_yarncluster_from_maprcli()
+  if (config_and_rm == None):
+    config_and_rm = get_yarncluster_from_config()
+
+  return config_and_rm
+
+def get_yarncluster_from_maprcli():
+  from hadoop.yarn.resource_manager_api import ResourceManagerApi
+  global MR_NAME_CACHE
+
+  default_jt_host=DEFAULT_JOBTRACKER_HOST.get()
+
+  for name in conf.YARN_CLUSTERS.keys():
+    config = conf.YARN_CLUSTERS[name]
+    if config.SUBMIT_TO.get() and default_jt_host == "maprfs:///":
+      try:
+        maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "resourcemanager"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        maprcli_stdout_rm, maprcli_stderr = maprcli_popen.communicate()
+      except Exception, ex:
+        LOG.info('Error when execute "marcli urls -name resourcemanager": %s' %  ex)
+        return None
+
+      try:
+        maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "historyserver"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        maprcli_stdout_hs, maprcli_stderr = maprcli_popen.communicate()
+      except Exception, ex:
+        LOG.info('Error when execute "marcli urls -name historyserver": %s' %  ex)
+        return None
+
+      if not maprcli_stdout_hs.startswith("ERROR"):
+        historyserver_url = maprcli_stdout_hs.split("\n")[1]
+        historyserver_url = urlparse(historyserver_url).scheme + "://" + urlparse(historyserver_url).netloc.strip()
+        config.HISTORY_SERVER_API_URL.config.default_value = historyserver_url
+        LOG.info('HistoryServer found: %s.' % historyserver_url)
+
+      if not maprcli_stdout_rm.startswith("ERROR"):
+        resourcemanager_url = maprcli_stdout_rm.split("\n")[1]
+        resourcemanager_url = urlparse(resourcemanager_url).scheme + "://" + urlparse(resourcemanager_url).netloc.strip()
+        LOG.info('ResourceManager found: %s.' % resourcemanager_url)
+
+        config.RESOURCE_MANAGER_API_URL.config.default_value = resourcemanager_url
+        config.PROXY_API_URL.config.default_value = resourcemanager_url
+
+        rm = ResourceManagerApi(config.RESOURCE_MANAGER_API_URL.get(), config.SECURITY_ENABLED.get(), config.SSL_CERT_CA_VERIFY.get(), config.MECHANISM.get())
+        MR_NAME_CACHE = name
+        from hadoop.yarn import resource_manager_api
+        resource_manager_api._api_cache = None # Reset cache
+        return (config, rm)
+
+  return None
+
+def get_yarncluster_from_config():
   """
   Return the next available YARN RM instance and cache its name.
   """
