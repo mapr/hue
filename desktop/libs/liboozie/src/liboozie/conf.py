@@ -84,7 +84,7 @@ def config_validator(user):
     class ConfigMock:
       def __init__(self, value): self.value = value
       def get(self): return self.value
-    def get_fully_qualifying_key(self): return self.value
+      def get_fully_qualifying_key(self): return self.value
 
   for cluster in get_all_hdfs().values():
     res.extend(validate_path(ConfigMock('/oozie/share/lib'), is_dir=True, fs=cluster,
