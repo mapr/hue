@@ -287,29 +287,31 @@ class PamBackend(DesktopBackendBase):
   login will become the superuser.
   """
   def check_auth(self, username, password):
-    if pam.authenticate(username, password, desktop.conf.AUTH.PAM_SERVICE.get()):
-      is_super = False
-      if User.objects.count() == 0:
-        is_super = True
+    pam_services = desktop.conf.AUTH.PAM_SERVICE.get().split()
+    for service in pam_services:
+        if pam.authenticate(username, password, service):
+          is_super = False
+          if User.objects.count() == 0:
+            is_super = True
 
-      try:
-        user = User.objects.get(username=username)
-      except User.DoesNotExist:
-        user = find_or_create_user(username, None)
-        if user is not None and user.is_active:
-          profile = get_profile(user)
-          profile.creation_method = UserProfile.CreationMethod.EXTERNAL
-          profile.save()
-          user.is_superuser = is_super
+          try:
+            user = User.objects.get(username=username)
+          except User.DoesNotExist:
+            user = find_or_create_user(username, None)
+            if user is not None and user.is_active:
+              profile = get_profile(user)
+              profile.creation_method = UserProfile.CreationMethod.EXTERNAL
+              profile.save()
+              user.is_superuser = is_super
 
-          default_group = get_default_user_group()
-          if default_group is not None:
-            user.groups.add(default_group)
+              default_group = get_default_user_group()
+              if default_group is not None:
+                user.groups.add(default_group)
 
-          user.save()
+              user.save()
 
-      user = rewrite_user(user)
-      return user
+          user = rewrite_user(user)
+          return user
 
     return None
 
