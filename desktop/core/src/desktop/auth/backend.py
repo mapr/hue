@@ -425,30 +425,32 @@ class PamBackend(DesktopBackendBase):
       LOG.debug('Setting username to %s using PAM pwd module for user %s' % (getpwnam(username).pw_name, username))
       username = getpwnam(username).pw_name
 
-    if pam.authenticate(username, password, AUTH.PAM_SERVICE.get()):
-      is_super = False
-      if User.objects.exclude(id=install_sample_user().id).count() == 0:
-        is_super = True
+    pam_services = AUTH.PAM_SERVICE.get().split()
+    for pam_service in pam_services:
+      if pam.authenticate(username, password, pam_service):
+        is_super = False
+        if User.objects.exclude(id=install_sample_user().id).count() == 0:
+          is_super = True
 
-      try:
-        if AUTH.IGNORE_USERNAME_CASE.get():
-          user = User.objects.get(username__iexact=username)
-        else:
-          user = User.objects.get(username=username)
-      except User.DoesNotExist:
-        user = find_or_create_user(username, None)
-        if user is not None and user.is_active:
-          profile = get_profile(user)
-          profile.creation_method = UserProfile.CreationMethod.EXTERNAL.name
-          profile.save()
-          user.is_superuser = is_super
+        try:
+          if AUTH.IGNORE_USERNAME_CASE.get():
+            user = User.objects.get(username__iexact=username)
+          else:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+          user = find_or_create_user(username, None)
+          if user is not None and user.is_active:
+            profile = get_profile(user)
+            profile.creation_method = UserProfile.CreationMethod.EXTERNAL.name
+            profile.save()
+            user.is_superuser = is_super
 
-          ensure_has_a_group(user)
+            ensure_has_a_group(user)
 
-          user.save()
+            user.save()
 
-      user = rewrite_user(user)
-      return user
+        user = rewrite_user(user)
+        return user
 
     return None
 
