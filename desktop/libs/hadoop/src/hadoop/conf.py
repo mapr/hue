@@ -74,6 +74,10 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
                   help="In secure mode (HTTPS), if SSL certificates from YARN Rest APIs have to be verified against certificate authority",
                   dynamic_default=default_ssl_validate,
                   type=coerce_bool),
+      MECHANISM=Config("mechanism",
+                  default='none',
+                  help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+                  type=str),
       TEMP_DIR=Config("temp_dir", help="HDFS directory for temporary files",
                       default='/tmp', type=str),
       HADOOP_CONF_DIR = Config(

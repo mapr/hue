@@ -4,6 +4,7 @@ PROTOBUF_LIB_PATH = '/build/env/build/protobuf'
 SECURITY_LIB_PATH = '/build/env/lib'
 sys.path.append(os.getcwd() + PROTOBUF_LIB_PATH)
 sys.path.append(os.getcwd() + SECURITY_LIB_PATH)
+from requests.auth import AuthBase
 import security
 import security_pb2
 import base64
@@ -62,3 +63,10 @@ class MaprSasl(object):
         authResponse.ParseFromString(decodedResponse)
         result = authResponse.challengeResponse == self.randomNumber
         return result, ''
+
+class HttpMaprAuth(AuthBase):
+    def __call__(self, request):
+        mapr = MaprSasl()
+        request.headers['Authorization'] = 'MAPR-Negotiate ' + mapr.get_init_response()
+        return request
+
