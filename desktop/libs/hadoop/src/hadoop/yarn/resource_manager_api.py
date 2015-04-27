@@ -29,9 +29,11 @@ from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
 
 from hadoop import cluster
+from desktop.lib.maprsasl import HttpMaprAuth
 
 
 LOG = logging.getLogger(__name__)
+DEFAULT_USER = 'hue'
 
 _API_VERSION = 'v1'
 _JSON_CONTENT_TYPE = 'application/json'
@@ -48,7 +50,7 @@ def get_resource_manager(username=None):
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('No Resource Manager are available.'))
-        API_CACHE = ResourceManagerApi(yarn_cluster.RESOURCE_MANAGER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get())
+        API_CACHE = ResourceManagerApi(yarn_cluster.RESOURCE_MANAGER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -61,15 +63,20 @@ class YarnFailoverOccurred(Exception):
 
 class ResourceManagerApi(object):
 
-  def __init__(self, rm_url, security_enabled=False, ssl_cert_ca_verify=False):
-    self._url = posixpath.join(rm_url, 'ws', _API_VERSION)
+  def __init__(self, oozie_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
+    self._url = posixpath.join(oozie_url, 'ws', _API_VERSION)
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
     self._thread_local = threading.local() # To store user info
 
     if self._security_enabled:
-      self._client.set_kerberos_auth()
+      auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+      if mechanism in auth_clients:
+          self._client._session.auth = auth_clients[mechanism]()
+      else:
+          self._client.set_kerberos_auth()
+      self._client.set_verify(ssl_cert_ca_verify == 'True')
 
     self._client.set_verify(ssl_cert_ca_verify)
 
