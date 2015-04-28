@@ -458,7 +458,7 @@ class WebHdfs(Hdfs):
     params = self._getparams()
     params['op'] = 'OPEN'
     params['offset'] = long(offset)
-    params['length'] = long(length)
+    params['len'] = long(length)
     if bufsize is not None:
       params['bufsize'] = bufsize
     try:
