@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.cloudera.hue.livy</groupId>
         <artifactId>livy-main</artifactId>
-        <version>3.8.0-SNAPSHOT</version>
+        <version>3.8.0-mapr</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -25,19 +25,19 @@
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-repl_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
+            <version>${cloudera.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-yarn_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
+            <version>${cloudera.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-server_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
+            <version>${cloudera.version}</version>
         </dependency>
 
     </dependencies>
