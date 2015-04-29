@@ -7,9 +7,7 @@
    The ASF licenses this file to You under the Apache License, Version 2.0
    (the "License"); you may not use this file except in compliance with
    the License.  You may obtain a copy of the License at
-
        http://www.apache.org/licenses/LICENSE-2.0
-
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -137,7 +135,7 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
-        <version>${hadoop.version}</version>
+        <version>${hadoop-mr1.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hive</groupId>
@@ -213,19 +211,22 @@
   </dependencyManagement>
 
   <repositories>
-    <repository>
+      <repository>
       <id>cdh.releases.repo</id>
       <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
       <name>Cloudera Public Repositories</name>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
+    </repository>
+    <repository>
       <id>cdh.snapshots.repo</id>
       <url>https://repository.cloudera.com/content/repositories/snapshots</url>
       <name>Cloudera Snapshots Repository</name>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
+    </repository>
     <repository>
       <id>mapr release</id>
       <url>http://repository.mapr.com/maven/</url>
@@ -235,7 +236,7 @@
     <repository>
        <id>apache release</id>
        <url>https://repository.apache.org/content/repositories/releases/</url>
-     </repository>
+    </repository>
   </repositories>
 
 

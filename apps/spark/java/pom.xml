@@ -7,9 +7,7 @@
   to you under the Apache License, Version 2.0 (the
   "License"); you may not use this file except in compliance
   with the License.  You may obtain a copy of the License at
-
        http://www.apache.org/licenses/LICENSE-2.0
-
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,12 +22,11 @@
         <groupId>com.cloudera.hue</groupId>
         <artifactId>hue-parent</artifactId>
         <relativePath>../../../maven/pom.xml</relativePath>
-        <version>3.10.0-SNAPSHOT</version>
+        <version>3.10.0-mapr</version>
     </parent>
 
     <groupId>com.cloudera.hue.livy</groupId>
     <artifactId>livy-main</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>livy-main</name>
@@ -48,6 +45,7 @@
     </organization>
 
     <properties>
+        <guava.version>11.0.2</guava.version>
         <commons-codec.version>1.9</commons-codec.version>
         <dispatch.version>0.11.2</dispatch.version>
         <httpclient.version>4.5</httpclient.version>
@@ -59,33 +57,30 @@
         <json4s.version>3.2.11</json4s.version>
         <logback.version>1.1.2</logback.version>
         <metrics.version>3.1.0</metrics.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <py4j.version>0.8.2.1</py4j.version>
-        <scala.binary.version>2.10</scala.binary.version>
-        <scala.compat.version>2.10</scala.compat.version>
         <scala.version>2.10.4</scala.version>
-        <scalatest.version>2.2.4</scalatest.version>
+        <scala.binary.version>2.10</scala.binary.version>
         <scalatra.version>2.3.0</scalatra.version>
+        <dispatch.version>0.11.2</dispatch.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <httpclient.version>4.5</httpclient.version>
+        <httpcore.version>4.4.1</httpcore.version>
+        <py4j.version>0.8.2.1</py4j.version>
+        <scala.compat.version>2.10</scala.compat.version>
+        <scalatest.version>2.2.4</scalatest.version>
         <snappy-java.version>1.1.1.6</snappy-java.version>
     </properties>
 
     <modules>
-        <module>livy-assembly</module>
         <module>livy-core</module>
         <module>livy-repl</module>
-        <module>livy-server</module>
-        <module>livy-spark</module>
         <module>livy-yarn</module>
+        <module>livy-spark</module>
+        <module>livy-server</module>
+        <module>livy-assembly</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
-
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-access</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -94,6 +89,12 @@
             </dependency>
 
             <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-access</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+                        <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
@@ -136,105 +137,96 @@
                 <version>${javax.servlet-api.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-common</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-client</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-yarn-api</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-yarn-client</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-yarn-common</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpcore</artifactId>
-                <version>${httpcore.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpclient.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-core_${scala.binary.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-yarn_${scala.binary.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-
+            <!-- These will be stored in the assembly -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-http</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-continuation</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-servlet</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-util</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-plus</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-security</artifactId>
                 <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra_${scala.binary.version}</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-jetty_${scala.binary.version}</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-scalatest_${scala.binary.version}</artifactId>
+                <version>${scalatra.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-json_${scala.binary.version}</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-test_${scala.binary.version}</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy-java.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.json4s</groupId>
                 <artifactId>json4s_${scala.binary.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
 
@@ -247,12 +239,6 @@
             <dependency>
                 <groupId>org.json4s</groupId>
                 <artifactId>json4s-core_${scala.binary.version}</artifactId>
-                <version>${json4s.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.json4s</groupId>
-                <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
 
@@ -281,41 +267,47 @@
                 <scope>test</scope>
             </dependency>
 
+
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra-jetty_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-client</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra-json_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-yarn-client</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra-scalatest_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
-                <scope>test</scope>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-yarn-api</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra-test_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-yarn-common</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.xerial.snappy</groupId>
-                <artifactId>snappy-java</artifactId>
-                <version>${snappy-java.version}</version>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-yarn_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
             </dependency>
 
             <dependency>
@@ -331,6 +323,18 @@
             </dependency>
 
             <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcore.version}</version>
+            </dependency>
+
+             <dependency>
                 <groupId>net.sf.py4j</groupId>
                 <artifactId>py4j</artifactId>
                 <version>${py4j.version}</version>
