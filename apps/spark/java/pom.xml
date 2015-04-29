@@ -47,7 +47,6 @@
     </organization>
 
     <properties>
-        <cloudera.version>3.7.0-cdh5.4.0</cloudera.version>
         <guava.version>11.0.2</guava.version>
         <jetty.version>9.2.10.v20150310</jetty.version>
         <json4s.version>3.2.5</json4s.version>

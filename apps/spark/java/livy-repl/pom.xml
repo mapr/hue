@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-core_${scala.binary.version}</artifactId>
-            <version>${cloudera.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

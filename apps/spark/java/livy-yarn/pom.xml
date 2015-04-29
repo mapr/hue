@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-repl_${scala.binary.version}</artifactId>
-            <version>${cloudera.version}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
