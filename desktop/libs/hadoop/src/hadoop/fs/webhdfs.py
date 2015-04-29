@@ -98,7 +98,7 @@ class WebHdfs(Hdfs):
   def __str__(self):
     return "WebHdfs at %s" % self._url
 
-  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True, mechanism):
+  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True, mechanism = None):
     client = http_client.HttpClient(url, exc_class=WebHdfsException, logger=LOG)
 
     if security_enabled:
