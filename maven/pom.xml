@@ -43,7 +43,7 @@
 
   <properties>
     <hadoop-mr1.version>1.0.3-mapr-3.0.2</hadoop-mr1.version>
-    <hadoop.version>1.0.3-mapr-3.0.2</hadoop.version>
+    <hadoop.version>2.4.1-mapr-1408-SNAPSHOT</hadoop.version>
     <hadoop_test.version>1.0.3-mapr-3.0.2</hadoop_test.version>
     <spark.version>1.2.1</spark.version>
     <hive.version>0.12-mapr</hive.version>
