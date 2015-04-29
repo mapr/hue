@@ -52,19 +52,19 @@
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-core_${scala.binary.version}</artifactId>
-            <version>${cloudera.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-repl_${scala.binary.version}</artifactId>
-            <version>${cloudera.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.cloudera.hue.livy</groupId>
             <artifactId>livy-yarn_${scala.binary.version}</artifactId>
-            <version>${cloudera.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
