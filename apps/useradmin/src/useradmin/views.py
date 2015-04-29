@@ -122,6 +122,9 @@ def massage_groups_for_json(groups):
 
 
 def delete_user(request):
+  if desktop.conf.AUTH.BACKEND.get() == "desktop.auth.backend.PamBackend":
+    raise PopupException(_("Adding/Deleting users from within Hue is disabled, because you are currently authenticating Hue users via Pluggable Authentication Module."), error_code=401)
+
   if not request.user.is_superuser:
     raise PopupException(_("You must be a superuser to delete users."), error_code=401)
 
@@ -182,6 +185,8 @@ def edit_user(request, username=None):
     instance = User.objects.get(username=username)
   else:
     instance = None
+    if desktop.conf.AUTH.BACKEND.get() == "desktop.auth.backend.PamBackend":
+      raise PopupException(_("Adding/Deleting users from within Hue is disabled, because you are currently authenticating Hue users via Pluggable Authentication Module."), error_code=401)
 
   if request.user.is_superuser:
     form_class = SuperUserChangeForm
