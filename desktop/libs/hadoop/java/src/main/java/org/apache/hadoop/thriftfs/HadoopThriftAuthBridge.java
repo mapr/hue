@@ -27,6 +27,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Map;
 
 import com.mapr.security.callback.MaprSaslCallbackHandler;
+import javax.security.auth.callback.CallbackHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
