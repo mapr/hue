@@ -640,7 +640,7 @@ def read_contents(codec_type, path, fs, offset, length):
         # If file size more than configured value do not show contents
         file_size = conf.HDFS_CLUSTERS['default'].FILE_SIZE.get()
         if file_size != 0 and stats.size > file_size*1024*1024*1024:
-            message = "File %s can not be viewed, as it's size is greater then %s GB" % (path, file_size)
+            message = "File %s can not be viewed, as it's size is greater than %s GB" % (path, file_size)
             logging.info(message)
             raise PopupException(message)
 
