@@ -179,3 +179,25 @@ function rdbms_getTables(serverName, databaseName, callback) {
     });
   }
 }
+
+function rdbms_getTablesWithoutMemorize(serverName, databaseName, callback) {
+    rdbms_jsoncalls({
+      server: serverName,
+      database: databaseName,
+      onDataReceived: function (data) {
+        if (typeof RDBMS_AUTOCOMPLETE_GLOBAL_CALLBACK == "function") {
+          RDBMS_AUTOCOMPLETE_GLOBAL_CALLBACK(data);
+        }
+        if (data.error) {
+          if (typeof RDBMS_AUTOCOMPLETE_FAILS_SILENTLY_ON == "undefined" || data.code === null || RDBMS_AUTOCOMPLETE_FAILS_SILENTLY_ON.indexOf(data.code) == -1){
+            $(document).trigger('error', data.error);
+          }
+        }
+        else {
+          $.totalStorage('rdbms_tables_' + serverName + '_' + databaseName, data.tables.join(" "));
+          $.totalStorage('rdbms_timestamp_tables_' + serverName + '_' + databaseName, (new Date()).getTime());
+          callback($.totalStorage('rdbms_tables_' + serverName + '_' + databaseName));
+        }
+      }
+    });
+}
