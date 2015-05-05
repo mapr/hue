@@ -748,7 +748,7 @@ ${ commonshare() | n,unicode }
   function renderNavigator() {
     $("#navigatorTables").empty();
     $("#navigatorLoader").show();
-    rdbms_getTables(viewModel.server().name(), viewModel.database(), function (data) {  //preload tables for the default db
+    rdbms_getTablesWithoutMemorize(viewModel.server().name(), viewModel.database(), function (data) {  //preload tables for the default db
       $(data.split(" ")).each(function (cnt, table) {
         if ($.trim(table) != "") {
           var _table = $("<li>");
