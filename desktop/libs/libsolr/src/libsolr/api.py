@@ -299,6 +299,7 @@ class SolrApi(object):
           json_facets[facet['id']] = _f
         elif facet['type'] == 'function':
           json_facets[facet['id']] = self._get_aggregate_function(facet)
+          json_facets['processEmpty'] = True
         elif facet['type'] == 'pivot':
           if facet['properties']['facets'] or facet['widgetType'] == 'map-widget':
             fields = facet['field']
