@@ -224,7 +224,7 @@ def get_yarncluster_from_maprcli():
 
   for name in conf.YARN_CLUSTERS.keys():
     config = conf.YARN_CLUSTERS[name]
-    if config.SUBMIT_TO.get() and default_jt_host == "maprfs:///":
+    if config.SUBMIT_TO.get():
       try:
         maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "resourcemanager"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         maprcli_stdout_rm, maprcli_stderr = maprcli_popen.communicate()
