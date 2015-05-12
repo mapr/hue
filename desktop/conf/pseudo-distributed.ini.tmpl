@@ -601,10 +601,10 @@
       webhdfs_url=http://localhost:14000/webhdfs/v1
 
       # Change this if your HDFS cluster is secured
-      ## security_enabled=false
+      security_enabled=${security_enabled}
 
       # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY
-      ## mechanism=MAPR-SECURITY
+      mechanism=${mechanism}
 
       # Default umask for file and directory creation, specified in an octal value.
       ## umask=022
@@ -624,7 +624,7 @@
       submit_to=False
 
       # Change this if your YARN cluster is secured
-      ## security_enabled=false
+      security_enabled=${security_enabled}
 
       # URL of the ResourceManager API
       ## resourcemanager_api_url=http://localhost:8088
@@ -670,7 +670,7 @@
       submit_to=True
 
       # Change this if your MapReduce cluster is secured
-      ## security_enabled=false
+      security_enabled=${security_enabled}
 
     # HA support by specifying multiple clusters
     # e.g.
@@ -698,7 +698,7 @@
   ## oozie_url=http://localhost:11000/oozie
 
   # Requires FQDN in oozie_url if enabled
-  ## security_enabled=false
+  security_enabled=${security_enabled}
 
   # Location on HDFS where the workflows/coordinator are deployed when submitted.
   ## remote_deployement_dir=/oozie/deployments
@@ -877,7 +877,7 @@
   ## thrift_transport=buffered
 
   # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY
-  ## mechanism=MAPR-SECURITY
+  mechanism=${mechanism}
 
 
 ###########################################################################
@@ -890,7 +890,7 @@
   ## solr_url=http://localhost:8983/solr/
 
   # Requires FQDN in solr_url if enabled
-  ## security_enabled=false
+  security_enabled=${security_enabled}
 
   ## Query sent when no term is entered
   ## empty_query=*:*
