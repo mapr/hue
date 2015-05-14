@@ -494,9 +494,9 @@ canWrite = ${ str(can_write).lower() };
 <script src="${ static('desktop/js/ace/mode-hive.js') }"></script>
 <script src="${ static('desktop/js/ace/ext-language_tools.js') }"></script>
 <script src="${ static('desktop/js/ace.extended.js') }"></script>
-<script src="/hbase/js/jstree.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('hbase/js/jstree.min.js') }" type="text/javascript" charset="utf-8"></script>
 
-<script src="/hbase/js/maprtables.js" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('hbase/js/maprtables.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/base.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/utils.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/api.js') }" type="text/javascript" charset="utf-8"></script>
