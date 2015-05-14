@@ -134,8 +134,7 @@ def api_dump(response):
 def to_json(path, dirs, tables):
     r = map (lambda dir: {'id': (path+dir + '/'), 'text': dir, 'children': True}, dirs)
     r += map (lambda dir: {'id': (path+dir), 'text': dir, 'icon': False, 'li_attr': {'onClick':'referToTable(this)'}}, map(lambda x: x.split('/')[-1], tables))
-    return json.dumps(r)
-
+    return r
 
 
 def getList(request):
@@ -144,7 +143,8 @@ def getList(request):
     dirs = []
     tables = []
     if request.GET['id'] == "#":
-        return HttpResponse('[{"id" : "/", "text" : "/", "children" : true}]', content_type="application/json")
+        resp={'id': '/','text': '/',"children" : True}
+        return JsonResponse(resp,safe=False)
     path = request.GET['id']
     #http-fs request
     try:
@@ -156,11 +156,11 @@ def getList(request):
         LOG.exception(e)
     #tables request
     try:
-        tables = HbaseApi().getTableListByPath(str(request.GET['cluster']), path + ".*")
+        tables = HbaseApi(request.user).getTableListByPath(str(request.GET['cluster']), path + ".*")
     except Exception, e:
         LOG.exception(e)
     resp = to_json(path,dirs,tables)
-    return HttpResponse(resp,content_type="application/json")
+    return JsonResponse(resp,safe=False)
 
 
 def install_examples(request):
