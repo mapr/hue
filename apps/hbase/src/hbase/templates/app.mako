@@ -483,9 +483,9 @@ canWrite = ${ str(can_write).lower() };
 <script src="${ static('desktop/ext/js/codemirror-xml.js') }"></script>
 <script src="${ static('desktop/ext/js/codemirror-javascript.js') }"></script>
 <link rel="stylesheet" href="${ static('desktop/ext/css/codemirror.css') }">
-<script src="/hbase/js/jstree.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('hbase/js/jstree.min.js') }" type="text/javascript" charset="utf-8"></script>
 
-<script src="/hbase/js/maprtables.js" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('hbase/js/maprtables.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/base.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/utils.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('hbase/js/api.js') }" type="text/javascript" charset="utf-8"></script>
