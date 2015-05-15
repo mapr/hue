@@ -1,4 +1,5 @@
 import re
+import os
 
 GSSAPI = "GSSAPI"
 MAPR_SECURITY = "MAPR-SECURITY"
@@ -15,6 +16,9 @@ templates = {
 }
 
 def read_values_from_mapr_clusters_conf():
+  if not os.path.exists(MAPR_CLUSTERS_CONF_PATH):
+    return
+
   mapr_clusters_conf = open(MAPR_CLUSTERS_CONF_PATH, "r").read()
   cluster_props = dict(re.findall(r'(\S+)=(".*?"|\S+)', mapr_clusters_conf))
 
