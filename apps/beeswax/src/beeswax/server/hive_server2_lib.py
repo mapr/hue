@@ -25,7 +25,7 @@ from operator import itemgetter
 from django.utils.translation import ugettext as _
 
 from desktop.lib import thrift_util
-from desktop.conf import get_ldap_password, LDAP_USERNAME
+from desktop.conf import get_ldap_password, LDAP_USERNAME, LDAP_PASSWORD
 from desktop.conf import DEFAULT_USER
 from hadoop import cluster
 
