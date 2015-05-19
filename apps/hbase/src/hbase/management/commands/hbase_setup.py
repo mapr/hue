@@ -47,44 +47,55 @@ class Command(BaseCommand):
 
     api = HbaseApi(user=user)
     cluster_name = api.getClusters()[0]['name'] # Currently pick first configured cluster
-
-    # Check connectivity
-    api.connectCluster(cluster_name)
-
-    self.create_analytics_table(api, cluster_name)
-    self.load_analytics_table(api, cluster_name)
-
-    self.create_binary_table(api, cluster_name)
-    self.load_binary_table(api, cluster_name)
-
-
-  def create_analytics_table(self, api, cluster_name):
+    #HBASE Tables
     try:
-      api.createTable(cluster_name, 'analytics_demo', [{'properties': {'name': 'hour'}}, {'properties': {'name': 'day'}}, {'properties': {'name': 'total'}}])
+      # Check connectivity
+      api.connectCluster(cluster_name)
+      self.create_analytics_table(api, cluster_name,'analytics_demo')
+      self.load_analytics_table(api, cluster_name,'analytics_demo')
+
+      self.create_binary_table(api, cluster_name,'document_demo')
+      self.load_binary_table(api, cluster_name,'document_demo')
+    except :
+      pass
+    #MapR-DB Tables
+    try:
+      self.create_analytics_table(api, cluster_name,'/analytics_demo')
+      self.load_analytics_table(api, cluster_name,'/analytics_demo')
+
+      self.create_binary_table(api, cluster_name,'/document_demo')
+      self.load_binary_table(api, cluster_name,'/document_demo')
+    except:
+      pass
+
+
+  def create_analytics_table(self, api, cluster_name, table_name):
+    try:
+      api.createTable(cluster_name, table_name, [{'properties': {'name': 'hour'}}, {'properties': {'name': 'day'}}, {'properties': {'name': 'total'}}])
     except AlreadyExists:
       pass
 
-  def load_analytics_table(self, api, cluster_name):
+  def load_analytics_table(self, api, cluster_name, table_name):
     table_data = os.path.join(get_apps_root(), 'hbase', 'example', 'analytics', 'hbase-analytics.tsv')
-    api.bulkUpload(cluster_name, 'analytics_demo', open(table_data))
+    api.bulkUpload(cluster_name, table_name, open(table_data))
 
-  def create_binary_table(self, api, cluster_name):
+  def create_binary_table(self, api, cluster_name, table_name):
     try:
-      api.createTable(cluster_name, 'document_demo', [{'properties': {'name': 'doc'}}])
+      api.createTable(cluster_name, table_name, [{'properties': {'name': 'doc'}}])
     except AlreadyExists:
       pass
 
-  def load_binary_table(self, api, cluster_name):
+  def load_binary_table(self, api, cluster_name, table_name):
     today = datetime.now().strftime('%Y%m%d')
     tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y%m%d')
 
-    api.putRow(cluster_name, 'document_demo', today, {'doc:txt': 'Hue is awesome!'})
-    api.putRow(cluster_name, 'document_demo', today, {'doc:json': '{"user": "hue", "coolness": "extra"}'})
-    api.putRow(cluster_name, 'document_demo', tomorrow, {'doc:version': '<xml>I like HBase</xml>'})
-    api.putRow(cluster_name, 'document_demo', tomorrow, {'doc:version': '<xml>I LOVE HBase</xml>'})
+    api.putRow(cluster_name, table_name, today, {'doc:txt': 'Hue is awesome!'})
+    api.putRow(cluster_name, table_name, today, {'doc:json': '{"user": "hue", "coolness": "extra"}'})
+    api.putRow(cluster_name, table_name, tomorrow, {'doc:version': '<xml>I like HBase</xml>'})
+    api.putRow(cluster_name, table_name, tomorrow, {'doc:version': '<xml>I LOVE HBase</xml>'})
 
     root = os.path.join(get_apps_root(), 'hbase', 'example', 'documents')
 
-    api.putRow(cluster_name, 'document_demo', today, {'doc:img': open(root + '/hue-logo.png', "rb").read()})
-    api.putRow(cluster_name, 'document_demo', today, {'doc:html': open(root + '/gethue.com.html', "rb").read()})
-    api.putRow(cluster_name, 'document_demo', today, {'doc:pdf': open(root + '/gethue.pdf', "rb").read()})
+    api.putRow(cluster_name, table_name, today, {'doc:img': open(root + '/hue-logo.png', "rb").read()})
+    api.putRow(cluster_name, table_name, today, {'doc:html': open(root + '/gethue.com.html', "rb").read()})
+    api.putRow(cluster_name, table_name, today, {'doc:pdf': open(root + '/gethue.pdf', "rb").read()})
