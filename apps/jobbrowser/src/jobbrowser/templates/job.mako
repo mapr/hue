@@ -24,6 +24,7 @@
   from desktop.views import commonheader, commonfooter
   from django.template.defaultfilters import urlencode
   from django.utils.translation import ugettext as _
+  from desktop.lib.fsmanager import FS_GETTERS
 %>
 <%def name="task_table(dom_id, tasks)">
     <table id="${ dom_id }" class="taskTable table table-condensed">
@@ -66,8 +67,8 @@
         <td>
             % for i, val in enumerate(splitArray):
             <%
-                url_splitted = request.fs.urlsplit(val)
-                is_hdfs_uri = bool(url_splitted[1])
+                (schema, netloc, path, query, fragment) = request.fs.urlsplit(val)
+                is_hdfs_uri = not schema or schema in FS_GETTERS.keys()
             %>
             % if is_hdfs_uri:
                 <a href="${location_to_url(val)}" title="${val}">${val}</a>
