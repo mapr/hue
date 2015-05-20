@@ -70,7 +70,7 @@
             <%
                 url_splitted = request.fs.urlsplit(val)
                 scheme = url_splitted[0]
-                is_hdfs_uri = bool(url_splitted[1]) and scheme not in ['thrift']
+                is_hdfs_uri = bool(url_splitted[1]) and scheme == 'maprfs'
             %>
             % if is_hdfs_uri:
                 <a href="${location_to_url(val)}" title="${val}">${val}</a>
