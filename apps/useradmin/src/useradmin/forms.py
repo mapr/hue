@@ -109,6 +109,12 @@ class UserChangeForm(django.contrib.auth.forms.UserChangeForm):
   language = forms.ChoiceField(label=_t("Language Preference"),
                                choices=LANGUAGES,
                                required=False)
+  if desktop_conf.AUTH.BACKEND.get() == "desktop.auth.backend.PamBackend":
+    password1.widget.attrs['readonly'] =  True
+    password2.widget.attrs['readonly'] =  True
+    password_old.widget.attrs['readonly'] =  True
+    ensure_home_directory.widget.attrs['readonly'] =  True
+
   unlock_account = forms.BooleanField(label=_t("Unlock Account"),
                                       help_text=_t("Unlock user's account for login."),
                                       initial=False,
