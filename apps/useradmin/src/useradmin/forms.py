@@ -77,6 +77,11 @@ class UserChangeForm(django.contrib.auth.forms.UserChangeForm):
                                             help_text=_t("Create home directory if one doesn't already exist."),
                                             initial=True,
                                             required=False)
+  if desktop_conf.AUTH.BACKEND.get() == "desktop.auth.backend.PamBackend":
+    password1.widget.attrs['readonly'] =  True
+    password2.widget.attrs['readonly'] =  True
+    password_old.widget.attrs['readonly'] =  True
+    ensure_home_directory.widget.attrs['readonly'] =  True
 
   class Meta(django.contrib.auth.forms.UserChangeForm.Meta):
     fields = ["username", "first_name", "last_name", "email", "ensure_home_directory"]
