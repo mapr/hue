@@ -62,7 +62,7 @@ OOZIE_JOBS_COUNT = Config(
 
 ENABLE_V2 = Config( # Until Hue 4
   key='enable_v2',
-  default=True,
+  default=False,
   type=coerce_bool,
   help=_t('Use version 2 of Editor.')
 )
