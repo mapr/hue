@@ -365,11 +365,9 @@ class HiveServerClient:
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      hive_mechanism = hive_site.get_hiveserver2_authentication()
-      if hive_mechanism not in HiveServerClient.HS2_MECHANISMS:
-        raise Exception(_('%s server authentication not supported. Valid are %s.' % (hive_mechanism, HiveServerClient.HS2_MECHANISMS.keys())))
-      use_sasl = hive_mechanism in ('KERBEROS', 'NONE', 'MAPRSASL')
-      mechanism = HiveServerClient.HS2_MECHANISMS[hive_mechanism]
+      hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
+      use_sasl = beeswax_conf.SECURITY_ENABLED.get()
+      mechanism = 'PLAIN' if hive_mechanism == 'NONE' else hive_mechanism
       impersonation_enabled = hive_site.hiveserver2_impersonation_enabled()
 
     if LDAP_PASSWORD.get(): # Pass-through LDAP authentication
