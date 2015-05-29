@@ -42,7 +42,7 @@ def get_cluster_name():
 class MaprSasl(object):
 
     def __init__(self):
-        pass
+        self.sessionKey = ''
 
     def init(self):
         pass
@@ -73,11 +73,6 @@ class MaprSasl(object):
         initial_response = self.get_init_response()
         return ret, chosen_mech, initial_response
 
-    def encode(self, buffer):
-        success = True
-        encoded = buffer
-        return success, encoded
-
     def getError(self):
         return -1
 
@@ -87,8 +82,27 @@ class MaprSasl(object):
         decodedResponse = maprsecurity.Decrypt(self.tk.userKey.key, challenge)
         authResponse = security_pb2.AuthenticationResp()
         authResponse.ParseFromString(decodedResponse)
+        # auth = 1, auth-int = 2, auth-conf = 4
+        qopInt = authResponse.encodingType
+        self.sessionKey = '' if qopInt == 1 else authResponse.sessionKey.key
         result = authResponse.challengeResponse == self.randomNumber
         return result, ''
+
+    def encode(self, data):
+      import struct
+      if self.sessionKey == '':
+        return True, data
+
+      encodedData = maprsecurity.Encrypt(self.sessionKey, data)
+      return True, struct.pack(">I", len(encodedData)) + encodedData
+
+    def decode(self, data):
+      if self.sessionKey == '':
+        return True, data
+
+      # We need cut header (4 bytes)
+      decodedData = maprsecurity.Decrypt(self.sessionKey, data[4:])
+      return True, decodedData
 
 class HttpMaprAuth(AuthBase):
     def __call__(self, request):
