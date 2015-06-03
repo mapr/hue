@@ -191,6 +191,11 @@ class HadoopThriftAuthBridge {
           mechanism = authMethod.getMechanismName();
           protocol = authMethod.getProtocol();
           serverId = authMethod.getServerId();
+          if (SASL_PROPS_FIELD == null) {
+            Configurable saslPropertiesResolver = (Configurable) RES_GET_INSTANCE_METHOD.invoke(null, conf);
+            saslPropertiesResolver.setConf(conf);
+            saslProps = (Map<String, String>) GET_PROP_METHOD.invoke(saslPropertiesResolver, InetAddress.getLocalHost());
+          }
       } catch (Exception e) {
           LOG.warn("Error with class org.apache.hadoop.security.rpcauth.RpcAuthRegistry" + e);
           authMethod = realUgi.getRpcAuthMethodList().get(0);
