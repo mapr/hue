@@ -109,6 +109,9 @@ ${ fb_components.menubar() }
       });
 
       $("#saveAsForm").submit(function () {
+
+        $("input[name=contents]").val($("textarea[name=contents]").val());
+
         if ($.trim($("#saveAsForm").find("input[name='path']").val()) == "") {
           $("#saveAsForm").find("input[name='path']").addClass("fieldError");
           $("#saveAsNameRequiredAlert").show();
