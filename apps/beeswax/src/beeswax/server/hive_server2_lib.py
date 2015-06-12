@@ -354,18 +354,17 @@ class HiveServerClient:
       kerberos_principal_short_name = principal.split('/', 1)[0]
     else:
       kerberos_principal_short_name = None
-
+    hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
     if self.query_server['server_name'] == 'impala':
       if LDAP_PASSWORD.get(): # Force LDAP auth if ldap_password is provided
         use_sasl = True
         mechanism = HiveServerClient.HS2_MECHANISMS['NONE']
       else:
         cluster_conf = cluster.get_cluster_conf_for_job_submission()
-        use_sasl = cluster_conf is not None and cluster_conf.SECURITY_ENABLED.get()
+        use_sasl = cluster_conf is not None and cluster_conf.SECURITY_ENABLED.get() and hive_mechanism != 'MAPR-SECURITY'
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
       use_sasl = beeswax_conf.SECURITY_ENABLED.get()
       mechanism = 'PLAIN' if hive_mechanism == 'NONE' else hive_mechanism
       impersonation_enabled = hive_site.hiveserver2_impersonation_enabled()
