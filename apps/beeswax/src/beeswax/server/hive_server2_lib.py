@@ -475,7 +475,7 @@ class HiveServerClient:
     impersonation_enabled = False
     ldap_username = None
     ldap_password = get_ldap_password()
-
+    hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
     if ldap_password is not None: # Pass-through LDAP authentication
       ldap_username = LDAP_USERNAME.get()
 
@@ -490,11 +490,10 @@ class HiveServerClient:
         mechanism = HiveServerClient.HS2_MECHANISMS['NONE']
       else:
         cluster_conf = cluster.get_cluster_conf_for_job_submission()
-        use_sasl = cluster_conf is not None and cluster_conf.SECURITY_ENABLED.get()
+        use_sasl = cluster_conf is not None and cluster_conf.SECURITY_ENABLED.get() and hive_mechanism != 'MAPR-SECURITY'
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
       use_sasl = beeswax_conf.SECURITY_ENABLED.get()
       mechanism = 'PLAIN' if hive_mechanism == 'NONE' else hive_mechanism
       impersonation_enabled = hive_site.hiveserver2_impersonation_enabled()
