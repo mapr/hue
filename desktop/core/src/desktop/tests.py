@@ -49,7 +49,7 @@ from desktop.lib.conf import validate_path
 from desktop.lib.django_util import TruncatingModel
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.test_utils import grant_access
-from desktop.models import Document
+from desktop.models import Document, Document2
 from desktop.views import check_config, home
 from pig.models import PigScript
 
@@ -126,7 +126,6 @@ def test_home():
   assert_equal([], tags['mine'][0]['docs'], tags)
   assert_equal([], tags['trash']['docs'], tags)
   assert_equal([], tags['history']['docs'], tags) # We currently don't fetch [doc.id]
-
 
 def test_skip_wizard():
   c = make_logged_in_client() # is_superuser
@@ -858,3 +857,47 @@ class TestSMTPPasswordConfig(BaseTestPasswordConfig):
 
   def test_password_script_raises_exception(self):
     self.run_test_password_script_raises_exception()
+
+
+class TestDocument(object):
+
+  def setUp(self):
+    c = make_logged_in_client(username="test_doc", groupname="test_doc", recreate=True, is_superuser=False)
+    user = User.objects.get(username="test_doc")
+
+    # Clean up any existing Document objects
+    Document2.objects.all().delete()
+    Document.objects.all().delete()
+
+    self.document2 = Document2.objects.create(name='Document2',
+                                              type='search-dashboard',
+                                              owner=user,
+                                              description='Test Document2')
+    self.document = Document.objects.link(content_object=self.document2,
+                                          owner=user,
+                                          name='Document',
+                                          description='Test Document',
+                                          extra='test')
+    self.document2.doc.add(self.document)
+
+  def test_document_create(self):
+    assert_equal(Document2.objects.count(), 1)
+    assert_equal(Document.objects.count(), 1)
+    assert_equal(Document2.objects.get(name='Document2').id, self.document2.id)
+    assert_equal(Document.objects.get(name='Document').id, self.document.id)
+
+  def test_document_copy(self):
+    name = 'test_document_copy'
+    doc2 = self.document2.copy(name=name)
+
+    assert_equal(Document2.objects.count(), 2)
+    assert_equal(Document.objects.count(), 1)
+    assert_equal(Document2.objects.filter(name=name).count(), 1)
+    assert_equal(doc2.description, self.document2.description)
+
+    doc = self.document.copy(doc2, name=name)
+
+    assert_equal(Document2.objects.count(), 2)
+    assert_equal(Document.objects.count(), 2)
+    assert_equal(Document.objects.filter(name=name).count(), 1)
+    assert_equal(doc.description, self.document.description)
