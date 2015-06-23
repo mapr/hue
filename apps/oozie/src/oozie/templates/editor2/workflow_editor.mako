@@ -420,6 +420,20 @@ ${ dashboard.import_bindings() }
     deploymentDir: viewModel.workflow.properties.deployment_dir()
   }
 
+  function validateAndSave() {
+    var _hasErrors = false;
+    $("[required='true']").each(function(){
+      if ($.trim($(this).val()) == ""){
+        $(this).addClass("with-errors");
+        $(this).next().addClass("btn-danger");
+        _hasErrors = true;
+      }
+    });
+    if (! _hasErrors){
+      viewModel.save();
+    }
+  }
+
   function columnDropAdditionalHandler(widget) {
     widgetDraggedAdditionalHandler(widget);
   }
