@@ -130,6 +130,27 @@ class Job(models.Model):
 
   objects = JobManager()
 
+  def copy(self, **kwargs):
+    copy = self
+
+    for k, v in kwargs.iteritems():
+      if hasattr(copy, k):
+        setattr(copy, k, v)
+
+    copy.pk = None
+    copy.id = None
+    copy.save()
+
+    return copy
+
+  def update_doc(self, doc):
+    try:
+      self.doc.all().delete()
+      self.doc.add(doc)
+    except Exception, e:
+      msg = _('Updating Job object doc relation failed: %s.') % e
+      LOG.error(msg)
+
   def delete(self, skip_trash=False, *args, **kwargs):
     if skip_trash:
       self.doc.all().delete()
@@ -359,21 +380,15 @@ class Workflow(Job):
     else:
       owner = self.owner
 
-    copy = self
-    copy.pk = None
-    copy.id = None
-    copy.name = name
-    copy.deployment_dir = ''
-    copy.owner = owner
-    copy.save()
+    copy_doc = self.doc.get()
+    copy_job = self.copy(name=name, deployment_dir='', owner=owner)
 
-    copy_doc = Document.objects.link(copy,
-        owner=copy.owner,
-        name=copy.name,
-        description=copy.description)
+    copy_doc = copy_doc.copy(content_object=copy_job,
+        owner=copy_job.owner,
+        name=copy_job.name,
+        description=copy_job.description)
 
-    copy.doc.all().delete()
-    copy.doc.add(copy_doc)
+    copy_job.update_doc(copy_doc)
 
     old_nodes_mapping = {}
 
@@ -382,7 +397,7 @@ class Workflow(Job):
       node = node.get_full_node()
       node.pk = None
       node.id = None
-      node.workflow = copy
+      node.workflow = copy_job
       node.save()
       old_nodes_mapping[prev_id] = node
 
@@ -393,25 +408,25 @@ class Workflow(Job):
       link.child = old_nodes_mapping[link.child.id]
       link.save()
 
-    copy.start = old_nodes_mapping[self.start.id]
-    copy.end = old_nodes_mapping[self.end.id]
-    copy.save()
+    copy_job.start = old_nodes_mapping[self.start.id]
+    copy_job.end = old_nodes_mapping[self.end.id]
+    copy_job.save()
 
     try:
-      if copy.is_shared:
+      if copy_job.is_shared:
         perms = 0755
       else:
         perms = 0711
-      fs.copy_remote_dir(source_deployment_dir, copy.deployment_dir, owner=copy.owner, dir_mode=perms)
+      fs.copy_remote_dir(source_deployment_dir, copy_job.deployment_dir, owner=copy_job.owner, dir_mode=perms)
     except WebHdfsException, e:
       msg = _('The copy of the deployment directory failed: %s.') % e
       LOG.error(msg)
       raise PopupException(msg)
 
     # Reload workflow from DB... clears relationship cache
-    copy = Workflow.objects.get(id=copy.id)
+    copy_job = Workflow.objects.get(id=copy_job.id)
 
-    return copy
+    return copy_job
 
   @property
   def job_properties_escapejs(self):
@@ -1448,21 +1463,15 @@ class Coordinator(Job):
     else:
       owner = self.owner
 
-    copy = self
-    copy.pk = None
-    copy.id = None
-    copy.name = name
-    copy.deployment_dir = ''
-    copy.owner = owner
-    copy.save()
+    copy_doc = self.doc.get()
+    copy_job = self.copy(name=name, deployment_dir='', owner=owner)
 
-    copy_doc = Document.objects.link(copy,
-        owner=copy.owner,
-        name=copy.name,
-        description=copy.description)
+    copy_doc = copy_doc.copy(content_object=copy_job,
+        owner=copy_job.owner,
+        name=copy_job.name,
+        description=copy_job.description)
 
-    copy.doc.all().delete()
-    copy.doc.add(copy_doc)
+    copy_job.update_doc(copy_doc)
 
     old_dataset_mapping = {}
 
@@ -1470,25 +1479,25 @@ class Coordinator(Job):
       prev_id = dataset.id
       dataset.pk = None
       dataset.id = None
-      dataset.coordinator = copy
+      dataset.coordinator = copy_job
       dataset.save()
       old_dataset_mapping[prev_id] = dataset
 
     for data_input in data_inputs:
       data_input.pk = None
       data_input.id = None
-      data_input.coordinator = copy
+      data_input.coordinator = copy_job
       data_input.dataset = old_dataset_mapping[data_input.dataset.id]
       data_input.save()
 
     for data_output in data_outputs:
       data_output.pk = None
       data_output.id = None
-      data_output.coordinator = copy
+      data_output.coordinator = copy_job
       data_output.dataset = old_dataset_mapping[data_output.dataset.id]
       data_output.save()
 
-    return copy
+    return copy_job
 
   @classmethod
   def get_application_path_key(cls):
@@ -1787,29 +1796,23 @@ class Bundle(Job):
     else:
       owner = self.owner
 
-    copy = self
-    copy.pk = None
-    copy.id = None
-    copy.name = name
-    copy.deployment_dir = ''
-    copy.owner = owner
-    copy.save()
+    copy_doc = self.doc.get()
+    copy_job = self.copy(name=name, deployment_dir='', owner=owner)
 
-    copy_doc = Document.objects.link(copy,
-        owner=copy.owner,
-        name=copy.name,
-        description=copy.description)
+    copy_doc = copy_doc.copy(content_object=copy_job,
+        owner=copy_job.owner,
+        name=copy_job.name,
+        description=copy_job.description)
 
-    copy.doc.all().delete()
-    copy.doc.add(copy_doc)
+    copy_job.update_doc(copy_doc)
 
     for bundled in bundleds:
       bundled.pk = None
       bundled.id = None
-      bundled.bundle = copy
+      bundled.bundle = copy_job
       bundled.save()
 
-    return copy
+    return copy_job
 
   @classmethod
   def get_application_path_key(cls):

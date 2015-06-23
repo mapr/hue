@@ -17,7 +17,6 @@
 
 import json
 import logging
-import uuid
 
 from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
@@ -150,29 +149,25 @@ def copy_workflow(request):
   jobs = json.loads(request.POST.get('selection'))
 
   for job in jobs:
-    doc2 = Document2.objects.get(type='oozie-workflow2', id=job['id'])
+    copy_doc2 = Document2.objects.get(type='oozie-workflow2', id=job['id'])
+    copy_doc = copy_doc2.doc.get()
 
-    name = doc2.name + '-copy'
-    copy_doc = doc2.doc.get().copy(name=name, owner=request.user)
+    # Create Document2 copy
+    name = copy_doc2.name + '-copy'
+    copy_doc2 = copy_doc2.copy(name=name, owner=request.user)
 
-    doc2.pk = None
-    doc2.id = None
-    doc2.uuid = str(uuid.uuid4())
-    doc2.name = name
-    doc2.owner = request.user
-    doc2.save()
+    # Create Document copy
+    copy_doc = copy_doc.copy(content_object=copy_doc2, name=name)
 
-    doc2.doc.all().delete()
-    doc2.doc.add(copy_doc)
-    doc2.save()
+    copy_doc2.update_doc(copy_doc)
 
-    workflow = Workflow(document=doc2)
+    workflow = Workflow(document=copy_doc2)
     workflow.update_name(name)
 
     _import_workspace(request.fs, request.user, workflow)
 
-    doc2.update_data({'workflow': workflow.get_data()['workflow']})
-    doc2.save()
+    copy_doc2.update_data({'workflow': workflow.get_data()['workflow']})
+    copy_doc2.save()
 
   response = {}
   request.info(_('Workflows copied.') if len(jobs) > 1 else _('Workflow copied.'))
@@ -458,25 +453,22 @@ def copy_coordinator(request):
   jobs = json.loads(request.POST.get('selection'))
 
   for job in jobs:
-    doc2 = Document2.objects.get(type='oozie-coordinator2', id=job['id'])
+    copy_doc2 = Document2.objects.get(type='oozie-coordinator2', id=job['id'])
+    copy_doc = copy_doc2.doc.get()
 
-    name = doc2.name + '-copy'
-    copy_doc = doc2.doc.get().copy(name=name, owner=request.user)
+    # Create Document2 copy
+    name = copy_doc2.name + '-copy'
+    copy_doc2 = copy_doc2.copy(name=name, owner=request.user)
 
-    doc2.pk = None
-    doc2.id = None
-    doc2.uuid = str(uuid.uuid4())
-    doc2.name = name
-    doc2.owner = request.user
-    doc2.save()
+    # Create Document copy
+    copy_doc = copy_doc.copy(content_object=copy_doc2, name=name)
 
-    doc2.doc.all().delete()
-    doc2.doc.add(copy_doc)
+    copy_doc2.update_doc(copy_doc)
 
-    coordinator_data = Coordinator(document=doc2).get_data_for_json()
+    coordinator_data = Coordinator(document=copy_doc2).get_data_for_json()
     coordinator_data['name'] = name
-    doc2.update_data(coordinator_data)
-    doc2.save()
+    copy_doc2.update_data(coordinator_data)
+    copy_doc2.save()
 
   response = {}
   request.info(_('Coordinator copied.') if len(jobs) > 1 else _('Coordinator copied.'))
@@ -674,25 +666,22 @@ def copy_bundle(request):
   jobs = json.loads(request.POST.get('selection'))
 
   for job in jobs:
-    doc2 = Document2.objects.get(type='oozie-bundle2', id=job['id'])
+    copy_doc2 = Document2.objects.get(type='oozie-bundle2', id=job['id'])
+    copy_doc = copy_doc2.doc.get()
 
-    name = doc2.name + '-copy'
-    copy_doc = doc2.doc.get().copy(name=name, owner=request.user)
+    # Create Document2 copy
+    name = copy_doc2.name + '-copy'
+    copy_doc2 = copy_doc2.copy(name=name, owner=request.user)
 
-    doc2.pk = None
-    doc2.id = None
-    doc2.uuid = str(uuid.uuid4())
-    doc2.name = name
-    doc2.owner = request.user
-    doc2.save()
+    # Create Document copy
+    copy_doc = copy_doc.copy(content_object=copy_doc2, name=name)
 
-    doc2.doc.all().delete()
-    doc2.doc.add(copy_doc)
+    copy_doc2.update_doc(copy_doc)
 
-    bundle_data = Bundle(document=doc2).get_data_for_json()
+    bundle_data = Bundle(document=copy_doc2).get_data_for_json()
     bundle_data['name'] = name
-    doc2.update_data(bundle_data)
-    doc2.save()
+    copy_doc2.update_data(bundle_data)
+    copy_doc2.save()
 
   response = {}
   request.info(_('Bundle copied.') if len(jobs) > 1 else _('Bundle copied.'))

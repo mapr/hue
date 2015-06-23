@@ -99,18 +99,17 @@ def copy(request):
   notebooks = json.loads(request.POST.get('notebooks', '[]'))
 
   for notebook in notebooks:
-    doc2 = Document2.objects.get(uuid=notebook['uuid'])
+    copy_doc2 = Document2.objects.get(uuid=notebook['uuid'])
+    copy_doc = copy_doc2.doc.get()
 
-    doc2.pk = None
-    doc2.id = None
-    doc2.uuid = str(uuid.uuid4())
-    doc2.owner = request.user
-    doc2.save()
+    # Create Document2 copy
+    name = copy_doc2.name + '-copy'
+    copy_doc2 = copy_doc2.copy(name=name, owner=request.user)
 
-    copy_doc = Document.objects.link(doc2,
-        owner=copy.owner,
-        name=copy.name,
-        description=copy.description)
+    # Create Document copy
+    copy_doc = copy_doc.copy(content_object=copy_doc2, name=name)
+
+    copy_doc2.update_doc(copy_doc)
 
   return JsonResponse({})
 
