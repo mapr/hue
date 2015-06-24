@@ -157,13 +157,13 @@ def copy_workflow(request):
 
     doc.copy(content_object=doc2, name=name)
 
-    workflow = Workflow(document=doc2)
+    workflow = Workflow(document=copy_doc2)
     workflow.update_name(name)
 
     _import_workspace(request.fs, request.user, workflow)
 
-    doc2.update_data({'workflow': workflow.get_data()['workflow']})
-    doc2.save()
+    copy_doc2.update_data({'workflow': workflow.get_data()['workflow']})
+    copy_doc2.save()
 
   response = {}
   request.info(_('Workflows copied.') if len(jobs) > 1 else _('Workflow copied.'))
@@ -457,10 +457,10 @@ def copy_coordinator(request):
 
     doc.copy(content_object=doc2, name=name)
 
-    coordinator_data = Coordinator(document=doc2).get_data_for_json()
+    coordinator_data = Coordinator(document=copy_doc2).get_data_for_json()
     coordinator_data['name'] = name
-    doc2.update_data(coordinator_data)
-    doc2.save()
+    copy_doc2.update_data(coordinator_data)
+    copy_doc2.save()
 
   response = {}
   request.info(_('Coordinator copied.') if len(jobs) > 1 else _('Coordinator copied.'))
@@ -666,10 +666,10 @@ def copy_bundle(request):
 
     doc.copy(content_object=doc2, name=name)
 
-    bundle_data = Bundle(document=doc2).get_data_for_json()
+    bundle_data = Bundle(document=copy_doc2).get_data_for_json()
     bundle_data['name'] = name
-    doc2.update_data(bundle_data)
-    doc2.save()
+    copy_doc2.update_data(bundle_data)
+    copy_doc2.save()
 
   response = {}
   request.info(_('Bundle copied.') if len(jobs) > 1 else _('Bundle copied.'))

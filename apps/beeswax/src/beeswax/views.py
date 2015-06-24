@@ -186,6 +186,7 @@ def clone_design(request, design_id):
     return list_designs(request)
 
   copy = design.clone(request.user)
+  copy_doc = design.doc.get()
   copy.save()
 
   design.doc.get().copy(content_object=copy)
