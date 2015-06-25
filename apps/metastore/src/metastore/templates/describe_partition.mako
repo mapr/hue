@@ -15,13 +15,14 @@
 ## limitations under the License.
 <%!
   from filebrowser.views import location_to_url
+  from desktop.lib.i18n import smart_unicode
   from desktop.views import commonheader, commonfooter
   from django.utils.translation import ugettext as _
 %>
 
 <%namespace name="components" file="components.mako" />
 
-${ commonheader(_('Table Partitions: %(tableName)s') % dict(tableName=table.name), app_name, user) | n,unicode }
+${ commonheader(_('Partition: %(partition_id)s') % dict(partition_id=partition_id), app_name, user) | n,unicode }
 ${ components.menubar() }
 
 <div class="container-fluid">
@@ -30,7 +31,7 @@ ${ components.menubar() }
       <div class="sidebar-nav card-small">
         <ul class="nav nav-list">
           <li class="nav-header">${_('Actions')}</li>
-          <li><a href="${ url('metastore:describe_table', database=database, table=table.name) }"><i class="fa fa-reply"></i> ${_('Show Table')}</a></li>
+          <li><a href="${ url('metastore:describe_partitions', database=database, table=table) }"><i class="fa fa-reply"></i> ${_('Show Partitions')}</a></li>
         </ul>
       </div>
     </div>
@@ -39,28 +40,30 @@ ${ components.menubar() }
         <h1 class="card-heading simple">${ components.breadcrumbs(breadcrumbs) }</h1>
           <div class="card-body">
             <p>
-          % if partitions:
-          <table class="table table-striped table-condensed datatables">
-          <tr>
-          % for field in table.partition_keys:
-              <th>${field.name}</th>
-          % endfor
-              <th>Properties</th>
-          </tr>
-          % for partition_id, partition in enumerate(partitions):
-            <tr>
-            % for idx, key in enumerate(partition.values):
-                <td><a href="${ url('metastore:read_partition', database=database, table=table.name, partition_id=partition_id) }" data-row-selector="true">${key}</a></td>
-            % endfor
-                <td><a href="${ url('metastore:describe_partition', database=database, table=table.name, partition_id=partition_id) }" data-row-selector="true">Describe</a></td>
-            </tr>
-          % endfor
-          </table>
-          % else:
-              <div class="alert">${_('The table %s has no partitions.' % table.name)}</div>
-          % endif
-              </p>
-            </div>
+            % if properties:
+                <table class="table table-striped table-condensed">
+                  <thead>
+                    <tr>
+                      <th>${ _('Name') }</th>
+                      <th>${ _('Value') }</th>
+                      <th>${ _('Comment') }</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    % for prop in properties:
+                      <tr>
+                        <td>${ smart_unicode(prop['col_name']) }</td>
+                        <td>${ smart_unicode(prop['data_type']) if prop['data_type'] else '' }</td>
+                        <td>${ smart_unicode(prop['comment']) if prop['comment'] else '' }&nbsp;</td>
+                      </tr>
+                     % endfor
+                  </tbody>
+                </table>
+            % else:
+              <div class="alert">${_('The partition %s has no properties.' % partition_id)}</div>
+            % endif
+            </p>
+          </div>
         </div>
     </div>
   </div>

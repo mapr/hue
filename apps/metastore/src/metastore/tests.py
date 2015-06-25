@@ -127,7 +127,7 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
     response = self.client.get("/metastore/table/default/test/partitions", follow=True)
     assert_true("is not partitioned." in response.content)
 
-  def test_browse_partitioned_table_with_limit(self):
+  def test_describe_partitioned_table_with_limit(self):
     # Limit to 90
     finish = BROWSE_PARTITIONED_TABLE_LIMIT.set_for_testing("90")
     try:
@@ -138,11 +138,23 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
       finish()
 
   def test_browse_partitions(self):
-    response = self.client.get("/metastore/table/default/test_partitions/partitions/0", follow=True)
+    response = self.client.get("/metastore/table/default/test_partitions/partitions/0/read", follow=True)
     response = self.client.get(reverse("beeswax:api_watch_query_refresh_json", kwargs={'id': response.context['query'].id}), follow=True)
     response = wait_for_query_to_finish(self.client, response, max=30.0)
     results = fetch_query_result_data(self.client, response)
     assert_true(len(results['results']) > 0, results)
+
+  def test_describe_partition(self):
+    # Insert additional partition data into "test_partitions" table
+    hql = """
+      ALTER TABLE test_partitions ADD PARTITION(baz='baz_two', boom='boom_two') LOCATION '/tmp/beeswax/baz_two/boom_two'
+    """
+    resp = _make_query(self.client, hql)
+    wait_for_query_to_finish(self.client, resp, max=30.0)
+
+    response = self.client.get("/metastore/table/default/test_partitions/partitions/0")
+    assert_true("Location" in response.content, response.content)
+    assert_true("/tmp/beeswax/baz_two/boom_two" in response.content, response.content)
 
   def test_drop_multi_tables(self):
     hql = """

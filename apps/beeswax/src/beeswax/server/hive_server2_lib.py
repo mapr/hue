@@ -754,13 +754,38 @@ class HiveServerClient:
     else:
       max_rows = 1000 if max_parts <= 250 else max_parts
 
-    partitionTable = self.execute_query_statement('SHOW PARTITIONS %s.%s' % (database, table_name), max_rows=max_rows)
+    partitionTable = self.execute_query_statement('SHOW PARTITIONS `%s`.`%s`' % (database, table_name), max_rows=max_rows)
+
     partitions = [PartitionValueCompatible(partition, table) for partition in partitionTable.rows()][-max_parts:]
 
     if reverse_sort:
       partitions.reverse()
 
     return partitions
+
+
+  def describe_partition(self, db_name, table_name, partition_spec):
+    req = TGetTablesReq(schemaName=db_name, tableName=table_name)
+    res = self.call(self._client.GetTables, req)
+
+    table_results, table_schema = self.fetch_result(res.operationHandle, orientation=TFetchOrientation.FETCH_NEXT)
+    self.close_operation(res.operationHandle)
+
+    query = 'DESCRIBE FORMATTED `%s`.`%s` PARTITION(%s)' % (db_name, table_name, partition_spec)
+    (desc_results, desc_schema), operation_handle = self.execute_statement(query, max_rows=5000, orientation=TFetchOrientation.FETCH_NEXT)
+    self.close_operation(operation_handle)
+
+    describe_table = HiveServerTable(table_results.results, table_schema.schema, desc_results.results, desc_schema.schema)
+    rows = describe_table.describe
+
+    col_row_index = 2
+    end_cols_index = map(itemgetter('col_name'), rows[col_row_index:]).index('')
+    return [{
+          'col_name': prop['col_name'].strip() if prop['col_name'] else prop['col_name'],
+          'data_type': prop['data_type'].strip() if prop['data_type'] else prop['data_type'],
+          'comment': prop['comment'].strip() if prop['comment'] else prop['comment']
+        } for prop in rows[col_row_index + end_cols_index + 1:]
+    ]
 
 
   def _get_query_configuration(self, query):
@@ -825,10 +850,15 @@ class PartitionKeyCompatible:
 
 class PartitionValueCompatible:
 
-  def __init__(self, partition, table):
+  def __init__(self, partition, table, properties=None):
+    partition_props = {}
     # Parses: ['datehour=2013022516'] or ['month=2011-07/dt=2011-07-01/hr=12']
     self.values = [val.split('=')[1] for part in partition for val in part.split('/')]
-    self.sd = type('Sd', (object,), {'location': '%s/%s' % (table.path_location, ','.join(partition)),})
+
+    if properties and 'Location' in properties:
+      partition_props['location'] = properties['Location']
+
+    self.sd = type('Sd', (object,), partition_props,)
 
 
 class ExplainCompatible:
@@ -978,6 +1008,10 @@ class HiveServerClientCompatible(object):
 
 
   def get_partition(self, *args, **kwargs): raise NotImplementedError()
+
+
+  def describe_partition(self, db_name, table_name, partition_spec):
+    return self._client.describe_partition(db_name, table_name, partition_spec)
 
 
   def get_partitions(self, database, table_name, max_parts, reverse_sort=True):

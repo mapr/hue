@@ -217,16 +217,6 @@ def read_table(request, database, table):
     raise PopupException(_('Cannot read table'), detail=e)
 
 
-def read_partition(request, database, table, partition_id):
-  db = dbms.get(request.user)
-  try:
-    partition = db.get_partition(database, table, int(partition_id))
-    url = reverse('beeswax:watch_query_history', kwargs={'query_history_id': partition.id}) + '?on_success_url=&context=table:%s:%s' % (table, database)
-    return redirect(url)
-  except Exception, e:
-    raise PopupException(_('Cannot read table'), detail=e)
-
-
 @check_has_write_access_permission
 def load_table(request, database, table):
   db = dbms.get(request.user)
@@ -287,6 +277,43 @@ def describe_partitions(request, database, table):
       ],
       'database': database, 'table': table_obj, 'partitions': partitions, 'request': request
   })
+
+
+def describe_partition(request, database, table, partition_id):
+  db = dbms.get(request.user)
+  try:
+    properties = db.describe_partition(database, table, int(partition_id))
+
+    return render("describe_partition.mako", request, {
+        'breadcrumbs': [{
+            'name': database,
+            'url': reverse('metastore:show_tables', kwargs={'database': database})
+        }, {
+            'name': table,
+            'url': reverse('metastore:describe_table', kwargs={'database': database, 'table': table})
+        }, {
+            'name': 'partitions',
+            'url': reverse('metastore:describe_partitions', kwargs={'database': database, 'table': table})
+        }, {
+            'name': partition_id,
+            'url': reverse('metastore:describe_partition',
+                           kwargs={'database': database, 'table': table, 'partition_id': partition_id})
+        },
+        ],
+        'database': database, 'table': table, 'partition_id': partition_id, 'properties': properties, 'request': request
+    })
+  except Exception, e:
+    raise PopupException(_('Cannot describe partition'), detail=e)
+
+
+def read_partition(request, database, table, partition_id):
+  db = dbms.get(request.user)
+  try:
+    partition = db.get_partition(database, table, int(partition_id))
+    url = reverse('beeswax:watch_query_history', kwargs={'query_history_id': partition.id}) + '?on_success_url=&context=table:%s:%s' % (table, database)
+    return redirect(url)
+  except Exception, e:
+    raise PopupException(_('Cannot read table'), detail=e)
 
 
 def has_write_access(user):
