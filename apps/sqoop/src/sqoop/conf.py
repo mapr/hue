@@ -17,10 +17,18 @@
 
 from django.utils.translation import ugettext as _, ugettext_lazy as _t
 
-from desktop.lib.conf import Config
+from desktop.lib.conf import Config, coerce_bool
 
 
 SERVER_URL = Config(
   key="server_url",
   default='http://localhost:12000/sqoop',
   help=_t("The sqoop server URL."))
+
+SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos or MapR-securtity authentication",
+                              default=False, type=coerce_bool)
+
+MECHANISM = Config("mechanism",
+                   help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+                   default='none',
+                   type=str)
