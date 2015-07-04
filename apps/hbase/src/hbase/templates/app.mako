@@ -2624,6 +2624,21 @@ $jstreeMapr
       }
     });
   });
+
+
+/*
+ * MAPR-18650 [hbase] Mapr-db table browser doesn't update with new table
+ */
+$jstreeMapr
+  .on('close_node.jstree', function(e, data) {
+    data.node.needRefresh = true;
+  })
+  .on('open_node.jstree', function(e, data) {
+    if (data.node.needRefresh) {
+      jstreeInst.refresh_node(data.node);
+      data.node.needRefresh = false;
+    }
+  });
 </script>
 
 %if not is_embeddable:
