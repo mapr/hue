@@ -2606,6 +2606,15 @@ function getCurrentCluster() {
 }
 
 $('#jstree_mapr')
+  .bind('open_node.jstree', function(ev, data) {
+    $('#jstree_mapr').jstree(true).get_node(data.node.id).class = 'needrefresh';
+  })
+  .bind('close_node.jstree', function(ev, data) {
+    if ('needrefresh' === $('#jstree_mapr').jstree(true).get_node(data.node.id).class) {
+      $('#jstree_mapr').jstree(true).get_node(data.node.id).class = undefined;
+      $('#jstree_mapr').jstree(true).refresh_node(data.node.id);
+    }
+  })
   .jstree({
     'core': {
       'data': {
