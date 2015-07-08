@@ -1,9 +1,7 @@
 import re
 import os
 
-GSSAPI = "GSSAPI"
 MAPR_SECURITY = "MAPR-SECURITY"
-KERBEROS_ENABLE = "kerberosEnable"
 SECURE = "secure"
 SECURITY_ENABLED = 'security_enabled'
 MECHANISM = 'mechanism'
@@ -26,9 +24,6 @@ def read_values_from_mapr_clusters_conf():
 
   if templates[SECURITY_ENABLED] == "true":
     templates[MECHANISM] = MAPR_SECURITY
-
-  if (KERBEROS_ENABLE in cluster_props) and (cluster_props[KERBEROS_ENABLE] == "true"):
-    templates[MECHANISM] = GSSAPI
 
 
 templateRegEx = re.compile(r'^\${(.+?)}')
