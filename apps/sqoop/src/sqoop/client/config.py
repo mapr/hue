@@ -69,7 +69,7 @@ class Input(object):
     }
     if self.value:
       d['value'] = self.value
-    if self.size != -1:
+    if self.size:
       d['size'] = self.size
     if self.values:
       d['values'] = ','.join(self.values)
