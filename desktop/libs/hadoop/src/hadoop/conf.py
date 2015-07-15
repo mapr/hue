@@ -112,7 +112,7 @@ MR_CLUSTERS = UnspecifiedConfigSection(
       JT_THRIFT_PORT=Config("thrift_port", help="Thrift port for JobTracker", default=9290,
                             type=int),
       JT_KERBEROS_PRINCIPAL=Config("jt_kerberos_principal", help="Kerberos principal for JobTracker",
-                                   default="mapred", type=str),
+                                   default="mapr", type=str),
       SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos authentication",
                               default=False, type=coerce_bool),
       SUBMIT_TO=Config('submit_to', help="Whether Hue should use this cluster to run jobs",
