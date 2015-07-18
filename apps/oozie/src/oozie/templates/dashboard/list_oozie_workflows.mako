@@ -63,6 +63,11 @@ ${ layout.menubar(section='workflows', dashboard=True) }
         <a class="btn btn-submitted btn-info" data-value='MANUALLY'>${ _('Manually') }</a>
         <a class="btn btn-submitted btn-info" data-value='COORDINATOR'>${ _('Coordinator') }</a>
       </span>
+      <span style="float:left;padding-left:10px;padding-right:10px;margin-top:3px" class="hide-smaller">${ _('submitted') }</span>
+      <span class="btn-group" style="float:left;">
+        <a class="btn btn-submitted btn-info" data-value='MANUALLY'>${ _('Manually') }</a>
+        <a class="btn btn-submitted btn-info" data-value='COORDINATOR'>${ _('Coordinator') }</a>
+      </span>
     </span>
  </form>
 
@@ -333,6 +338,12 @@ ${ layout.menubar(section='workflows', dashboard=True) }
       refreshRunning();
       refreshCompleted();
       refreshProgress();
+    });
+
+    $("a.btn-submitted").click(function () {
+      $("a.btn-submitted").not(this).removeClass("active");
+      $(this).toggleClass("active");
+      drawTable();
     });
 
     $("a.btn-submitted").click(function () {

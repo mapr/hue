@@ -3292,6 +3292,14 @@ class TestDashboard(OozieMockBase):
     for wf_id in MockOozieApi.WORKFLOW_IDS:
       assert_true(wf_id in response.content, response.content)
 
+    response = self.c.get(reverse('oozie:list_oozie_workflows') + "?format=json&type=running")
+    for wf_id in MockOozieApi.WORKFLOW_IDS:
+      assert_true(wf_id in response.content, response.content)
+
+    response = self.c.get(reverse('oozie:list_oozie_workflows') + "?format=json&type=completed")
+    for wf_id in MockOozieApi.WORKFLOW_IDS:
+      assert_true(wf_id in response.content, response.content)
+
 
   def test_list_coordinators(self):
     response = self.c.get(reverse('oozie:list_oozie_coordinators'))
@@ -3310,6 +3318,14 @@ class TestDashboard(OozieMockBase):
     for coord_id in MockOozieApi.COORDINATOR_IDS:
       assert_true(coord_id in response.content, response.content)
 
+    response = self.c.get(reverse('oozie:list_oozie_coordinators') + "?format=json&type=running")
+    for coord_id in MockOozieApi.COORDINATOR_IDS:
+      assert_true(coord_id in response.content, response.content)
+
+    response = self.c.get(reverse('oozie:list_oozie_coordinators') + "?format=json&type=completed")
+    for coord_id in MockOozieApi.COORDINATOR_IDS:
+      assert_true(coord_id in response.content, response.content)
+
 
   def test_list_bundles(self):
     response = self.c.get(reverse('oozie:list_oozie_bundles'))
@@ -3325,6 +3341,14 @@ class TestDashboard(OozieMockBase):
       assert_true(coord_id in response.content, response.content)
 
     response = self.c.get(reverse('oozie:list_oozie_bundles') + "?format=json&status=KILLED")
+    for coord_id in MockOozieApi.BUNDLE_IDS:
+      assert_true(coord_id in response.content, response.content)
+
+    response = self.c.get(reverse('oozie:list_oozie_bundles') + "?format=json&type=running")
+    for coord_id in MockOozieApi.BUNDLE_IDS:
+      assert_true(coord_id in response.content, response.content)
+
+    response = self.c.get(reverse('oozie:list_oozie_bundles') + "?format=json&type=completed")
     for coord_id in MockOozieApi.BUNDLE_IDS:
       assert_true(coord_id in response.content, response.content)
 

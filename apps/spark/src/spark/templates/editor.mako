@@ -665,6 +665,12 @@ ${ commonheader(_('Query'), app_name, user, "68px") | n,unicode }
       <div data-bind="visible: status() == 'available' && ! result.fetchedOnce(), css: resultsKlass">
         ${ _('Loading...') }
       </div>
+      <!-- /ko -->
+      <!-- ko if: type() == 'text' -->
+        <div class="snippet-body">
+          <div data-bind="attr:{'id': 'editor_'+id()}, html: statement_raw, value: statement_raw, medium: {}" class="text-snippet"></div>
+        </div>
+      <!-- /ko -->
     </div>
   </div>
 </script>
@@ -1560,6 +1566,8 @@ ${ koComponents.assistPanel() }
     $(".resize-panel a").each(function(){
       $(this).draggable(getDraggableOptions($(this).parents(".snippet").offset().top + 128));
     });
+    $("#assistQuickLook").modal("show");
+  }
 
     function draggableHelper(el, e, ui, setSize) {
       var _snippet = ko.dataFor(el.parents(".snippet")[0]);

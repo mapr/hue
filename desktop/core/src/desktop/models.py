@@ -440,6 +440,9 @@ class DocumentManager(models.Manager):
 UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
 
 
+UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
+
+
 class Document(models.Model):
   owner = models.ForeignKey(auth_models.User, db_index=True, verbose_name=_t('Owner'), help_text=_t('User who can own the job.'), related_name='doc_owner')
   name = models.CharField(default='', max_length=255)

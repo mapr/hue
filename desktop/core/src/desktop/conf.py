@@ -291,6 +291,14 @@ SMTP = ConfigSection(
       default=None,
     ),
 
+    PASSWORD_SCRIPT = Config(
+      key="password_script",
+      help=_("Execute this script to produce the SMTP user password. This will be used when the SMTP `password` is not set."),
+      type=coerce_password_from_script,
+      private=True,
+      default=None,
+    ),
+
     USE_TLS = Config(
       key="tls",
       help=_("Whether to use a TLS (secure) connection when talking to the SMTP server."),
@@ -343,6 +351,13 @@ DATABASE = ConfigSection(
       private=True,
       type=coerce_password_from_script,
       default=None,
+    ),
+    PASSWORD_SCRIPT=Config(
+      key='password_script',
+      help=_('Execute this script to produce the database password. This will be used when `password` is not set.'),
+      private=True,
+      type=coerce_password_from_script,
+      default='',
     ),
     HOST=Config(
       key='host',

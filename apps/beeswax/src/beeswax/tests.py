@@ -1567,6 +1567,43 @@ for x in sys.stdin:
     assert_true('<th>foo</th>' in resp.content, resp.content)
     assert_true([0, '0x0'] in resp.context['sample'], resp.context['sample'])
 
+  def test_redacting_queries(self):
+    c = make_logged_in_client()
+
+    old_policies = redaction.global_redaction_engine.policies
+    redaction.global_redaction_engine.policies = [
+      RedactionPolicy([
+        RedactionRule('', 'ssn=\d{3}-\d{2}-\d{4}', 'ssn=XXX-XX-XXXX'),
+      ])
+    ]
+
+    logfilter.add_log_redaction_filter_to_logger(redaction.global_redaction_engine, logging.root)
+
+    try:
+      # Make sure redacted queries are redacted.
+      query = 'SELECT "ssn=123-45-6789"'
+      expected_query = 'SELECT "ssn=XXX-XX-XXXX"'
+
+      resp = make_query(c, query)
+      content = json.loads(resp.content)
+      query_id = content['id']
+      history = beeswax.models.QueryHistory.objects.get(pk=query_id)
+      assert_equal(history.query, expected_query)
+      assert_true(history.is_redacted)
+
+      # Make sure unredacted queries are not redacted.
+      query = 'SELECT "hello"'
+      expected_query = 'SELECT "hello"'
+
+      resp = make_query(c, query)
+      content = json.loads(resp.content)
+      query_id = content['id']
+      history = beeswax.models.QueryHistory.objects.get(pk=query_id)
+      assert_equal(history.query, expected_query)
+      assert_false(history.is_redacted)
+    finally:
+      redaction.global_redaction_engine.policies = old_policies
+
 
   def test_redacting_queries(self):
     c = make_logged_in_client()
@@ -2093,6 +2130,68 @@ class TestHiveServer2API():
                   PartitionKeyCompatible('complex', 'UNIONTYPE<int, double, array<string>, struct<a:int,b:string>>', ''),
                  ], table.partition_keys)
 
+
+  def test_column_format_values_nulls(self):
+    data = [1, 1, 1]
+    nulls = '\x00'
+
+    assert_equal([1, 1, 1],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    data = [1, 1, 1]
+    nulls = '\x03'
+
+    assert_equal([None, None, 1],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    data = [1, 1, 1, 1, 1, 1, 1, 1]
+    nulls = 't' # 0b1110100
+
+    assert_equal([1, 1, None, 1, None, None, None, 1],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+
+    data = [1, 1, 'not_good', 'NaN', None, 'INF', 'INF', 3]
+    nulls = 't' # 0b1110100
+
+    assert_equal([1, 1, None, 'NaN', None, None, None, 3],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    data = [1] * 18
+    nulls = '\xff\xee\x03'
+
+    assert_equal([None, None, None, None, None, None, None, None, 1, None, None, None, 1, None, None, None, None, None],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    data = [1, 1, 1, 1, 1, 1, 1, 1]
+    nulls = '\x41'
+
+    assert_equal([None, 1, 1, 1, 1, 1, None, 1],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    data = [1] * 8 * 8
+    nulls = '\x01\x23\x45\x67\x89\xab\xcd\xef'
+
+    assert_equal([None, 1, 1, 1, 1, 1, 1, 1, None, None, 1, 1, 1, None, 1, 1, None, 1, None, 1, 1, 1, None, 1, None, None, None, 1, 1, None, None, 1, None, 1, 1,
+                  None, 1, 1, 1, None, None, None, 1, None, 1, None, 1, None, None, 1, None, None, 1, 1, None, None, None, None, None, None, 1, None, None, None],
+                 HiveServerTColumnValue2.set_nulls(data, nulls))
+
+  def test_column_detect_if_values_nulls(self):
+    data = [1, 2, 3]
+
+    nulls = ''
+    assert_true(data is HiveServerTColumnValue2.set_nulls(data, nulls))
+    nulls = '\x00'
+    assert_true(data is HiveServerTColumnValue2.set_nulls(data, nulls))
+    nulls = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    assert_true(data is HiveServerTColumnValue2.set_nulls(data, nulls))
+
+    nulls = 'aaaa'
+    assert_false(data is HiveServerTColumnValue2.set_nulls(data, nulls))
+    nulls = '\x00\x01\x00'
+    assert_false(data is HiveServerTColumnValue2.set_nulls(data, nulls))
+    nulls = '\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00'
+    assert_false(data is HiveServerTColumnValue2.set_nulls(data, nulls))
 
   def test_column_format_values_nulls(self):
     data = [1, 1, 1]

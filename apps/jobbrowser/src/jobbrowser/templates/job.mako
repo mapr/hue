@@ -420,6 +420,7 @@ ${ comps.menubar() }
     </div>
   </div>
 </div>
+% endif
 
 % else:
 

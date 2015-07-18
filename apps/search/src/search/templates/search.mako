@@ -1260,6 +1260,7 @@ ${ dashboard.layout_skeleton() }
             </div>
           </div>
         </div>
+
       </div>
 
       <div class="clearfix"></div>

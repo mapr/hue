@@ -608,6 +608,136 @@ ${ layout.menubar(section='coordinators', dashboard=True) }
 
       return data;
     });
+
+    this.allSelected = ko.observable(false);
+
+    this.filter = ko.observableArray([]);
+
+    this.searchFilter = ko.observable('');
+
+    this.select = function (filter) {
+      ko.utils.arrayFilter(self.actions(), function(action) {
+        if (action.status.toLowerCase() === filter) {
+          action.selected(true);
+        }
+      });
+    };
+
+    this.clearAllSelections = function () {
+      ko.utils.arrayFilter(self.actions(), function (action) {
+        action.selected(false);
+      });
+      self.allSelected(false);
+    };
+
+    this.clearSelections = function (filter) {
+      ko.utils.arrayFilter(self.actions(), function (action) {
+        if (action.status.toLowerCase() === filter) {
+          action.selected(false);
+        }
+      });
+      self.allSelected(false);
+    };
+
+    this.selectAll = function () {
+      var regexp;
+
+      if (! Array.isArray(self.filter())) {
+        ko.utils.arrayForEach(self.actions(), function (action) {
+          regexp = new RegExp(self.filter());
+
+          self.allSelected(! self.allSelected());
+
+          if (regexp.test(action.title.toLowerCase())) {
+            action.selected(! action.selected());
+          }
+        });
+        return true;
+      }
+
+      self.allSelected(! self.allSelected());
+
+      ko.utils.arrayForEach(self.actions(), function (action) {
+        if (action.id) {
+          action.selected(self.allSelected());
+        }
+      });
+      return true;
+    };
+
+    this.selectedActions = ko.computed(function () {
+      var actionlist = [];
+
+      ko.utils.arrayFilter(self.actions(), function (action) {
+        if (action.selected()) {
+          actionlist.push(action.number.toString());
+        }
+      });
+      return actionlist;
+    });
+
+    this.searchFilter.subscribe(function () {
+      if (self.searchFilter().length === 0) {
+        self.filter([]);
+      } else {
+        self.filter(self.searchFilter().toLowerCase());
+      }
+
+      if (self.selectedActions().length === self.actions().length) {
+        self.allSelected(true);
+      } else {
+        self.allSelected(false);
+      }
+    });
+
+    this.setFilter = function (filter) {
+      if (! Array.isArray(self.filter())) {
+        self.filter([]);
+      }
+
+      // checks to see if a button is toggled
+      if ($.inArray(filter, self.filter()) !== -1) {
+        // remove if already in array due to toggling of filter
+        self.filter.splice(self.filter.indexOf(filter), 1);
+        self.clearSelections(filter);
+        self.allSelected(false);
+      } else {
+        self.filter.push(filter)
+        self.select(filter);
+      }
+
+      if (self.selectedActions().length === self.actions().length) {
+        self.allSelected(true);
+      }
+    };
+
+    this.filteredActions = ko.computed(function () {
+      var filter = self.filter(),
+        actions = [],
+        regexp,
+        data;
+
+      if (self.filter().length === 0) {
+        return self.actions();
+      }
+
+      ko.utils.arrayFilter(self.actions(), function (action) {
+        if ($.inArray(filter.toString(), ['succeeded', 'running', 'failed']) === -1) {
+          regexp = new RegExp(filter);
+          if (regexp.test(action.title.toLowerCase())) {
+            actions.push(action);
+          }
+        }
+      });
+
+      if (Array.isArray(self.filter())) {
+        data = self.actions()
+      } else {
+        data = actions;
+      }
+
+      return data;
+    });
   };
 
   var viewModel = new RunningCoordinatorActionsModel([]);

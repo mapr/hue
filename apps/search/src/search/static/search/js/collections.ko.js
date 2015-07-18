@@ -82,6 +82,15 @@ var SearchCollectionsModel = function (props) {
       return coll.selected();
     });
   }, self);
+  self.selectedOwnerCollections = ko.computed(function () {
+    return ko.utils.arrayFilter(self.selectedCollections(), function (coll) {
+      return coll.isOwner();
+    });
+  }, self);
+
+  self.atLeastOneSelected = ko.computed(function() {
+    return self.selectedCollections().length >= 1 && self.selectedCollections().length == self.selectedOwnerCollections().length;
+  });
 
   self.selectedOwnerCollections = ko.computed(function () {
     return ko.utils.arrayFilter(self.selectedCollections(), function (coll) {

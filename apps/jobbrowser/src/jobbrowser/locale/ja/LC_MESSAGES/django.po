@@ -780,7 +780,7 @@ msgstr "試行を表示"
 #: src/jobbrowser/templates/tasks.mako:98
 #, python-format
 msgid "Show only %(state)s tasks"
-msgstr "%(state)s のタスクのみを表示"
+msgstr "%(state)s  のタスクのみを表示"
 
 #: src/jobbrowser/templates/tasktracker.mako:23
 #, python-format

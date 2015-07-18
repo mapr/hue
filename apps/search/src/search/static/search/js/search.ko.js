@@ -1192,6 +1192,12 @@ var SearchViewModel = function (collection_json, query_json, initial_json) {
   });
   self.isSyncingCollections = ko.observable(false);
 
+  self.showCores = ko.observable(false);
+  self.showCores.subscribe(function(newValue) {
+    self.initial.syncCollections();
+  });
+  self.isSyncingCollections = ko.observable(false);
+
   function bareWidgetBuilder(name, type){
     return new Widget({
       size: 12,
