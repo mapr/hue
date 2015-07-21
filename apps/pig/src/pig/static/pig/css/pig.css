@@ -74,8 +74,8 @@
 
 #logsModal {
   width: 90%;
-  left: 5%;
-  margin-left: auto;
+  left: calc(5% - 20px);
+  margin-left: auto !important;
   margin-right: auto;
 }
 
