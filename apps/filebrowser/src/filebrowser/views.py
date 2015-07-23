@@ -261,14 +261,21 @@ def save_file(request):
     if not is_valid:
         return edit(request, path, form=form)
 
-    if request.fs.exists(path):
-        do_overwrite_save(request.fs, path,
-                           form.cleaned_data['contents'],
-                           form.cleaned_data['encoding'])
-    else:
-        do_newfile_save(request.fs, path,
-                         form.cleaned_data['contents'],
-                         form.cleaned_data['encoding'])
+    try:
+        if request.fs.exists(path):
+            do_overwrite_save(request.fs, path,
+                               form.cleaned_data['contents'],
+                               form.cleaned_data['encoding'])
+        else:
+            do_newfile_save(request.fs, path,
+                             form.cleaned_data['contents'],
+                             form.cleaned_data['encoding'])
+    except (WebHdfsException), e:
+        msg = _("Cannot perform operation.")
+        if request.user.is_superuser and not request.user == request.fs.superuser:
+                    msg += _(' Note: you are a Hue admin but not a HDFS superuser (which is "%(superuser)s").') \
+                           % {'superuser': request.fs.superuser}
+        raise PopupException(msg, detail=e)
 
     messages.info(request, _('Saved %(path)s.') % {'path': os.path.basename(path)})
     request.path = reverse("filebrowser.views.edit", kwargs=dict(path=path))
