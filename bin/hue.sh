@@ -32,6 +32,20 @@ shift
 startStop=$1
 shift
 
+#get spark_home
+  if [ $command == "livy_server" ]; then
+    if [ -z "$SPARK_HOME" ]; then
+        if [ -d /opt/mapr/spark/spark-* ]; then
+          cd /opt/mapr/spark/spark-*
+          SPARK_HOME=`pwd`
+          export SPARK_HOME=`pwd`
+        else
+          echo "Cannot export spark home!"
+          exit 0
+        fi
+    fi
+    export PATH="$PATH:$SPARK_HOME/bin"
+  fi
 #file client impersonation
 MAPR_IMPERSONATION_ENABLED=" "
 export MAPR_IMPERSONATION_ENABLED
@@ -113,4 +127,3 @@ esac
 # deactivate the Python virtual environment
 #
 deactivate
-
