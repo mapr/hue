@@ -105,6 +105,8 @@ class TestLdapLogin(PseudoHdfsTestBase):
   reset = []
   test_username = 'test_ldap_login'
 
+  test_basename = 'test_ldap_login'
+
   @classmethod
   def setup_class(cls):
     # Simulate first login ever
