@@ -1067,9 +1067,11 @@ var HIVE_AUTOCOMPLETE_APP = "${app_name}";
 
 var STATS_PROBLEMS = "${ _('There was a problem loading the stats.') }";
 
+var hasBeenResetAfterError = false;
 var HIVE_AUTOCOMPLETE_GLOBAL_CALLBACK = function (data) {
-  if (data != null && data.error && typeof resetNavigator != "undefined") {
+  if (data != null && data.error && typeof resetNavigator != "undefined" && !hasBeenResetAfterError) {
     resetNavigator();
+    hasBeenResetAfterError = true;
   }
 };
 
@@ -1624,6 +1626,7 @@ $(document).ready(function () {
 
   $(document).on("error.autocomplete", function(){
     $(".CodeMirror-spinner").remove();
+    $("#navigatorLoader").hide();
   });
 
   function splitStatements(hql) {
