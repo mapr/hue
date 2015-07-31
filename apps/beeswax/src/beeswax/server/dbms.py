@@ -508,6 +508,9 @@ class HiveServer2Dbms(object):
               {'timeout': timeout_sec, 'query': query.hql_query[:40]}
     LOG.exception(msg)
     try:
+      msg = "The query timed out after %(timeout)d seconds, canceled query [%(query)s]..." % \
+              {'timeout': timeout_sec, 'query': query.hql_query[:40]}
+      LOG.exception(msg)
       self.cancel_operation(handle)
     except Exception, e:
       msg = "Failed to cancel query [%(query)s]..." % {'query': query.hql_query[:40]}
