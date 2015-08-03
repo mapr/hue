@@ -64,12 +64,6 @@ SERVER_CONN_TIMEOUT = Config(
   type=int,
   help=_t('Timeout in seconds for Thrift calls.'))
 
-SECURITY_ENABLED = Config(
-  key="security_enabled",
-  help=_t("Change this if your Hive is secured"),
-  default=False,
-  type=coerce_bool)
-
 MECHANISM=Config("mechanism",
   default='none',
   help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
