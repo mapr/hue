@@ -19,6 +19,7 @@ import json
 import logging
 import re
 import csv
+from ast import literal_eval
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
@@ -202,6 +203,7 @@ class HbaseApi(object):
     client = self.connectCluster(cluster)
     mutations = []
     Mutation = get_thrift_type('Mutation')
+    data = literal_eval(str(data))
     for column in data.keys():
       mutations.append(Mutation(column=smart_str(column), value=smart_str(data[column]))) # must use str for API, does thrift coerce by itself?
     return client.mutateRow(tableName, smart_str(row), mutations, None, doas=self.user.username)
