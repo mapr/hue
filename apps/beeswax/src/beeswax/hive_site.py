@@ -82,7 +82,7 @@ def get_metastore():
   """
   global _METASTORE_LOC_CACHE
   if not _METASTORE_LOC_CACHE:
-    thrift_uris = get_conf().get(_CNF_METASTORE_URIS, "thrift://127.0.0.1:9083")
+    thrift_uris = get_conf().get(_CNF_METASTORE_URIS, "thrift://localhost:9083")
     is_local = thrift_uris is None or thrift_uris == ''
 
     if not is_local:

@@ -513,8 +513,8 @@ class HiveServerClient:
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      use_sasl = beeswax_conf.SECURITY_ENABLED.get()
-      mechanism = 'PLAIN' if hive_mechanism == 'NONE' else hive_mechanism
+      use_sasl = hive_mechanism in ('GSSAPI', 'NONE', 'MAPR-SECURITY', 'LDAP')
+      mechanism = 'PLAIN' if hive_mechanism in ('NONE', 'LDAP') else hive_mechanism
       impersonation_enabled = hive_site.hiveserver2_impersonation_enabled()
 
     return use_sasl, mechanism, kerberos_principal_short_name, impersonation_enabled, ldap_username, ldap_password
