@@ -38,6 +38,7 @@ from django.utils.translation import ugettext as _, ugettext_lazy as _t
 from desktop import appmanager
 from desktop.lib.i18n import force_unicode
 from desktop.lib.exceptions_renderable import PopupException
+from desktop.conf import DEFAULT_USER
 from desktop.redaction import global_redaction_engine
 
 
@@ -47,6 +48,7 @@ SAMPLE_USER_ID = 1100713
 SAMPLE_USER_INSTALL = 'hue'
 SAMPLE_USER_OWNERS = ['hue', 'sample']
 
+SAMPLE_USERNAME = DEFAULT_USER.get()
 UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
 
 

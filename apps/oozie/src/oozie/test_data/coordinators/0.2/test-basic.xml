@@ -5,7 +5,7 @@
   <datasets>
     <dataset name="daily_shakespeare" frequency="${coord:days(1)}"
              initial-instance="2012-05-31T00:00Z" timezone="America/Los_Angeles">
-      <uri-template>${nameNode}/user/hue/oozie/workspaces/data/${YEAR}${MONTH}${DAY}</uri-template>
+      <uri-template>${nameNode}/oozie/workspaces/data/${YEAR}${MONTH}${DAY}</uri-template>
       <done-flag></done-flag>
     </dataset>
     <dataset name="daily_aggregated_shakespeare" frequency="${coord:days(1)}"
