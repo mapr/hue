@@ -40,7 +40,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
@@ -361,8 +360,7 @@ public class ThriftJobTrackerPlugin extends JobTrackerPlugin implements Configur
             tcs.setReduceTasks(cs.getReduceTasks());
             tcs.setMaxMapTasks(cs.getMaxMapTasks());
             tcs.setMaxReduceTasks(cs.getMaxReduceTasks());
-            tcs.setState(cs.getJobTrackerStatus() == Cluster.JobTrackerStatus.INITIALIZING ? JobTrackerState.INITIALIZING :
-                JobTrackerState.RUNNING);
+            tcs.setState(cs.getJobTrackerState() == State.INITIALIZING ? JobTrackerState.INITIALIZING : JobTrackerState.RUNNING); 
             tcs.setUsedMemory(cs.getUsedMemory());
             tcs.setMaxMemory(cs.getMaxMemory());
             tcs.setTotalSubmissions(tracker.getTotalSubmissions());
