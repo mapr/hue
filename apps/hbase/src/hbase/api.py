@@ -19,6 +19,7 @@ import json
 import logging
 import re
 import csv
+from ast import literal_eval
 
 from django.utils.translation import ugettext as _
 from django.utils.encoding import smart_str
@@ -208,6 +209,7 @@ class HbaseApi(object):
     client = self.connectCluster(cluster)
     mutations = []
     Mutation = get_thrift_type('Mutation')
+    data = literal_eval(str(data))
     for column in data.keys():
       value = smart_str(data[column]) if data[column] is not None else None
       mutations.append(Mutation(column=smart_str(column), value=value)) # must use str for API, does thrift coerce by itself?
