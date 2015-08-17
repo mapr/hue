@@ -70,8 +70,6 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
                                    default="hdfs", type=str),
       SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos or MapR-securtity authentication",
                               default=False, type=coerce_bool),
-      MECHANISM=Config("mechanism", help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
-                       default='none', type=str),
       SSL_CERT_CA_VERIFY=Config("ssl_cert_ca_verify",
                   help="In secure mode (HTTPS), if SSL certificates from YARN Rest APIs have to be verified against certificate authority",
                   dynamic_default=default_ssl_validate,
