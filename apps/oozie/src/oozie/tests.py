@@ -317,7 +317,7 @@ class OozieMockBase(object):
     action1 = add_node(self.wf, 'action-name-1', 'mapreduce', [self.wf.start], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -325,7 +325,7 @@ class OozieMockBase(object):
     action2 = add_node(self.wf, 'action-name-2', 'mapreduce', [action1], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -333,7 +333,7 @@ class OozieMockBase(object):
     action3 = add_node(self.wf, 'action-name-3', 'mapreduce', [action2], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -420,7 +420,7 @@ class OozieBase(OozieServerProvider):
     action1 = add_node(self.wf, 'action-name-1', 'mapreduce', [self.wf.start], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -428,7 +428,7 @@ class OozieBase(OozieServerProvider):
     action2 = add_node(self.wf, 'action-name-2', 'mapreduce', [action1], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -436,7 +436,7 @@ class OozieBase(OozieServerProvider):
     action3 = add_node(self.wf, 'action-name-3', 'mapreduce', [action2], {
       'description': '',
       'files': '[]',
-      'jar_path': '/user/hue/oozie/examples/lib/hadoop-examples.jar',
+      'jar_path': '/oozie/examples/lib/hadoop-examples.jar',
       'job_properties': '[{"name":"sleep","value":"${SLEEP}"}]',
       'prepares': '[{"value":"${output}","type":"delete"},{"value":"/test","type":"mkdir"}]',
       'archives': '[]',
@@ -1049,7 +1049,7 @@ class TestEditor(OozieMockBase):
         "files":'["my_file","my_file2"]',
         "job_xml":"",
         "java_opts":"-Dexample-property=natty",
-        "jar_path":"/user/hue/oozie/workspaces/lib/hadoop-examples.jar",
+        "jar_path":"/oozie/workspaces/lib/hadoop-examples.jar",
         "prepares":'[{"value":"/test","type":"mkdir"}]',
         "archives":'[{"dummy":"","name":"my_archive"},{"dummy":"","name":"my_archive2"}]',
         "capture_output": "on",
@@ -1259,7 +1259,7 @@ class TestEditor(OozieMockBase):
 
     assert_true(re.search(
         '<sub-workflow>\W+'
-            '<app-path>\${nameNode}/user/hue/oozie/workspaces/_test_-oozie-(.+?)</app-path>\W+'
+            '<app-path>\${nameNode}/oozie/workspaces/_test_-oozie-(.+?)</app-path>\W+'
             '<propagate-configuration/>\W+'
                 '<configuration>\W+'
                 '<property>\W+'
@@ -2053,23 +2053,23 @@ class TestEditor(OozieMockBase):
 
     workflow_metadata_json = reformat_json("""{
   "attributes": {
-    "deployment_dir": "/user/hue/oozie/workspaces/_test_-oozie-13-1383539302.62",
+    "deployment_dir": "/oozie/workspaces/_test_-oozie-13-1383539302.62",
     "description": ""
   },
   "nodes": {
     "action-name-1": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     },
     "action-name-2": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     },
     "action-name-3": {
       "attributes": {
-        "jar_path": "/user/hue/oozie/examples/lib/hadoop-examples.jar"
+        "jar_path": "/oozie/examples/lib/hadoop-examples.jar"
       }
     }
   },

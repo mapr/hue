@@ -145,8 +145,8 @@ class WebHdfs(Hdfs):
   def superuser(self):
     if self._superuser is None:
       try:
-        # The owner of '/' is usually the superuser
-        sb = self.stats('/')
+        # The owner of '/var' is usually the superuser
+        sb = self.stats('/var')
         self._superuser = sb.user
       except Exception, ex:
         LOG.exception('Failed to determine superuser of %s: %s' % (self, ex))
@@ -576,7 +576,6 @@ class WebHdfs(Hdfs):
       params['op'] = 'GETACLSTATUS'
       return self._root.get(path, params)
 
-
   def check_access(self, path, aclspec='rw-'):
     path = Hdfs.normpath(path)
     params = self._getparams()
@@ -911,7 +910,7 @@ def test_fs_configuration(fs_config):
 
   # Access root
   try:
-    statbuf = fs.stats('/')
+    statbuf = fs.stats('/var')
     if statbuf.user != DEFAULT_HDFS_SUPERUSER:
       return [(fs_config.WEBHDFS_URL, _("Filesystem root '/' should be owned by '%s'") % DEFAULT_HDFS_SUPERUSER)]
   except Exception, ex:

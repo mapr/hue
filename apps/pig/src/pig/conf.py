@@ -34,7 +34,7 @@ LOCAL_SAMPLE_DIR = Config(
 
 REMOTE_SAMPLE_DIR = Config(
   key="remote_data_dir",
-  default="/user/hue/pig/examples",
+  default="/oozie/pig/examples",
   help=_t("Location on HDFS where the Pig examples are stored."))
 
 

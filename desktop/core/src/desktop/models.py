@@ -41,6 +41,7 @@ from desktop import appmanager
 from desktop.lib.i18n import force_unicode
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.paths import get_run_root
+from desktop.conf import DEFAULT_USER
 from desktop.redaction import global_redaction_engine
 
 
@@ -50,6 +51,7 @@ SAMPLE_USER_ID = 1100713
 SAMPLE_USER_INSTALL = 'hue'
 SAMPLE_USER_OWNERS = ['hue', 'sample']
 
+SAMPLE_USERNAME = DEFAULT_USER.get()
 UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
 HUE_VERSION = None
 
@@ -70,6 +72,7 @@ def hue_version():
       HUE_VERSION = HUE_DESKTOP_VERSION
 
   return HUE_VERSION
+
 
 def _version_from_properties(f):
   return dict(line.strip().split('=') for line in f.readlines() if len(line.strip().split('=')) == 2).get('version', HUE_DESKTOP_VERSION)
