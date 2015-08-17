@@ -40,7 +40,7 @@ SECURITY_ENABLED = Config(
 
 REMOTE_DEPLOYMENT_DIR = Config(
   key="remote_deployement_dir",
-  default="/user/hue/oozie/deployments/_$USER_-oozie-$JOBID-$TIME",
+  default="/oozie/deployments/_$USER_-oozie-$JOBID-$TIME",
   help=_t("Location on HDFS where the workflows/coordinators are deployed when submitted by a non-owner."
           " Parameters are $TIME, $USER and $JOBID, e.g. /user/$USER/hue/deployments/$JOBID-$TIME"))
 
@@ -83,10 +83,10 @@ def config_validator(user):
     class ConfigMock:
       def __init__(self, value): self.value = value
       def get(self): return self.value
-      def get_fully_qualifying_key(self): return self.value
+    def get_fully_qualifying_key(self): return self.value
 
-    for cluster in get_all_hdfs().values():
-      res.extend(validate_path(ConfigMock('/user/oozie/share/lib'), is_dir=True, fs=cluster,
-                               message=_('Oozie Share Lib not installed in default location.')))
+  for cluster in get_all_hdfs().values():
+    res.extend(validate_path(ConfigMock('/oozie/share/lib'), is_dir=True, fs=cluster,
+                             message=_('Oozie Share Lib not installed in default location.')))
 
   return res

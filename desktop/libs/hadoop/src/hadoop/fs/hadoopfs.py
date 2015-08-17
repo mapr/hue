@@ -203,14 +203,22 @@ class Hdfs(object):
     Take an HDFS path (hdfs://nn:port/foo) or just (/foo) and split it into
     the standard urlsplit's 5-tuple.
     """
-    i = url.find('://')
+    i = url.find(':/')
     if i == -1:
       # Not found. Treat the entire argument as an HDFS path
       return ('hdfs', '', normpath(url), '', '')
     schema = url[:i]
     if schema not in ('hdfs', 'viewfs'):
       # Default to standard for non-hdfs
-      return urlparse.urlsplit(url)
+      split_path=urlparse.urlsplit(url)
+      schema=split_path[0]
+      if not split_path[1]: 
+        netloc="cldb:7222"
+      else:
+	netloc=split_path[1] 
+      path=split_path[2]
+      LOG.info(_('schema=%s, netloc=%s, path=%s ') % (schema, netloc, path))
+      return (schema, netloc, normpath(path), '', '')
     url = url[i+3:]
     i = url.find('/')
     if i == -1:

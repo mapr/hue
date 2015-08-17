@@ -93,8 +93,8 @@ public class ThriftUtils {
     {
       try {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Call " + wrapped.getClass() + "." + m.getName()
-                    + "(" + StringUtils.join(", ", Arrays.asList(args)) + ")");
+          LOG.debug("Call " + wrapped.getClass() + "." + m.getName());
+          //          + "(" + StringUtils.join(", ", Arrays.asList(args)) + ")");
         }
         authorizeCall(m);
 

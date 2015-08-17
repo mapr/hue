@@ -354,6 +354,9 @@ EMAIL_HOST_PASSWORD = desktop.conf.get_smtp_password()
 EMAIL_USE_TLS = desktop.conf.SMTP.USE_TLS.get()
 DEFAULT_FROM_EMAIL = desktop.conf.SMTP.DEFAULT_FROM.get()
 
+# DEFAULT_USER and DEFAULT_WEBHDFS_USER used in webhdfs.py
+DEFAULT_HDFS_SUPERUSER = desktop.conf.DEFAULT_HDFS_SUPERUSER.get()
+DEFAULT_USER = desktop.conf.DEFAULT_USER.get()        
 # Used for securely creating sessions. Should be unique and not shared with anybody. Changing auth backends will invalidate all open sessions.
 SECRET_KEY = desktop.conf.get_secret_key()
 if SECRET_KEY:

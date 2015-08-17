@@ -7,7 +7,7 @@
               <arg>-overwrite</arg>
               <arg>-m</arg>
               <arg>${MAP_NUMBER}</arg>
-              <arg>/user/hue/oozie/workspaces/data</arg>
+              <arg>/oozie/workspaces/data</arg>
               <arg>${OUTPUT}</arg>
         </distcp>
         <ok to="end"/>

@@ -496,25 +496,28 @@ SERVER_USER = Config(
   key="server_user",
   help=_("Username to run servers as."),
   type=str,
-  default="hue")
-
+  default="mapr")
 SERVER_GROUP = Config(
   key="server_group",
   help=_("Group to run servers as."),
   type=str,
-  default="hue")
+  default="mapr")
 
 DEFAULT_USER = Config(
   key="default_user",
   help=_("This should be the user running hue webserver"),
   type=str,
-  default="hue")
-
+  default=None)
 DEFAULT_HDFS_SUPERUSER = Config(
   key="default_hdfs_superuser",
-  help=_("This should be the hdfs super user"),
+  help=_("This should be the hadoop cluster admin, defaults to owner of maprfs:///var"),
   type=str,
-  default="hdfs")
+  default=None)
+DEFAULT_JOBTRACKER_HOST = Config(
+  key="default_jobtracker_host",
+  help=_("This should be the currently active job tracker IP @, default to maprfs:/// will let JobClient find it automatically"),
+  type=str,
+  default="maprfs:///")
 
 CUSTOM = ConfigSection(
   key="custom",

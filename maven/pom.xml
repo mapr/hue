@@ -19,10 +19,15 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.mapr</groupId>
+    <artifactId>mapr-root</artifactId>
+    <version>1.0</version>
+  </parent>
 
   <groupId>com.cloudera.hue</groupId>
   <artifactId>hue-parent</artifactId>
-  <version>3.9.0-SNAPSHOT</version>
+  <version>3.9.0-mapr</version>
   <packaging>pom</packaging>
 
   <name>Hue Maven Parent POM</name>
@@ -37,24 +42,27 @@
   </licenses>
 
   <properties>
-    <hadoop.version>2.2.0-mr1-cdh5.0.0-SNAPSHOT</hadoop.version>
+    <hadoop.version>1.0.3-mapr-3.0.2</hadoop.version>
+    <hadoop_test.version>1.0.3-mapr-3.0.2</hadoop_test.version>
+    <hive.version>0.12-mapr</hive.version>
     <slf4j.version>1.6.1</slf4j.version>
     <commons-logging.version>1.0.4</commons-logging.version>
     <thrift.version>0.9.0</thrift.version>
-    <javaVersion>1.7</javaVersion>
-    <sourceJavaVersion>1.7</sourceJavaVersion>
-    <targetJavaVersion>1.7</targetJavaVersion>
+    <javaVersion>1.6</javaVersion>
+    <newjavaVersion>1.7</newjavaVersion>
+    <sourceJavaVersion>1.6</sourceJavaVersion>
+    <targetJavaVersion>1.6</targetJavaVersion>
   </properties>
 
   <organization>
-    <name>Cloudera</name>
-    <url>http://www.cloudera.com</url>
+    <name>MapR</name>
+    <url>http://www.mapr.com</url>
   </organization>
 
   <scm>
-   <connection>scm:git:git://github.com/cloudera/hue.git</connection>
-   <developerConnection>scm:git:git@github.com:cloudera/hue.git</developerConnection>
-   <url>https://github.com/cloudera/hue</url>
+   <connection>scm:git:git://github.com/mapr/hue.git</connection>
+   <developerConnection>scm:git:git@github.com:mapr/hue.git</developerConnection>
+   <url>https://github.com/mapr/hue</url>
   </scm>
 
   <build>
@@ -86,7 +94,7 @@
               <version>[2.0.0,)</version>
             </requireMavenVersion>
             <requireJavaVersion>
-              <version>[${javaVersion}.0,${javaVersion}.1000]</version>
+              <version>[${javaVersion}.0,${newjavaVersion}.1000]</version>
             </requireJavaVersion>
           </rules>
         </configuration>
@@ -125,9 +133,19 @@
         <version>${hadoop.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-client</artifactId>
-        <version>${hadoop.version}</version>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-metastore</artifactId>
+        <version>${hive.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-exec</artifactId>
+        <version>${hive.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-common</artifactId>
+        <version>${hive.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -147,7 +165,7 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
-        <version>${hadoop-mr1.version}</version>
+        <version>${hadoop_test.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -188,22 +206,16 @@
   </dependencyManagement>
 
   <repositories>
-    <repository>
-      <id>cloudera.repos</id>
-      <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
-      <name>Cloudera Public Repositories</name>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
+     <repository>
+      <id>mapr release</id>
+      <url>http://repository.mapr.com/maven/</url>
+      <snapshots><enabled>true</enabled></snapshots>
+      <releases><enabled>true</enabled></releases>
     </repository>
     <repository>
-      <id>cloudera.snapshots.repo</id>
-      <url>https://repository.cloudera.com/content/repositories/snapshots</url>
-      <name>Cloudera Snapshots Repository</name>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
+       <id>apache release</id>
+       <url>https://repository.apache.org/content/repositories/releases/</url>
+     </repository>
   </repositories>
 
 
