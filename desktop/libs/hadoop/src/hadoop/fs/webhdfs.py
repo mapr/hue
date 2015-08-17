@@ -911,8 +911,8 @@ def test_fs_configuration(fs_config):
   # Access root
   try:
     statbuf = fs.stats('/var')
-    if statbuf.user != DEFAULT_HDFS_SUPERUSER:
-      return [(fs_config.WEBHDFS_URL, _("Filesystem root '/' should be owned by '%s'") % DEFAULT_HDFS_SUPERUSER)]
+#    if statbuf.user != 'hdfs':
+#      return [(fs_config.WEBHDFS_URL, _("Filesystem root '/' should be owned by 'hdfs'"))]
   except Exception, ex:
     LOG.info("%s -- Validation error: %s" % (fs, ex))
     return [(fs_config.WEBHDFS_URL, _('Failed to access filesystem root'))]
