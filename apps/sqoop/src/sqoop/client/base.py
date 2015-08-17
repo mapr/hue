@@ -30,6 +30,7 @@ from sqoop.client.submission import Submission, SqoopSubmissionException
 from sqoop.client.resource import SqoopResource
 from sqoop.sqoop_properties import has_sqoop_has_security
 
+from desktop.lib.maprsasl import HttpMaprAuth
 
 LOG = logging.getLogger(__name__)
 DEFAULT_USER = 'hue'
@@ -43,12 +44,19 @@ class SqoopClient(object):
   STATUS_GOOD = ('FINE', 'ACCEPTABLE')
   STATUS_BAD = ('UNACCEPTABLE', 'FAILURE_ON_SUBMIT')
 
-  def __init__(self, url, username, language='en'):
+  def __init__(self, url, username, security_enabled=False, mechanism=None, language='en'):
     self._url = url
     self._client = HttpClient(self._url, logger=LOG)
+    auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+    if security_enabled:
+      if mechanism in auth_clients:
+          self._client._session.auth = auth_clients[mechanism]()
+      else:
+          self._client.set_kerberos_auth()
     self._root = SqoopResource(self._client)
     self._language = language
     self._username = username
+    self._mechanism = mechanism
 
     if has_sqoop_has_security():
       self._client.set_kerberos_auth()
