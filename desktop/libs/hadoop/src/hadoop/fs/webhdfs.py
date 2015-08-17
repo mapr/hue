@@ -35,6 +35,7 @@ from hadoop.fs.exceptions import WebHdfsException
 from hadoop.fs.webhdfs_types import WebHdfsStat, WebHdfsContentSummary
 from hadoop.conf import UPLOAD_CHUNK_SIZE
 from hadoop.hdfs_site import get_nn_sentry_prefixes, get_umask_mode, get_supergroup
+from desktop.lib.maprsasl import HttpMaprAuth
 
 import hadoop.conf
 import desktop.conf
@@ -60,6 +61,7 @@ class WebHdfs(Hdfs):
                hdfs_superuser=None,
                security_enabled=False,
                ssl_cert_ca_verify=True,
+               mechanism=None,
                temp_dir="/tmp",
                umask=01022,
                hdfs_supergroup=None):
@@ -67,13 +69,14 @@ class WebHdfs(Hdfs):
     self._superuser = hdfs_superuser
     self._security_enabled = security_enabled
     self._ssl_cert_ca_verify = ssl_cert_ca_verify
+    self._mechanism = mechanism
     self._temp_dir = temp_dir
     self._umask = umask
     self._fs_defaultfs = fs_defaultfs
     self._logical_name = logical_name
     self._supergroup = hdfs_supergroup
 
-    self._client = self._make_client(url, security_enabled, ssl_cert_ca_verify)
+    self._client = self._make_client(url, security_enabled, ssl_cert_ca_verify, mechanism)
     self._root = resource.Resource(self._client)
 
     # To store user info
@@ -90,6 +93,7 @@ class WebHdfs(Hdfs):
                logical_name=hdfs_config.LOGICAL_NAME.get(),
                security_enabled=hdfs_config.SECURITY_ENABLED.get(),
                ssl_cert_ca_verify=hdfs_config.SSL_CERT_CA_VERIFY.get(),
+               mechanism=hdfs_config.MECHANISM.get(),
                temp_dir=hdfs_config.TEMP_DIR.get(),
                umask=get_umask_mode(),
                hdfs_supergroup=get_supergroup())
@@ -97,11 +101,15 @@ class WebHdfs(Hdfs):
   def __str__(self):
     return "WebHdfs at %s" % self._url
 
-  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True):
+  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True, mechanism):
     client = http_client.HttpClient(url, exc_class=WebHdfsException, logger=LOG)
 
     if security_enabled:
-      client.set_kerberos_auth()
+      auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
+      if mechanism in auth_clients:
+          client._session.auth = auth_clients[mechanism]()
+      else:
+          client.set_kerberos_auth()
 
     client.set_verify(ssl_cert_ca_verify)
 
@@ -140,6 +148,10 @@ class WebHdfs(Hdfs):
   @property
   def ssl_cert_ca_verify(self):
     return self._ssl_cert_ca_verify
+
+  @property
+  def mechanism(self):
+      return self._mechanism
 
   @property
   def superuser(self):
@@ -708,7 +720,7 @@ class WebHdfs(Hdfs):
       raise WebHdfsException(_("Failed to create '%s'. HDFS did not return a redirect") % path)
 
     # Now talk to the real thing. The redirect url already includes the params.
-    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify)
+    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify, self.mechanism)
 
     # Make sure to reuse the session in order to preserve the Kerberos cookies.
     client._session = self._client._session
