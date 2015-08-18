@@ -35,7 +35,7 @@ from search.conf import SOLR_URL, SECURITY_ENABLED
 LOG = logging.getLogger(__name__)
 MAX_UPLOAD_SIZE = 100 * 1024 * 1024 # 100 MB
 ALLOWED_FIELD_ATTRIBUTES = set(['name', 'type', 'indexed', 'stored'])
-FLAGS = [('I', 'indexed'), ('T', 'tokenized'), ('S', 'stored')]
+FLAGS = [('I', 'indexed'), ('T', 'tokenized'), ('S', 'stored'), ('M', 'multivalued')]
 ZK_SOLR_CONFIG_NAMESPACE = 'configs'
 
 
@@ -43,7 +43,7 @@ def get_solr_ensemble():
   return '%s/solr' % ENSEMBLE.get()
 
 
-class CollectionController(object):
+class IndexController(object):
   """
   Glue the models to the views.
   """
@@ -51,13 +51,7 @@ class CollectionController(object):
     self.user = user
     self.api = SolrApi(SOLR_URL.get(), self.user, SECURITY_ENABLED.get())
 
-#  def _format_flags(self, fields):
-#    for field_name, field in fields.items():
-#      for index in range(0, len(FLAGS)):
-#        flags = FLAGS[index]
-#        field[flags[1]] = field['flags'][index] == FLAGS[index][0]
-#    return fields
-#
+
   def is_solr_cloud_mode(self):
     if not hasattr(self, '_solr_cloud_mode'):
       try:
@@ -96,7 +90,7 @@ class CollectionController(object):
 
     return indexes
 
-  def create_collection(self, name, fields, unique_key_field='id', df='text'):
+  def create_index(self, name, fields, unique_key_field='id', df='text'):
     """
     Create solr collection or core and instance dir.
     Create schema.xml file so that we can set UniqueKey field.
@@ -108,6 +102,7 @@ class CollectionController(object):
       zc = ZookeeperClient(hosts=get_solr_ensemble(), read_only=False)
       root_node = '%s/%s' % (ZK_SOLR_CONFIG_NAMESPACE, name)
       config_root_path = '%s/%s' % (solr_config_path, 'conf')
+
       try:
         zc.copy_path(root_node, config_root_path)
       except Exception, e:
@@ -126,16 +121,18 @@ class CollectionController(object):
     else:  # Non-solrcloud mode
       # Create instance directory locally.
       instancedir = os.path.join(CORE_INSTANCE_DIR.get(), name)
+
       if os.path.exists(instancedir):
         raise PopupException(_("Instance directory %s already exists! Please remove it from the file system.") % instancedir)
+
       tmp_path, solr_config_path = copy_configs(fields, unique_key_field, df, False)
       shutil.move(solr_config_path, instancedir)
       shutil.rmtree(tmp_path)
 
       if not self.api.create_core(name, instancedir):
-        # Delete instance directory if we couldn't create a collection.
+        # Delete instance directory if we couldn't create the core.
         shutil.rmtree(instancedir)
-        raise PopupException(_('Could not create collection. Check error logs for more info.'))
+        raise PopupException(_('Could not create index. Check error logs for more info.'))
 
     return name
 
@@ -156,8 +153,17 @@ class CollectionController(object):
 #    return uniquekey, fields
 #
 
-  def delete_collection(self, name):
-    if self.api.remove_collection(name):
+  def delete_index(self, name):
+    """
+    Delete solr collection/core and instance dir
+    """
+    # TODO: Implement deletion of local Solr cores
+    if not self.is_solr_cloud_mode():
+      raise PopupException(_('Cannot remove Solr cores.'))
+
+    api = SolrApi(SOLR_URL.get(), self.user, SECURITY_ENABLED.get())
+
+    if api.remove_collection(name):
       # Delete instance directory.
       try:
         root_node = '%s/%s' % (ZK_SOLR_CONFIG_NAMESPACE, name)
@@ -165,10 +171,36 @@ class CollectionController(object):
         zc.delete_path(root_node)
       except Exception, e:
         # Re-create collection so that we don't have an orphan config
-        self.api.add_collection(name)
+        api.add_collection(name)
         raise PopupException(_('Error in deleting Solr configurations.'), detail=e)
     else:
       raise PopupException(_('Could not remove collection. Check error logs for more info.'))
 
+
   def delete_alias(self, name):
     return self.api.delete_alias(name)
+
+
+  def get_index_schema(self, index_name):
+    try:
+      field_data = SolrApi(SOLR_URL.get(), self.user, SECURITY_ENABLED.get()).fields(index_name)
+      fields = self._format_flags(field_data['schema']['fields'])
+    except:
+      LOG.exception(_('Could not fetch fields for index %s.') % index_name)
+      raise PopupException(_('Could not fetch fields for index %s. See logs for more info.') % index_name)
+
+    try:
+      uniquekey = SolrApi(SOLR_URL.get(), self.user, SECURITY_ENABLED.get()).uniquekey(index_name)
+    except:
+      LOG.exception(_('Could not fetch unique key for index %s.') % index_name)
+      raise PopupException(_('Could not fetch unique key for index %s. See logs for more info.') % index_name)
+
+    return uniquekey, fields
+
+
+  def _format_flags(self, fields):
+    for field_name, field in fields.items():
+      for index in range(0, len(FLAGS)):
+        flags = FLAGS[index]
+        field[flags[1]] = field['flags'][index] == FLAGS[index][0]
+    return fields

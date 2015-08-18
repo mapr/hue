@@ -41,8 +41,8 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
     </%def>
 
     <%def name="creation()">
-      <a href="javascript:void(0)" class="btn" data-bind="click: function() { collection.showCreateModal(true) }">
-        <i class="fa fa-plus-circle"></i> ${ _('Create collection') }
+      <a href="javascript:void(0)" class="btn" data-bind="click: function() { index.showCreateModal(true) }">
+        <i class="fa fa-plus-circle"></i> ${ _('Create index') }
       </a>
       <a href="javascript:void(0)" class="btn" data-bind="click: function() { alias.showCreateModal(true) }">
         <i class="fa fa-plus-circle"></i> ${ _('Create alias') }
@@ -58,19 +58,25 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
         <th>${ _('Name') }</th>
         <th>${ _('Type') }</th>
         <th>${ _('Collections') }</th>
+        <th>${ _('Schema') }</th>
       </tr>
     </thead>
     <tbody data-bind="foreach: { data: indexes }">
       <tr>
         <td data-bind="click: $root.handleSelect" class="center" style="cursor: default" data-row-selector-exclude="true">
           <div data-bind="css: { 'hueCheckbox': true, 'fa': true, 'fa-check': isSelected }" data-row-selector-exclude="true"></div>
-          ## <a data-bind="attr: { 'href': '${ url('spark:index') }?index=' + id() }" data-row-selector="true"></a>
+          ## <a data-bind="attr: { 'href': '${ url('search:index') }?index=' + id() }" data-row-selector="true"></a>
         </td>
         <td data-bind="text: name"></td>
         <td data-bind="text: type"></td>
         <td>
           <span data-bind="text: collections"></span>
           <a data-bind="click: $root.alias.edit, visible: type() == 'alias'">
+            <i class="fa fa-pencil"></i> ${ _('Edit') }
+          </a>
+        </td>
+        <td>
+          <a data-bind="attr: { 'href': '/indexer/api/indexes/' + name() + '/schema/' }, visible: type() == 'collection'">
             <i class="fa fa-pencil"></i> ${ _('Edit') }
           </a>
         </td>
@@ -81,17 +87,17 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
   </div>
 </div>
 
-<!-- ko template: 'create-collection' --><!-- /ko -->
+<!-- ko template: 'create-index' --><!-- /ko -->
 
-<script type="text/html" id="create-collection">
-  <div class="snippet-settings" data-bind="visible: collection.showCreateModal">
+<script type="text/html" id="create-index">
+  <div class="snippet-settings" data-bind="visible: index.showCreateModal">
 
-    <input data-bind="value: collection.name"></input>
+    <input data-bind="value: index.name"></input>
 
-    <a href="javascript:void(0)" class="btn" data-bind="click: collection.create">
-      <i class="fa fa-plus-circle"></i> ${ _('Create collection') }
+    <a href="javascript:void(0)" class="btn" data-bind="click: index.create">
+      <i class="fa fa-plus-circle"></i> ${ _('Create index') }
     </a>
-    <a href="javascript:void(0)" class="btn" data-bind="click: function() { collection.showCreateModal(false) }">
+    <a href="javascript:void(0)" class="btn" data-bind="click: function() { index.showCreateModal(false) }">
       <i class="fa fa-plus-circle"></i> ${ _('Cancel') }
     </a>
   </div>
@@ -114,7 +120,7 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
   </div>
 </script>
 
-<script type="text/html" id="create-collection-from-file">
+<script type="text/html" id="create-index-from-file">
   <div class="snippet-settings" data-bind="visible: alias.showCreateModal">
 
     <a href="javascript:void(0)" class="btn" data-bind="click: function() { alias.showCreateModal(true) }">
@@ -158,7 +164,7 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
 
 
 <script type="text/javascript" charset="utf-8">
-  var Collection = function () {
+  var Index = function () {
     var self = this;
 
     self.showCreateModal = ko.observable(false);
@@ -166,7 +172,7 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
     self.name = ko.observable('');
 
     self.create = function() {
-      $.post("${ url('indexer:create_collection') }", {
+      $.post("${ url('indexer:create_index') }", {
         "name": self.name
       }, function() {
         window.location.reload();
@@ -211,20 +217,23 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
 
     self.indexes = ko.mapping.fromJS(${ indexes_json | n });
 
-    self.collection = new Collection(self);
+    self.index = new Index(self);
     self.alias = new Alias(self);
 
-    self.selectedJobs = ko.computed(function() {
+    self.selectedIndexes = ko.computed(function() {
       return $.grep(self.indexes(), function(index) { return index.isSelected(); });
     });
+
     self.isLoading = ko.observable(false);
 
     self.oneSelected = ko.computed(function() {
-      return self.selectedJobs().length == 1;
+      return self.selectedIndexes().length == 1;
     });
+
     self.atLeastOneSelected = ko.computed(function() {
-      return self.selectedJobs().length >= 1;
+      return self.selectedIndexes().length >= 1;
     });
+
     self.allSelected = ko.observable(false);
 
     self.handleSelect = function(index) {
@@ -268,6 +277,7 @@ ${ commonheader(_("Solr Indexes"), "search", user, "60px") | n,unicode }
         null,
         null,
         null,
+       { "bSortable":false },
       ],
       "aaSorting":[
         [1, 'asc' ]
