@@ -3099,7 +3099,7 @@ class TestOozieSubmissions(OozieBase):
                                u'form-MAX_NUM_FORMS': [u'1000'],
                                u'form-1-name': [u'input'],
                                u'form-TOTAL_FORMS': [u'3'],
-                               u'form-1-value': [u'/user/hue/oozie/workspaces/data/sonnets.txt'],
+                               u'form-1-value': [u'/oozie/workspaces/data/sonnets.txt'],
                                u'form-2-name': [u'output'],
                                u'form-INITIAL_FORMS': [u'3'],
                                u'form-2-value': [u'here'],
