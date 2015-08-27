@@ -337,7 +337,19 @@ class Submission(object):
     from oozie.models2 import Coordinator
     return Coordinator.PROPERTY_APP_PATH in self.properties
 
+  def _create_file(self, deployment_dir, file_name, data):
+   file_path = self.fs.join(deployment_dir, file_name)
+   self.fs.do_as_user(self.user, self.fs.create, file_path, overwrite=True, permission=0644, data=smart_str(data))
+   LOG.debug("Updated %s" % (file_path,))
 
+  def _sync_definition(self, deployment_dir, mapping):
+    """ This is helper function for 'Sync Workflow' functionality in a Coordinator.
+      It copies updated workflow changes into HDFS """
+
+    self._create_file(deployment_dir, self.job.XML_FILE_NAME, self.job.to_xml(mapping=mapping))
+
+    data_properties = smart_str('\n'.join(['%s=%s' % (key, val) for key, val in mapping.iteritems()]))
+    self._create_file(deployment_dir, 'job.properties', data_properties)
 
 def create_directories(fs, directory_list=[]):
   # If needed, create the remote home, deployment and data directories
