@@ -63,18 +63,15 @@ Database Views
 """
 
 def databases(request):
-  db = dbms.get(request.user)
-  databases = []
-  database_names = db.get_databases()
+  search_filter = request.GET.get('filter', '')
 
-  for database in database_names:
-    db_metadata = db.get_database(database)
-    databases.append(db_metadata)
+  db = dbms.get(request.user)
+  databases = db.get_databases(search_filter)
 
   return render("databases.mako", request, {
     'breadcrumbs': [],
+    'search_filter': search_filter,
     'databases': databases,
-    'database_names': json.dumps(database_names),
     'databases_json': json.dumps(databases),
     'has_write_access': has_write_access(request.user),
   })
@@ -100,6 +97,20 @@ def drop_database(request):
   else:
     title = _("Do you really want to delete the database(s)?")
     return render('confirm.mako', request, {'url': request.path, 'title': title})
+
+
+def describe_database(request, database):
+  db = dbms.get(request.user)
+  response = {'status': -1, 'data': 'None'}
+  try:
+    db_metadata = db.get_database(database)
+    response['status'] = 0
+    response['data'] = db_metadata
+  except Exception, ex:
+    response['status'] = 1
+    response['data'] = _("Cannot get metadata for database: %s") % database
+
+  return JsonResponse(response)
 
 
 """

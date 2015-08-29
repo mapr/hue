@@ -43,7 +43,9 @@ ${ components.menubar() }
         <h1 class="card-heading simple">${ components.breadcrumbs(breadcrumbs) }</h1>
         <%actionbar:render>
           <%def name="search()">
-            <input id="filterInput" type="text" class="input-xlarge search-query" placeholder="${_('Search for database name')}">
+            <form id="searchQueryForm" action="${ url('metastore:databases') }" method="GET" class="inline">
+              <input id="filterInput" type="text" name="filter" class="input-xlarge search-query" value="${ search_filter }" placeholder="${_('Search for database name')}" />
+            </form>
           </%def>
 
           <%def name="actions()">
@@ -58,7 +60,6 @@ ${ components.menubar() }
             <tr>
               <th width="1%"><div class="hueCheckbox selectAll fa" data-selectables="databaseCheck"></div></th>
               <th>${_('Database Name')}</th>
-              <th>${_('Comment')}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,18 +67,24 @@ ${ components.menubar() }
             <tr>
               <td data-row-selector-exclude="true" width="1%">
                 <div class="hueCheckbox databaseCheck fa"
-                   data-view-url="${ url('metastore:show_tables', database=database['db_name']) }"
-                   data-drop-name="${ database['db_name'] }"
+                   data-view-url="${ url('metastore:show_tables', database=database) }"
+                   data-drop-name="${ database }"
                    data-row-selector-exclude="true"></div>
               </td>
               <td>
-                <a href="${ url('metastore:show_tables', database=database['db_name']) }" data-row-selector="true">${ database['db_name'] }</a>
+                <a class="databaseLink" href="${ url('metastore:show_tables', database=database) }" data-row-selector="true">${ database }</a>
               </td>
-              <td>${ smart_unicode(database['comment']) }</td>
             </tr>
           % endfor
           </tbody>
         </table>
+        <div id="commentOnHoverAlert" class="alert" style="margin-top: 12px;">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>${_('Did you know?')}</strong>
+          <ul>
+            <li>${ _('You can hover over a database name to display its comment.') }</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -107,7 +114,7 @@ ${ components.menubar() }
 <script type="text/javascript" charset="utf-8">
   $(document).ready(function () {
     var viewModel = {
-      availableDatabases: ko.observableArray(${ database_names | n,unicode }),
+      availableDatabases: ko.observableArray(${ databases_json | n,unicode }),
       chosenDatabases: ko.observableArray([])
     };
 
@@ -118,11 +125,9 @@ ${ components.menubar() }
       "bPaginate": false,
       "bLengthChange": false,
       "bInfo": false,
-      "bFilter": true,
       "aoColumns": [
         {"bSortable": false, "sWidth": "1%" },
         null,
-        null
       ],
       "oLanguage": {
         "sEmptyTable": "${_('No data available')}",
@@ -130,9 +135,16 @@ ${ components.menubar() }
       }
     });
 
-    $("#filterInput").keyup(function () {
-      databases.fnFilter($(this).val());
+    var _searchInputValue = $("#filterInput").val();
+
+    $("#filterInput").jHueDelayedInput(function(){
+      if ($("#filterInput").val() != _searchInputValue){
+        $("#searchQueryForm").submit();
+      }
     });
+
+    $("#filterInput").focus();
+    $("#filterInput").val(_searchInputValue); // set caret at the end of the field
 
     $("a[data-row-selector='true']").jHueRowSelector();
 
@@ -157,6 +169,21 @@ ${ components.menubar() }
       }
       $(".selectAll").removeAttr("checked").removeClass("fa-check");
       toggleActions();
+    });
+
+    $(".databaseLink").mouseover(function() {
+      var _link = $(this);
+      $.ajax({
+        type: "GET",
+        url: "/metastore/databases/" + $(this).text(),
+        dataType: "json",
+        data: {},
+        success: function (response) {
+          if (response && response.status == 0) {
+            _link.attr("title", response.data.comment).tooltip("show");
+          }
+        },
+      });
     });
 
     function toggleActions() {

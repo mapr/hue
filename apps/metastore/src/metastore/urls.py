@@ -22,6 +22,7 @@ urlpatterns = patterns('metastore.views',
 
   url(r'^databases/?$', 'databases', name='databases'),
   url(r'^databases/drop/?$', 'drop_database', name='drop_database'),
+  url(r'^databases/(?P<database>\w+)?$', 'describe_database', name='describe_database'),
 
   url(r'^tables/(?P<database>\w+)?$', 'show_tables', name='show_tables'),
   url(r'^tables/drop/(?P<database>\w+)$', 'drop_table', name='drop_table'),
