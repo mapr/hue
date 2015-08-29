@@ -125,8 +125,21 @@ class HiveServer2Dbms(object):
     self.server_name = self.client.query_server['server_name']
 
 
-  def get_databases(self):
-    return self.client.get_databases()
+  def get_databases(self, database_names="*"):
+    identifier = self._clean_identifier(database_names)
+
+    hql = "SHOW DATABASES LIKE '%s'" % (identifier) # self.client.get_databases() is too slow
+    query = hql_query(hql)
+    timeout = SERVER_CONN_TIMEOUT.get()
+
+    handle = self.execute_and_wait(query, timeout_sec=timeout)
+
+    if handle:
+      result = self.fetch(handle, rows=5000)
+      self.close(handle)
+      return [name for database in result.rows() for name in database]
+    else:
+      return []
 
 
   def get_database(self, database):
@@ -134,11 +147,14 @@ class HiveServer2Dbms(object):
 
 
   def get_tables_meta(self, database='default', table_names='*'):
-    return self.client.get_tables_meta(database, table_names)
+    identifier = self._clean_identifier(table_names)
+    return self.client.get_tables_meta(database, identifier)
 
 
   def get_tables(self, database='default', table_names='*'):
-    hql = "SHOW TABLES IN `%s` '%s'" % (database, table_names) # self.client.get_tables(database, table_names) is too slow
+    identifier = self._clean_identifier(table_names)
+
+    hql = "SHOW TABLES IN `%s` '%s'" % (database, identifier) # self.client.get_tables(database, table_names) is too slow
     query = hql_query(hql)
     timeout = SERVER_CONN_TIMEOUT.get()
 
@@ -654,6 +670,13 @@ class HiveServer2Dbms(object):
       if limit > 0:
         return "LIMIT %d" % (limit,)
     return ""
+
+
+  def _clean_identifier(self, identifier=None):
+    cleaned = "*"
+    if identifier and len(identifier) > 0 and identifier.strip() != "*":
+      cleaned = "*%s*" % identifier.strip().strip("*")
+    return cleaned
 
 
 class Table:

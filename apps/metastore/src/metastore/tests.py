@@ -75,8 +75,7 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
 
     # Default database should exist
     response = self.client.get("/metastore/databases")
-    assert_true('db_name' in response.context["databases"][0])
-    assert_true(self.db_name in response.context["database_names"])
+    assert_true(self.db_name in response.context["databases"])
 
     # Table should have been created
     response = self.client.get("/metastore/tables/")
