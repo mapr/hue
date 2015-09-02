@@ -127,7 +127,7 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
     # Table should have been created
     response = self.client.get("/metastore/tables/%s?filter=show_tables" % self.db_name)
     assert_equal(200, response.status_code)
-    assert_equal(response.context['has_metadata'], True)
+    assert_equal(response.context['has_metadata'], response.context)
     assert_equal(len(response.context['tables']), 3)
     assert_true('name' in response.context["tables"][0])
     assert_true('comment' in response.context["tables"][0])
