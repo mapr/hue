@@ -78,6 +78,13 @@ ${ components.menubar() }
           % endfor
           </tbody>
         </table>
+        <div id="commentOnHoverAlert" class="alert" style="margin-top: 12px;">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>${_('Did you know?')}</strong>
+          <ul>
+            <li>${ _('You can hover over a database name to display its comment.') }</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>

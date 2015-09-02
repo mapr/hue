@@ -680,6 +680,13 @@ class HiveServer2Dbms(object):
     return ""
 
 
+  def _clean_identifier(self, identifier=None):
+    cleaned = "*"
+    if identifier and len(identifier) > 0 and identifier.strip() != "*":
+      cleaned = "*%s*" % identifier.strip().strip("*")
+    return cleaned
+
+
 class Table:
   """
   Represents the metadata of a Hive Table.
