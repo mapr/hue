@@ -143,6 +143,8 @@ def show_tables(request, database=None):
     tables = [{'name': table} for table in table_names]
     has_metadata = False
 
+    LOG.info("In show_tables, HS2_GET_TABLES_MAX = %d and number of tables is %d" % (HS2_GET_TABLES_MAX, len(table_names)))
+
     if len(table_names) <= HS2_GET_TABLES_MAX:  # Only attempt to do a GetTables HS2 call for small result sets
       try:
         tables = db.get_tables_meta(database=database, table_names=search_filter)
