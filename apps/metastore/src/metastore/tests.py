@@ -144,7 +144,7 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
     response = self.client.get("/metastore/tables/%s?filter=show_tables" % self.db_name)
     assert_equal(200, response.status_code)
     assert_equal(len(response.context['tables']), 5)
-    assert_equal(response.context['has_metadata'], False, 'Number of tables returned is: %d and HS2_GET_TABLES MAX IS %d' % (len(response.content['tables']), HS2_GET_TABLES_MAX.get()))
+    assert_equal(response.context['has_metadata'], False, response.context)
     assert_true('name' in response.context["tables"][0])
     assert_false('comment' in response.context["tables"][0])
     assert_false('type' in response.context["tables"][0])
