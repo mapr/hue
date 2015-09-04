@@ -28,6 +28,7 @@ from desktop.context_processors import get_app_name
 from desktop.lib.django_util import JsonResponse, render
 from desktop.lib.exceptions_renderable import PopupException
 
+from beeswax.common import apply_natural_sort
 from beeswax.design import hql_query
 from beeswax.models import SavedQuery, MetaInstall
 from beeswax.server import dbms
@@ -168,6 +169,7 @@ def show_tables(request, database=None):
     'has_write_access': has_write_access(request.user),
   })
   resp.set_cookie("hueBeeswaxLastDatabase", database, expires=90)
+
   return resp
 
 
