@@ -40,15 +40,3 @@ SQOOP_CONF_DIR = Config(
   key="sqoop_conf_dir",
   default='/etc/sqoop2/conf',
   help=_t("Path to Sqoop2 configuration directory."))
-
-
-def config_validator(user):
-  res = []
-
-  from hadoop import cluster # Avoid dependencies conflicts
-  yarn_cluster = cluster.get_cluster_conf_for_job_submission()
-
-  if yarn_cluster.SECURITY_ENABLED.get() and not os.path.exists(SQOOP_CONF_DIR.get()):
-    res.append((NICE_NAME, _t("The app won't work without a valid %s property.") % SQOOP_CONF_DIR.grab_key))
-
-  return res

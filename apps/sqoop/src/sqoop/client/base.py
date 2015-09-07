@@ -47,6 +47,7 @@ class SqoopClient(object):
   def __init__(self, url, username, security_enabled=False, mechanism=None, language='en'):
     self._url = url
     self._client = HttpClient(self._url, logger=LOG)
+    self._security_enabled = security_enabled
     auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
     if security_enabled:
       if mechanism in auth_clients:
@@ -57,10 +58,6 @@ class SqoopClient(object):
     self._language = language
     self._username = username
     self._mechanism = mechanism
-
-    if has_sqoop_has_security():
-      self._client.set_kerberos_auth()
-    self._security_enabled = has_sqoop_has_security()
 
   def __str__(self):
     return "SqoopClient at %s with security %s" % (self._url, self._security_enabled)
