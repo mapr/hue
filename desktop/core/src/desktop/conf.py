@@ -184,7 +184,7 @@ SSL_CACERTS = Config(
   key="ssl_cacerts",
   help=_('Path to default Certificate Authority certificates.'),
   type=str,
-  default='')
+  default='/opt/mapr/hue/hue-3.11.0/cert.pem')
 
 SSL_VALIDATE = Config(
   key="ssl_validate",
