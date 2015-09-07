@@ -86,7 +86,8 @@ def get_metastore():
     is_local = thrift_uris is None or thrift_uris == ''
 
     if not is_local:
-      use_sasl = beeswax.conf.SECURITY_ENABLED.get()
+      hive_mechanism = str(beeswax.conf.MECHANISM.get()).upper()
+      use_sasl = hive_mechanism in ('GSSAPI', 'NONE', 'MAPR-SECURITY', 'LDAP')
       thrift_uri = thrift_uris.split(",")[0] # First URI
       host = socket.getfqdn()
       match = _THRIFT_URI_RE.match(thrift_uri)
