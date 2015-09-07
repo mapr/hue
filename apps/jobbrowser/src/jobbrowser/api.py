@@ -51,6 +51,49 @@ def get_api(user, jt):
     return JtApi(jt)
 
 
+def jt_ha(funct):
+  """
+  Support JT plugin HA by trying other MR cluster.
+
+  This modifies the cached JT and so will happen just once by failover.
+  """
+  def decorate(api, *args, **kwargs):
+    try:
+      return funct(api, *args, **kwargs)
+    except Exception, ex:
+      if 'Could not connect to' in str(ex):
+        LOG.info('JobTracker not available, trying JT plugin HA: %s.' % ex)
+        jt_ha = get_next_ha_mrcluster()
+        if jt_ha is not None:
+          if jt_ha[1].host == api.jt.host:
+            raise ex
+          config, api.jt = jt_ha
+          return funct(api, *args, **kwargs)
+      raise ex
+  return wraps(funct)(decorate)
+
+
+def rm_ha(funct):
+  """
+  Support RM HA by trying other RM API.
+  """
+  def decorate(api, *args, **kwargs):
+    try:
+      return funct(api, *args, **kwargs)
+    except Exception, ex:
+      ex_message = str(ex)
+      if 'Connection refused' in ex_message or 'standby RM' in ex_message:
+        LOG.info('Resource Manager not available, trying another RM: %s.' % ex)
+        rm_ha = get_next_ha_yarncluster()
+        if rm_ha is not None:
+          if rm_ha[1].url == api.resource_manager_api.url:
+            raise ex
+          config, api.resource_manager_api = rm_ha
+          return funct(api, *args, **kwargs)
+      raise ex
+  return wraps(funct)(decorate)
+
+
 class JobBrowserApi(object):
 
   def paginate_task(self, task_list, pagenum):
