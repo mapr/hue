@@ -114,7 +114,7 @@ var Coordinator = function (vm, coordinator) {
       'show_advanced': false,
       'use_done_flag': false,
       'done_flag': '_SUCCESS',
-      'timezone': 'America/Los_Angeles',
+      'timezone': coordinator.properties.timezone,
       'same_timezone': true,
       'instance_choice': 'default',
       'is_advanced_start_instance': false,
@@ -126,7 +126,7 @@ var Coordinator = function (vm, coordinator) {
       'same_frequency': true,
       'frequency_number': 1,
       'frequency_unit': 'days',
-      'start': new Date(),
+      'start': coordinator.start_date['value'],
       'same_start': true,
 
       'shared_dataset_uuid': '' // If reusing a shared dataset
