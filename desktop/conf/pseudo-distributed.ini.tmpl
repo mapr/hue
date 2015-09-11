@@ -526,6 +526,63 @@
 
 
 ###########################################################################
+# Settings to configure the snippets available in the Notebook
+###########################################################################
+
+[notebook]
+  # - section name: is a unique id of the type of snippet
+  # - name: is the nice name to print in the notebook
+  # - interface: is the connector to use to talk to the server:
+  #   * hiveserver2 is configurable in [beeswax] and [impala]
+  #   * livy and livy-batch are configurable in [spark]
+  #   * dbms-X in [libdbms] [[X]]
+  #   * jdbc in [jdbc]
+  #   * odbc in [odbc]
+  #   * pig in [pig] 
+  
+  [hive]
+  name=Hive
+  interface=hiveserver2
+
+  [impala]
+  name=Impala
+  interface=hiveserver2
+
+  [pyspark]
+  name=PySpark
+  interface=livy
+
+  [spark-submit]
+  name=Spark Submit
+  interface=livy-batch
+
+  [phoenix]
+  name=Phoenix
+  interface=jdbc
+
+  [mysql]
+  name=MySql
+  interface=dbms-mysql
+  # interface=jdbc
+  # interface=odbc
+
+  [pig]
+  name=Pig
+  interface=pig
+
+
+[jdbc]
+  [[mysql]]
+  driver={host, port, database}
+  auth={user, password}
+  # auth: optional: prompt user or impersonation if available, e.g. https://issues.apache.org/jira/browse/HIVE-6486
+
+  [[phoenix]]
+  driver={host, port, database}
+  auth={user, password}
+
+
+###########################################################################
 # Settings to configure SAML
 ###########################################################################
 
