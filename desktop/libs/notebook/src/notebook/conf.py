@@ -41,3 +41,31 @@ INTERPRETERS = UnspecifiedConfigSection(
     )
   )
 )
+
+INTERPRETERS = UnspecifiedConfigSection(
+  "interpreters",
+  help="One entry for each type of snippet",
+  each=ConfigSection(
+    help="Information about a single Zookeeper cluster",
+    members=dict(
+      HOST_PORTS=Config(
+          "name",
+          help="Zookeeper ensemble. Comma separated list of Host/Port, e.g. localhost:2181,localhost:2182,localhost:2183",
+          default="localhost:2181",
+          type=str,
+      ),
+      REST_URL=Config(
+          "type",
+          help="The URL of the REST contrib service.",
+          default="http://localhost:9998",
+          type=str,
+      ),
+      PRINCIPAL_NAME=Config(
+          "interface",
+          help="Name of Kerberos principal when using security",
+          default="zookeeper",
+          type=str,
+      ),
+    )
+  )
+)
