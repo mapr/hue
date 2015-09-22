@@ -64,6 +64,9 @@ class WebHdfs(Hdfs):
                mechanism=None,
                temp_dir="/tmp",
                umask=01022,
+               mutual_ssl_auth=False,
+               ssl_cert=None,
+               ssl_key=None,
                hdfs_supergroup=None):
     self._url = url
     self._superuser = hdfs_superuser
@@ -76,7 +79,12 @@ class WebHdfs(Hdfs):
     self._logical_name = logical_name
     self._supergroup = hdfs_supergroup
 
-    self._client = self._make_client(url, security_enabled, ssl_cert_ca_verify, mechanism)
+    # Mutual SSL authentication
+    self._mutual_ssl_auth = mutual_ssl_auth
+    self._ssl_cert = ssl_cert
+    self._ssl_key = ssl_key
+
+    self._client = self._make_client(url, security_enabled, ssl_cert_ca_verify, mechanism, mutual_ssl_auth, ssl_cert, ssl_key)
     self._root = resource.Resource(self._client)
 
     # To store user info
@@ -96,14 +104,18 @@ class WebHdfs(Hdfs):
                mechanism=hdfs_config.MECHANISM.get(),
                temp_dir=hdfs_config.TEMP_DIR.get(),
                umask=get_umask_mode(),
+               mutual_ssl_auth=hdfs_config.MUTUAL_SSL_AUTH.get(),
+               ssl_cert=hdfs_config.SSL_CERT.get(),
+               ssl_key=hdfs_config.SSL_KEY.get(),
                hdfs_supergroup=get_supergroup())
 
   def __str__(self):
     return "WebHdfs at %s" % self._url
 
-  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True, mechanism = None):
+  def _make_client(self, url, security_enabled, ssl_cert_ca_verify=True, mechanism=None, mutual_ssl_auth=False, cert=None, key=None):
     client = http_client.HttpClient(url, exc_class=WebHdfsException, logger=LOG)
-
+    if(mutual_ssl_auth):
+      client._session.cert = (cert, key)
     if security_enabled:
       auth_clients = {'MAPR-SECURITY': HttpMaprAuth}
       if mechanism in auth_clients:
@@ -720,7 +732,7 @@ class WebHdfs(Hdfs):
       raise WebHdfsException(_("Failed to create '%s'. HDFS did not return a redirect") % path)
 
     # Now talk to the real thing. The redirect url already includes the params.
-    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify, self.mechanism)
+    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify, self.mechanism, self._mutual_ssl_auth, self._ssl_cert, self._ssl_key)
 
     # Make sure to reuse the session in order to preserve the Kerberos cookies.
     client._session = self._client._session
