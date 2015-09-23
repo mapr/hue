@@ -86,8 +86,14 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
         key="hadoop_conf_dir",
         default=os.environ.get("HADOOP_CONF_DIR", "/etc/hadoop/conf"),
         help=("Directory of the Hadoop configuration) Defaults to the environment variable " +
-              "HADOOP_CONF_DIR when set, or '/etc/hadoop/conf'.")
-      )
+              "HADOOP_CONF_DIR when set, or '/etc/hadoop/conf'."),
+      ),
+      MUTUAL_SSL_AUTH=Config("mutual_ssl_auth", help="Is running with mutual SSL authentication",
+                              default=False, type=coerce_bool),
+      SSL_CERT=Config("ssl_cert", help="Certificate for SSL connection",
+                         type=str, default="/opt/mapr/hue/hue-3.9.0/cert.pem"),
+      SSL_KEY=Config("ssl_key", help="Private key for SSL connection",
+                         type=str, default="/opt/mapr/hue/hue-3.9.0/hue_private_keystore.pem")
     )
   )
 )
