@@ -449,6 +449,7 @@ var Collection = function (vm, collection) {
   self.name = ko.mapping.fromJS(collection.name);
   self.label = ko.mapping.fromJS(collection.label);
   self.description = ko.observable(typeof collection.description != "undefined" && collection.description != null ? collection.description : "");
+  self.suggest = ko.mapping.fromJS(collection.suggest);
   self.enabled = ko.mapping.fromJS(collection.enabled);
   self.autorefresh = ko.mapping.fromJS(collection.autorefresh);
   self.autorefreshSeconds = ko.mapping.fromJS(collection.autorefreshSeconds || 60);
@@ -459,7 +460,7 @@ var Collection = function (vm, collection) {
   });
   self.timeFilter.from.subscribe(function () {
     vm.search();
-  });  
+  });
   self.timeFilter.to.subscribe(function () {
     vm.search();
   });
@@ -684,7 +685,7 @@ var Collection = function (vm, collection) {
     }
     return null;
   }
- 
+
   self.addFacet = function (facet_json) {
     self.removeFacet(function(){return facet_json.widget_id});
     logGA('add_facet/' + facet_json.widgetType);
@@ -970,7 +971,7 @@ var Collection = function (vm, collection) {
           syncArray(self.fields, data.collection.collection.fields, false);
         }
         // After sync the dynamic fields
-        self.syncDynamicFields()
+        self.syncDynamicFields();
     }).fail(function (xhr, textStatus, errorThrown) {});
   };
 
@@ -1490,6 +1491,19 @@ var SearchViewModel = function (collection_json, query_json, initial_json) {
       self.isRetrievingResults(false);
       self.hasRetrievedResults(true);
       $('.btn-loading').button('reset');
+    });
+  };
+
+  self.suggest = function() {
+    $.post("/search/suggest/", {
+        collection: ko.mapping.toJSON(self.collection),
+        query: ko.mapping.toJSON(self.query)
+      }, function (data) {
+        if (data.status == 0) {
+          console.log(ko.mapping.toJSON(data));
+        }
+    }).fail(function (xhr, textStatus, errorThrown) {
+      $(document).trigger("error", xhr.responseText);
     });
   };
 
