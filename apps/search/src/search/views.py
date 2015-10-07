@@ -268,12 +268,12 @@ def query_suggest(request):
     raise PopupException(_('POST request required.'))
 
   collection = json.loads(request.POST.get('collection', '{}'))
-  query = json.loads(request.POST.get('query', '{}'))
+  query = request.POST.get('query', '')
 
   result = {'status': -1, 'message': ''}
 
   solr_query = {}
-  solr_query['q'] = query['qs'][0]['q']
+  solr_query['q'] = query
   solr_query['dictionary'] = collection['suggest']['dictionary']
 
   try:

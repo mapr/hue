@@ -1494,14 +1494,17 @@ var SearchViewModel = function (collection_json, query_json, initial_json) {
     });
   };
 
-  self.suggest = function() {
+  self.suggest = function (query, callback) {
     $.post("/search/suggest/", {
-        collection: ko.mapping.toJSON(self.collection),
-        query: ko.mapping.toJSON(self.query)
-      }, function (data) {
-        if (data.status == 0) {
-          console.log(ko.mapping.toJSON(data));
-        }
+      collection: ko.mapping.toJSON(self.collection),
+      query: query
+    }, function (data) {
+      if (data.status == 0) {
+        callback(data);
+      }
+      else {
+        callback();
+      }
     }).fail(function (xhr, textStatus, errorThrown) {
       $(document).trigger("error", xhr.responseText);
     });

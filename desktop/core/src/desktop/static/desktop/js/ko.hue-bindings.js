@@ -1061,22 +1061,24 @@ ko.bindingHandlers.typeahead = {
     var elem = $(element);
     var valueAccessor = valueAccessor();
 
-    var _options = {
-      source: function () {
-        var _source = ko.utils.unwrapObservable(valueAccessor.source);
-        if (valueAccessor.extraKeywords) {
-          _source = _source.concat(valueAccessor.extraKeywords.split(" "))
-        }
+    var source = valueAccessor.nonBindableSource ? valueAccessor.nonBindableSource : function () {
+      var _source = ko.utils.unwrapObservable(valueAccessor.source);
+      if (valueAccessor.extraKeywords) {
+        _source = _source.concat(valueAccessor.extraKeywords.split(" "))
+      }
 
-        if (valueAccessor.sourceSuffix && _source) {
-          var _tmp = [];
-          _source.forEach(function(item){
-            _tmp.push(item + valueAccessor.sourceSuffix);
-          });
-          _source = _tmp;
-        }
-        return _source;
-      },
+      if (valueAccessor.sourceSuffix && _source) {
+        var _tmp = [];
+        _source.forEach(function (item) {
+          _tmp.push(item + valueAccessor.sourceSuffix);
+        });
+        _source = _tmp;
+      }
+      return _source;
+    }
+
+    var _options = {
+      source: source,
       onselect: function (val) {
         if (typeof valueAccessor.target == "function") {
           valueAccessor.target(val);
@@ -1121,12 +1123,17 @@ ko.bindingHandlers.typeahead = {
         if (valueAccessor.extraKeywords && valueAccessor.extraKeywords.split(" ").indexOf(item) > -1) {
           _separator = "";
         }
+        var isSpecialResult = false;
+        if (item.indexOf("<i ") > -1){
+          _separator = "";
+          isSpecialResult = true;
+        }
         updateExtractors();
         if (_extractorFound != null) {
-          return _val.substring(0, _val.lastIndexOf(_extractorFound)) + _extractorFound + item + _separator;
+          return (isSpecialResult ? '"' : '') + _val.substring(0, _val.lastIndexOf(_extractorFound)) + _extractorFound + $.trim(item.replace(/<[^>]*>/gi, "")) + (isSpecialResult ? '"' : '') + _separator;
         }
         else {
-          return item + _separator;
+          return (isSpecialResult ? '"' : '') + $.trim(item.replace(/<[^>]*>/gi, "")) + (isSpecialResult ? '"' : '') + _separator;
         }
       }
       _options.matcher = function (item) {
@@ -1135,13 +1142,17 @@ ko.bindingHandlers.typeahead = {
         if (!_tquery) return false;
         return ~item.toLowerCase().indexOf(_tquery.toLowerCase());
       },
-          _options.highlighter = function (item) {
-            updateExtractors();
-            var _query = extractor(this.query, _extractorFound).replace(/[\-\[\]{}()*+?.:\\\^$|#\s]/g, '\\$&');
-            return item.replace(new RegExp('(' + _query + ')', 'ig'), function ($1, match) {
-              return '<strong>' + match + '</strong>'
-            });
-          }
+      _options.highlighter = function (item) {
+        updateExtractors();
+        var _query = extractor(this.query, _extractorFound).replace(/[\-\[\]{}()*+?.:\\\^$|#\s]/g, '\\$&');
+        var _result = $.trim(item.replace(/<[^>]*>/gi, "")).replace(new RegExp('(' + _query + ')', 'ig'), function ($1, match) {
+          return '<strong>' + match + '</strong>'
+        });
+        if (item.indexOf("<i ") > -1){
+          _result+= " " + item.substr(item.indexOf("<i "));
+        }
+        return _result;
+      }
     }
 
     if (valueAccessor.completeSolrRanges) {
