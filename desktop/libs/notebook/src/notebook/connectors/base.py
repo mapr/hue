@@ -48,6 +48,20 @@ class QueryError(Exception):
 
 class Notebook(object):
 
+  DEFAULT_NOTEBOOK = {
+    'name': 'My Notebook',
+    'description': '',
+    'snippets': []
+  }
+
+  DEFAULT_SNIPPET = {
+    'id': '',
+    'type': '',
+    'name': '',
+    'statement_raw': '',
+    'result': {}
+  }
+
   def __init__(self, document=None):
     self.document = None
 
@@ -55,11 +69,15 @@ class Notebook(object):
       self.data = document.data
       self.document = document
     else:
-      self.data = json.dumps({
-          'name': 'My Notebook',
-          'description': '',
-          'snippets': []
-      })
+      self.data = json.dumps(self.DEFAULT_NOTEBOOK)
+
+  @classmethod
+  def get_default_notebook(cls):
+    return cls.DEFAULT_NOTEBOOK.copy()
+
+  @classmethod
+  def get_default_snippet(cls):
+    return cls.DEFAULT_SNIPPET.copy()
 
   def get_json(self):
     _data = self.get_data()
