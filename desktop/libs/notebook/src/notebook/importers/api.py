@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+# Licensed to Cloudera, Inc. under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  Cloudera, Inc. licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import json
+import logging
+import StringIO
+import tempfile
+
+from django.core import management
+from django.http import Http404
+from django.utils.translation import ugettext as _
+
+from desktop.lib.django_util import JsonResponse
+from desktop.lib.i18n import force_unicode, smart_str
+from desktop.models import Document2, Document
+
+from notebook.importers.github_import import GithubImporter, GithubImportException
+
+LOG = logging.getLogger(__name__)
+
+
+def error_handler(view_fn):
+  def decorator(request, *args, **kwargs):
+    try:
+      return view_fn(request, *args, **kwargs)
+    except Http404, e:
+      raise e
+    except Exception, e:
+      LOG.exception('Error in %s' % view_fn)
+
+      if not hasattr(e, 'message') or not e.message:
+        message = str(e)
+      else:
+        message = force_unicode(e.message, strings_only=True, errors='replace')
+
+      response = {
+        'status': -1,
+        'message': message,
+      }
+      return JsonResponse(response)
+  return decorator
+
+
+# TODO: This is mostly repetitive code that is also in desktop/api2.py, we should consolidate
+def _import_notebooks(user, notebooks):
+  docs = []
+
+  for doc in notebooks:
+    # Reset owner and tags
+    doc['fields']['owner'] = [user.username]
+    doc['fields']['tags'] = []
+    owner = doc['fields']['owner'][0]
+
+    if Document2.objects.filter(uuid=doc['fields']['uuid'], owner__username=owner).exists():
+      doc['pk'] = Document2.objects.get(uuid=doc['fields']['uuid'], owner__username=owner).pk
+    else:
+      doc['pk'] = None
+
+    docs.append(doc)
+
+  f = tempfile.NamedTemporaryFile(mode='w+', suffix='.json')
+  f.write(json.dumps(docs))
+  f.flush()
+
+  stdout = StringIO.StringIO()
+  try:
+    management.call_command('loaddata', f.name, stdout=stdout)
+  except Exception, e:
+    return {'message': smart_str(e)}
+
+  Document.objects.sync()
+
+  return {
+    'status': 0,
+    'message': stdout.getvalue()
+  }
+
+
+@error_handler
+def import_github(request):
+  response = {'status': -1}
+
+  api = GithubImporter()
+
+  response['url'] = url = request.GET.get('url')
+  response['filepath'] = filepath = request.GET.get('filepath')
+
+  if url and filepath:
+    username, repo = GithubImporter.get_username_and_repo(url)
+    response['username'] = username
+    response['repo'] = repo
+
+    content = api.get_file_contents(username, repo, filepath)
+    if content:
+      notebook = json.loads(content)
+      response.update(_import_notebooks(request.user, notebook))
+    else:
+      response['message'] = _('Github file contained empty contents: %s/%s/%s') % (username, repo, filepath)
+  else:
+    response['message'] = _('Github import requires repository URL and path to file.')
+
+  return JsonResponse(response)
+
+
+@error_handler
+def fetch_github(request):
+  response = {'status': -1}
+
+  api = GithubImporter()
+
+  response['url'] = url = request.GET.get('url')
+  response['filepath'] = filepath = request.GET.get('filepath')
+
+  if url and filepath:
+    username, repo = GithubImporter.get_username_and_repo(url)
+    response['username'] = username
+    response['repo'] = repo
+
+    response['status'] = 0
+    response['content'] = api.get_file_contents(username, repo, filepath)
+  else:
+    response['message'] = _('Github fetch requires repository URL and path to file.')
+
+  return JsonResponse(response)

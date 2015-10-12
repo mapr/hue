@@ -71,3 +71,9 @@ urlpatterns += patterns('notebook.api',
   url(r'^api/autocomplete/(?P<database>\w+)/(?P<table>\w+)/(?P<column>\w+)/$', 'autocomplete', name='api_autocomplete_column'),
   url(r'^api/autocomplete/(?P<database>\w+)/(?P<table>\w+)/(?P<column>\w+)/(?P<nested>.+)$', 'autocomplete', name='api_autocomplete_nested'),
 )
+
+# Import API
+urlpatterns += patterns('notebook.importers.api',
+  url(r'^api/fetch_github/$', 'fetch_github', name='api_fetch_github'),
+  url(r'^api/import_github/$', 'import_github', name='api_import_github'),
+)
