@@ -18,6 +18,7 @@
 import json
 import logging
 
+from django.http import HttpResponseBadRequest
 from django.utils.translation import ugettext as _
 from django.views.decorators.http import require_GET, require_POST
 
@@ -29,8 +30,6 @@ from notebook.connectors.base import get_api, Notebook, QueryExpired
 from notebook.decorators import api_error_handler, check_document_modify_permission
 from notebook.github import GithubClient, GithubClientException
 from notebook.models import escape_rows
-
-import requests
 
 
 LOG = logging.getLogger(__name__)
@@ -316,6 +315,6 @@ def github_fetch(request):
     content = api.get_file_contents(owner, repo, filepath, branch)
     response['content'] = json.loads(content)
   else:
-    response['message'] = _('fetch_github requires full URL to Github file.')
+    return HttpResponseBadRequest(_('github_fetch requires full URL to Github file.'))
 
   return JsonResponse(response)
