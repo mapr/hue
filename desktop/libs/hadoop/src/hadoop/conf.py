@@ -106,7 +106,7 @@ MR_CLUSTERS = UnspecifiedConfigSection(
     members=dict(
       HOST=Config("jobtracker_host", help="Host/IP for JobTracker"),
       PORT=Config("jobtracker_port",
-                  default=8021,
+                  default=9001,
                   help="Service port for the JobTracker",
                   type=int),
       LOGICAL_NAME=Config('logical_name',
