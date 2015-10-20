@@ -328,15 +328,27 @@ def get_cluster_addr_for_job_submission():
   """
   Check the 'submit_to' for each MR/Yarn cluster, and return the logical name or host:port of first one that enables submission.
   """
+  # Use default_jobtracker_host value first, because it's better to use 'marpfs:///'
+  # jobtracker url value for oozie, that is default for this property. In case with maprfs:/// value,
+  # oozie will find active jobtracker address by itself.
+  JT = DEFAULT_JOBTRACKER_HOST.get()
+  if JT:
+    return JT
+
   if is_yarn():
     if get_yarn().LOGICAL_NAME.get():
       return get_yarn().LOGICAL_NAME.get()
+    else:
+      conf = get_cluster_conf_for_job_submission()
+      if conf is None:
+        return None
+      return "%s:%s" % (conf.HOST.get(), conf.PORT.get())
 
-  conf = get_cluster_conf_for_job_submission()
-  if conf is None:
+  conf, jt = get_cluster_for_job_submission()
+  if conf is None or jt is None:
     return None
 
-  return "%s:%s" % (conf.HOST.get(), conf.PORT.get())
+  return "%s:%s" % (jt.host, conf.PORT.get())
 
 
 def is_yarn():
