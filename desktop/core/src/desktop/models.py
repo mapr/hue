@@ -45,6 +45,12 @@ SAMPLE_USER_ID = 1100713
 SAMPLE_USER_INSTALL = 'hue'
 SAMPLE_USER_OWNERS = ['hue', 'sample']
 
+UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
+
+
+def uuid_default():
+  return str(uuid.uuid4())
+
 
 class UserPreferences(models.Model):
   """Holds arbitrary key/value strings."""
@@ -460,9 +466,6 @@ class DocumentManager(models.Manager):
           docs.delete()
 
 
-UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
-
-
 class Document(models.Model):
   owner = models.ForeignKey(auth_models.User, db_index=True, verbose_name=_t('Owner'), help_text=_t('User who can own the job.'), related_name='doc_owner')
   name = models.CharField(default='', max_length=255)
@@ -734,7 +737,6 @@ class DocumentPermission(models.Model):
     (WRITE_PERM, 'write'),
   ))
 
-
   objects = DocumentPermissionManager()
 
   class Meta:
@@ -765,10 +767,6 @@ class Document2Manager(models.Manager):
     return self.documents(user).filter(type=doc_type, is_history=True)
 
 
-def uuid_default():
-  return str(uuid.uuid4())
-
-
 class Document2(models.Model):
   owner = models.ForeignKey(auth_models.User, db_index=True, verbose_name=_t('Owner'), help_text=_t('Creator.'), related_name='doc2_owner')
   name = models.CharField(default='', max_length=255)
@@ -795,8 +793,9 @@ class Document2(models.Model):
     unique_together = ('uuid', 'version', 'is_history')
     ordering = ["-last_modified"]
 
-  def natural_key(self):
-    return (self.uuid, self.version, self.is_history)
+  def __str__(self):
+    res = '%s - %s - %s' % (force_unicode(self.name), self.owner, self.uuid)
+    return force_unicode(res)
 
   @property
   def data_dict(self):
@@ -805,6 +804,9 @@ class Document2(models.Model):
     data_python = json.loads(self.data)
 
     return data_python
+
+  def natural_key(self):
+    return (self.uuid, self.version, self.is_history)
 
   def copy(self, name, owner, description=None):
     copy_doc = self
@@ -826,10 +828,6 @@ class Document2(models.Model):
     data_dict.update(post_data)
 
     self.data = json.dumps(data_dict)
-
-  def __str__(self):
-    res = '%s - %s - %s' % (force_unicode(self.name), self.owner, self.uuid)
-    return force_unicode(res)
 
   def get_absolute_url(self):
     if self.type == 'oozie-coordinator2':
@@ -1064,4 +1062,3 @@ def _convert_type(btype, bdata):
     return 'spark'
   else:
     return 'hive'
-
