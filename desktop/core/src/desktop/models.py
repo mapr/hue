@@ -18,6 +18,7 @@
 import calendar
 import logging
 import json
+import os
 import uuid
 
 from itertools import chain
@@ -785,6 +786,10 @@ class Document2(models.Model):
 
   tags = models.ManyToManyField('self', db_index=True)
   dependencies = models.ManyToManyField('self', db_index=True)
+
+  latest = models.ForeignKey('self', blank=True, null=True, related_name='history', on_delete=models.CASCADE)
+  parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+
   doc = generic.GenericRelation(Document, related_name='doc_doc') # Compatibility with Hue 3
 
   objects = Document2Manager()
@@ -804,6 +809,18 @@ class Document2(models.Model):
     data_python = json.loads(self.data)
 
     return data_python
+
+  @property
+  def basename(self):
+    return os.path.basename(self.name)
+
+  @property
+  def dirname(self):
+    return os.path.dirname(self.name) or '/'
+
+  @property
+  def is_directory(self):
+    return self.type == 'directory'
 
   def natural_key(self):
     return (self.uuid, self.version, self.is_history)
@@ -874,18 +891,18 @@ class Document2(models.Model):
       raise PopupException(_("Document does not exist or you don't have the permission to access it."))
 
   def get_history(self):
-    return self.dependencies.filter(is_history=True).order_by('-last_modified')
+    return self.history.order_by('-last_modified')
 
   def add_to_history(self, user, data_dict):
-    doc_id = self.id # Need to copy as the clone messes it
+    doc_id = self.id  # Need to get doc_id before copy()
 
     history_doc = self.copy(name=self.name, owner=user)
     history_doc.update_data({'history': data_dict})
     history_doc.is_history = True
     history_doc.last_modified = None
+    history_doc.latest_id = doc_id
     history_doc.save()
 
-    Document2.objects.get(id=doc_id).dependencies.add(history_doc)
     return history_doc
 
   def save(self, *args, **kwargs):
@@ -906,19 +923,27 @@ class Document2(models.Model):
             snippet['is_redacted'] = True
       self.data = json.dumps(data_dict)
 
+    # For non-root directories, get and save parent directory object if it doesn't exist
+    if not self.name == '/' and not self.parent:
+      try:
+        directory = Directory.objects.get(name=self.dirname, owner=self.owner, type='directory')
+        self.parent = directory
+      except Directory.DoesNotExist:
+        raise PopupException(_("Cannot save document because directory at path %s does not exist.") % self.dirname)
+
     super(Document2, self).save(*args, **kwargs)
 
   def move(self, directory, user):
-    # get dir and remove
-    old_directory = Document2.objects.get(type='directory', dependencies=self.pk)
-    if old_directory.can_write_or_exception(user=user):
-      old_directory.dependencies.remove(self)
-
-    # add to new dir
     if directory.can_write_or_exception(user=user):
-      directory.dependencies.add(self)
+      self.parent = directory
+      self.name = os.path.join(directory.name, self.basename)
 
-    self.name = directory.name + '/' + self.name.split('/')[-1]
+      if self.is_directory:
+        for doc in self.children.all():
+          doc.move(directory=self, user=user)
+        # TODO: also move/rename history docs?
+
+      self.save()
 
   def share(self, user, name='read', users=None, groups=None):
     # TODO check in settings if user can sync, re-share, which perms...
@@ -949,9 +974,8 @@ class Directory(Document2):
   class Meta:
     proxy = True
 
-
   def documents(self, types=None, search_text=None, order_by=None):
-    documents = self.dependencies.all()  # TODO: perms
+    documents = self.children.all()  # TODO: perms
 
     if types and isinstance(types, list):
       documents = documents.filter(type__in=types)
@@ -963,11 +987,6 @@ class Directory(Document2):
       documents = documents.order_by(order_by)
 
     return documents
-
-
-  def parent(self):
-    return Document2.objects.get(type='directory', dependencies=[self.pk]) # or name__startswith=self.name
-
 
   def save(self, *args, **kwargs):
     self.type = 'directory'

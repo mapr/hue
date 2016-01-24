@@ -19,6 +19,7 @@ import logging
 import json
 import tempfile
 import time
+import os
 import StringIO
 import zipfile
 
@@ -37,7 +38,6 @@ from desktop.lib.export_csvxls import make_response
 from desktop.lib.i18n import smart_str, force_unicode
 from desktop.models import Document2, Document, Directory, DocumentTag, import_saved_beeswax_query
 from desktop.lib.exceptions_renderable import PopupException
-from hadoop.fs.hadoopfs import Hdfs
 
 
 LOG = logging.getLogger(__name__)
@@ -81,12 +81,12 @@ def get_documents(request):
   except Directory.DoesNotExist, e:
     if path == '/':
       directory, created = Directory.objects.get_or_create(name='/', owner=request.user)
-      directory.dependencies.add(*Document2.objects.filter(owner=request.user).exclude(id=directory.id))
+      # Add any documents to the home directory
+      directory.children.add(*Document2.objects.filter(owner=request.user).exclude(id=directory.id))
     else:
       raise e
 
-  parent_path = path.rstrip('/').rsplit('/', 1)[0] or '/'
-  parent = directory.dependencies.get(name=parent_path) if path != '/' else None
+  parent = directory.parent if path != '/' else None
 
   # Get querystring filters if any
   page = int(request.GET.get('page', 1))
@@ -153,7 +153,7 @@ def _convert_documents(user):
           raise e
 
     if imported_docs:
-      root_doc.dependencies.add(*imported_docs)
+      root_doc.children.add(*imported_docs)
 
 
 @api_error_handler
@@ -222,9 +222,8 @@ def create_directory(request):
 
   parent_dir = Directory.objects.get(owner=request.user, name=parent_path)
 
-  path = Hdfs.normpath(parent_path + '/' + name)
-  file_doc = Directory.objects.create(name=path, owner=request.user)
-  parent_dir.dependencies.add(file_doc)
+  path = os.path.join(parent_path, name)
+  file_doc = Directory.objects.create(name=path, owner=request.user, parent=parent_dir)
 
   return JsonResponse({
       'status': 0,
@@ -239,7 +238,7 @@ def delete_document(request):
   skip_trash = json.loads(request.POST.get('skip_trash', 'false')) # TODO always false currently
 
   document = Document2.objects.document(request.user, doc_id=document_id)
-  if document.type == 'directory' and document.dependencies.count() > 1:
+  if document.type == 'directory' and document.children.count() > 0:
     raise PopupException(_('Directory is not empty'))
 
   document.delete()
