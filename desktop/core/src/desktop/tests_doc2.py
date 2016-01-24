@@ -111,11 +111,11 @@ class TestDocument2(object):
 
     dir1 = Directory.objects.create(name='/test_dir1', owner=self.user)
     dir2 = Directory.objects.create(name='/test_dir2', owner=self.user)
-    query1 = Document2.objects.create(name='query1', type='query-hive', owner=self.user, data={})
-    query2 = Document2.objects.create(name='query2', type='query-hive', owner=self.user, data={})
+    query1 = Document2.objects.create(name='/query1.sql', type='query-hive', owner=self.user, data={})
+    query2 = Document2.objects.create(name='/query2.sql', type='query-hive', owner=self.user, data={})
     children = [dir1, dir2, query1, query2]
 
-    home_dir.dependencies.add(*children)
+    home_dir.children.add(*children)
 
     # Test that all children directories and documents are returned
     response = self.client.get('/desktop/api2/docs', {'path': '/'})
@@ -135,7 +135,7 @@ class TestDocument2(object):
     data = json.loads(response.content)
     assert_equal('query', data['text'])
     assert_equal(2, data['count'])
-    assert_true(all(doc['name'].startswith('query') for doc in data['documents']))
+    assert_true(all('query' in doc['name'] for doc in data['documents']))
 
     # Test pagination with limit
     response = self.client.get('/desktop/api2/docs', {'path': '/', 'page': 2, 'limit': 2})
