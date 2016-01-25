@@ -86,7 +86,7 @@ def get_documents(request):
     else:
       raise e
 
-  parent = directory.parent if path != '/' else None
+  parent = directory.parent_directory if path != '/' else None
 
   # Get querystring filters if any
   page = int(request.GET.get('page', 1))
@@ -195,7 +195,7 @@ def create_directory(request):
   parent_dir = Directory.objects.get(owner=request.user, name=parent_path)
 
   path = os.path.join(parent_path, name)
-  file_doc = Directory.objects.create(name=path, owner=request.user, parent=parent_dir)
+  file_doc = Directory.objects.create(name=path, owner=request.user, parent_directory=parent_dir)
 
   return JsonResponse({
       'status': 0,

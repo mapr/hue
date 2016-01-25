@@ -8,23 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Document2.latest'
-        db.add_column(u'desktop_document2', 'latest',
-                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='history', null=True, to=orm['desktop.Document2']),
-                      keep_default=False)
-
-        # Adding field 'Document2.parent'
-        db.add_column(u'desktop_document2', 'parent',
+        # Adding field 'Document2.parent_directory'
+        db.add_column(u'desktop_document2', 'parent_directory',
                       self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='children', null=True, to=orm['desktop.Document2']),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Document2.latest'
-        db.delete_column(u'desktop_document2', 'latest_id')
-
-        # Deleting field 'Document2.parent'
-        db.delete_column(u'desktop_document2', 'parent_id')
+        # Deleting field 'Document2.parent_directory'
+        db.delete_column(u'desktop_document2', 'parent_directory_id')
 
 
     models = {
@@ -86,13 +78,12 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_history': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'db_index': 'True', 'blank': 'True'}),
-            'latest': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'history'", 'null': 'True', 'to': u"orm['desktop.Document2']"}),
             'name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'doc2_owner'", 'to': u"orm['auth.User']"}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['desktop.Document2']"}),
+            'parent_directory': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['desktop.Document2']"}),
             'tags': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'tags_rel_+'", 'db_index': 'True', 'to': u"orm['desktop.Document2']"}),
             'type': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '32', 'db_index': 'True'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'default': "'8bc06685-0c77-4524-a7ac-35289665f864'", 'max_length': '36', 'db_index': 'True'}),
+            'uuid': ('django.db.models.fields.CharField', [], {'default': "'f1f73b8a-8114-4fee-bb9a-414fd2bd2320'", 'max_length': '36', 'db_index': 'True'}),
             'version': ('django.db.models.fields.SmallIntegerField', [], {'default': '1', 'db_index': 'True'})
         },
         u'desktop.document2permission': {

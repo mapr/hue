@@ -790,8 +790,7 @@ class Document2(models.Model):
   tags = models.ManyToManyField('self', db_index=True)
   dependencies = models.ManyToManyField('self', db_index=True)
 
-  latest = models.ForeignKey('self', blank=True, null=True, related_name='history', on_delete=models.CASCADE)
-  parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+  parent_directory = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
 
   doc = generic.GenericRelation(Document, related_name='doc_doc') # Compatibility with Hue 3
 
@@ -934,10 +933,10 @@ class Document2(models.Model):
       self.data = json.dumps(data_dict)
 
     # For non-root directories, get and save parent directory object if it doesn't exist
-    if not self.name == '/' and not self.parent:
+    if not self.name == '/' and not self.parent_directory:
       try:
         directory = Directory.objects.get(name=self.dirname, owner=self.owner, type='directory')
-        self.parent = directory
+        self.parent_directory = directory
       except Directory.DoesNotExist:
         raise PopupException(_("Cannot save document because directory at path %s does not exist.") % self.dirname)
 
@@ -945,7 +944,7 @@ class Document2(models.Model):
 
   def move(self, directory, user):
     if directory.can_write_or_exception(user=user):
-      self.parent = directory
+      self.parent_directory = directory
       self.name = os.path.join(directory.name, self.basename)
 
       if self.is_directory:
