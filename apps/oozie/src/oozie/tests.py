@@ -35,7 +35,7 @@ from django.core.urlresolvers import reverse
 
 from desktop.lib.django_test_util import make_logged_in_client
 from desktop.lib.test_utils import grant_access, add_permission, add_to_group, reformat_json, reformat_xml
-from desktop.models import Document, Document2
+from desktop.models import Directory, Document, Document2
 
 from hadoop import cluster as originalCluster
 from hadoop.pseudo_hdfs4 import is_live_cluster
@@ -285,6 +285,10 @@ class OozieMockBase(object):
     grant_access("test", "test", "oozie")
     add_to_group("test")
     self.user = User.objects.get(username='test')
+
+    # Create home directory for user
+    self.home_dir, _ = Directory.objects.get_or_create(name='/', owner=self.user)
+
     self.wf = create_workflow(self.c, self.user)
     self.original_fs = originalCluster.FS_CACHE["default"]
     originalCluster.FS_CACHE["default"] = MockFs()
@@ -391,6 +395,10 @@ class OozieBase(OozieServerProvider):
     grant_access("test", "test", "oozie")
     add_to_group("test")
     self.cluster = OozieServerProvider.cluster
+
+    # Create home directory for user
+    self.home_dir, _ = Directory.objects.get_or_create(name='/', owner=self.user)
+
     self.install_examples()
 
   def install_examples(self):
@@ -3139,6 +3147,7 @@ class TestOozieSubmissions(OozieBase):
     wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
     wf = Document2.objects.get(uuid=wf_uuid)
     wf.data.replace('hive2://localhost:10000/default', _get_hiveserver2_url())
+    home_dir = Directory.objects.get_or_create(owner=wf.owner, name='/')
     wf.save()
 
     # Somewhere we delete those by mistake
