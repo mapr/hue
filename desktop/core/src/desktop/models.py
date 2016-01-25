@@ -756,7 +756,8 @@ class Document2Manager(models.Manager):
         Q(document2permission__users=user) |
         Q(document2permission__groups__in=user.groups.all()) |
         Q(document2permission__all=True)
-    ).exclude(is_trashed=True).distinct().order_by('-last_modified')
+    ).distinct().order_by('-last_modified')
+    # TODO: filter out trashed documents
 
   def directory(self, user, path):
     return self.documents(user).get(type='directory', name=path)
@@ -769,6 +770,9 @@ class Document2Manager(models.Manager):
 
 
 class Document2(models.Model):
+
+  TRASH_DIR = '/.Trash'
+
   owner = models.ForeignKey(auth_models.User, db_index=True, verbose_name=_t('Owner'), help_text=_t('Creator.'), related_name='doc2_owner')
   name = models.CharField(default='', max_length=255)
   description = models.TextField(default='')
@@ -782,7 +786,6 @@ class Document2(models.Model):
   last_modified = models.DateTimeField(auto_now=True, db_index=True, verbose_name=_t('Time last modified'))
   version = models.SmallIntegerField(default=1, verbose_name=_t('Document version'), db_index=True)
   is_history = models.BooleanField(default=False, db_index=True)
-  is_trashed = models.BooleanField(default=False, db_index=True)
 
   tags = models.ManyToManyField('self', db_index=True)
   dependencies = models.ManyToManyField('self', db_index=True)
@@ -908,18 +911,9 @@ class Document2(models.Model):
     return history_doc
 
   def trash(self):
-    # If directory, trash any children subfolders and docs
-    if self.is_directory:
-      for doc in self.children.all():
-        doc.trash()
-
-    # Trash history documents
-    for doc in self.history.all():
-      doc.is_trashed = True
-      doc.save()
-
-    self.is_trashed = True
-    self.save()
+    # Get or create trash directory
+    trash_dir, created = Directory.objects.get_or_create(name=self.TRASH_DIR, owner=self.owner)
+    self.move(trash_dir, self.owner)
 
   def save(self, *args, **kwargs):
     """
@@ -1011,7 +1005,7 @@ class Directory(Document2):
     proxy = True
 
   def documents(self, types=None, search_text=None, order_by=None):
-    documents = self.children.exclude(is_trashed=True)  # TODO: perms
+    documents = self.children.all()  # TODO: perms
 
     if types and isinstance(types, list):
       documents = documents.filter(type__in=types)
