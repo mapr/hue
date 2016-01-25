@@ -206,14 +206,26 @@ def create_directory(request):
 @api_error_handler
 @require_POST
 def delete_document(request):
+  """
+  Accepts a doc_id and optional skip_trash parameter
+
+  (Default) skip_trash=false, flags a document as trashed
+  skip_trash=true, deletes it permanently along with any history dependencies
+
+  If directory and skip_trash=false, all dependencies will also be flagged as trash
+  If directory and skip_trash=true, directory must be empty (no dependencies)
+  """
   document_id = json.loads(request.POST.get('doc_id'))
-  skip_trash = json.loads(request.POST.get('skip_trash', 'false')) # TODO always false currently
+  skip_trash = json.loads(request.POST.get('skip_trash', 'false'))
 
   document = Document2.objects.document(request.user, doc_id=document_id)
-  if document.type == 'directory' and document.children.count() > 0:
-    raise PopupException(_('Directory is not empty'))
 
-  document.delete()
+  if skip_trash:
+    if document.is_directory and document.has_children:
+      raise PopupException(_('Directory is not empty'))
+    document.delete()
+  else:
+    document.trash()  # TODO: get number of docs trashed
 
   return JsonResponse({
       'status': 0,

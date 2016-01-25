@@ -756,7 +756,7 @@ class Document2Manager(models.Manager):
         Q(document2permission__users=user) |
         Q(document2permission__groups__in=user.groups.all()) |
         Q(document2permission__all=True)
-    ).distinct().order_by('-last_modified')
+    ).exclude(is_trashed=True).distinct().order_by('-last_modified')
 
   def directory(self, user, path):
     return self.documents(user).get(type='directory', name=path)
@@ -782,7 +782,7 @@ class Document2(models.Model):
   last_modified = models.DateTimeField(auto_now=True, db_index=True, verbose_name=_t('Time last modified'))
   version = models.SmallIntegerField(default=1, verbose_name=_t('Document version'), db_index=True)
   is_history = models.BooleanField(default=False, db_index=True)
-  # is_trashed
+  is_trashed = models.BooleanField(default=False, db_index=True)
 
   tags = models.ManyToManyField('self', db_index=True)
   dependencies = models.ManyToManyField('self', db_index=True)
@@ -907,6 +907,20 @@ class Document2(models.Model):
 
     return history_doc
 
+  def trash(self):
+    # If directory, trash any children subfolders and docs
+    if self.is_directory:
+      for doc in self.children.all():
+        doc.trash()
+
+    # Trash history documents
+    for doc in self.history.all():
+      doc.is_trashed = True
+      doc.save()
+
+    self.is_trashed = True
+    self.save()
+
   def save(self, *args, **kwargs):
     """
     Override `save` to optionally mask out the query from being saved to the database. This is because if the database
@@ -997,7 +1011,7 @@ class Directory(Document2):
     proxy = True
 
   def documents(self, types=None, search_text=None, order_by=None):
-    documents = self.children.all()  # TODO: perms
+    documents = self.children.exclude(is_trashed=True)  # TODO: perms
 
     if types and isinstance(types, list):
       documents = documents.filter(type__in=types)
