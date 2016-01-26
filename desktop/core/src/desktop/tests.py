@@ -850,7 +850,7 @@ class TestDocument(object):
     self.copy_user = User.objects.get(username="copy_owner")
 
     # Create home directory for user
-    self.home_dir, _ = Directory.objects.get_or_create(name='/', owner=self.user)
+    self.home_dir, _ = Directory.objects.get_or_create(name='', owner=self.user)
 
     self.document2 = Document2.objects.create(name='Test Document2',
                                               type='search-dashboard',
@@ -910,17 +910,6 @@ class TestDocument(object):
     assert_equal(Document.objects.filter(name=name).count(), 1)
     assert_equal(doc.description, self.document.description)
 
-  def test_add_to_history(self):
-    assert_equal(len(self.document2.get_history()), 0)
-
-    doc_id = self.document2.id
-    history_doc = self.document2.add_to_history(self.user, {'key1': 'val1'})
-
-    assert_equal(len(Document2.objects.get(id=doc_id).get_history()), 1)
-
-    assert_equal(history_doc, Document2.objects.get(id=doc_id).get_history()[0])
-
-    assert_not_equal(doc_id, history_doc.id)
 
   def test_redact_statements(self):
     old_policies = redaction.global_redaction_engine.policies

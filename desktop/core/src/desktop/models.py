@@ -30,7 +30,6 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 from django.db.models import Q
-from django.forms import ValidationError
 from django.utils.translation import ugettext as _, ugettext_lazy as _t
 
 from desktop import appmanager
@@ -744,6 +743,10 @@ class DocumentPermission(models.Model):
     unique_together = ('doc', 'perms')
 
 
+class FilesystemException(Exception):
+  pass
+
+
 class Document2Manager(models.Manager):
 
   # TODO prevent get
@@ -759,19 +762,19 @@ class Document2Manager(models.Manager):
     ).distinct().order_by('-last_modified')
     # TODO: filter out trashed documents
 
-  def directory(self, user, path):
-    return self.documents(user).get(type='directory', name=path)
-
   def get_by_natural_key(self, uuid, version, is_history):
     return self.get(uuid=uuid, version=version, is_history=is_history)
 
   def get_history(self, user, doc_type):
     return self.documents(user).filter(type=doc_type, is_history=True)
 
+  def get_home_directory(self, user):
+    return self.get(owner=user, parent_directory=None, name='', type='directory')
+
 
 class Document2(models.Model):
 
-  TRASH_DIR = '/.Trash'
+  TRASH_DIR = '.Trash'
 
   owner = models.ForeignKey(auth_models.User, db_index=True, verbose_name=_t('Owner'), help_text=_t('Creator.'), related_name='doc2_owner')
   name = models.CharField(default='', max_length=255)
@@ -809,20 +812,30 @@ class Document2(models.Model):
     if not self.data:
       self.data = json.dumps({})
     data_python = json.loads(self.data)
-
     return data_python
 
   @property
-  def basename(self):
-    return os.path.basename(self.name)
+  def path(self):
+    if self.parent_directory:
+      return '%s/%s' % (self.parent_directory.path, self.name)
+    else:
+      return self.name
 
   @property
   def dirname(self):
-    return os.path.dirname(self.name) or '/'
+    return os.path.dirname(self.path) or '/'
 
   @property
   def is_directory(self):
     return self.type == 'directory'
+
+  @property
+  def is_home_directory(self):
+    return self.is_directory and self.parent_directory == None and self.name == ''
+
+  @property
+  def is_trash_directory(self):
+    return self.is_directory and self.name == self.TRASH_DIR
 
   def natural_key(self):
     return (self.uuid, self.version, self.is_history)
@@ -838,14 +851,11 @@ class Document2(models.Model):
     if description:
       copy_doc.description = description
     copy_doc.save()
-
     return copy_doc
 
   def update_data(self, post_data):
     data_dict = self.data_dict
-
     data_dict.update(post_data)
-
     self.data = json.dumps(data_dict)
 
   def get_absolute_url(self):
@@ -856,7 +866,7 @@ class Document2(models.Model):
     elif self.type.startswith('query'):
       return reverse('notebook:editor') + '?editor=' + str(self.id)
     elif self.type == 'directory':
-      return '/home2' + '?path=' + self.name
+      return '/home2' + '?uuid=' + self.uuid
     elif self.type == 'notebook':
       return reverse('notebook:notebook') + '?notebook=' + str(self.id)
     elif self.type == 'search-dashboard':
@@ -868,6 +878,7 @@ class Document2(models.Model):
     doc_dict = {
       'owner': self.owner.username,
       'name': self.name,
+      'path': self.path or '/',
       'description': self.description,
       'uuid': self.uuid,
       'id': self.id,
@@ -895,23 +906,22 @@ class Document2(models.Model):
       raise PopupException(_("Document does not exist or you don't have the permission to access it."))
 
   def get_history(self):
-    return self.history.order_by('-last_modified')
+    return self.dependencies.filter(is_history=True).order_by('-last_modified')
 
   def add_to_history(self, user, data_dict):
-    doc_id = self.id  # Need to get doc_id before copy()
+    doc_id = self.id # Need to copy as the clone messes it
 
     history_doc = self.copy(name=self.name, owner=user)
     history_doc.update_data({'history': data_dict})
     history_doc.is_history = True
     history_doc.last_modified = None
-    history_doc.latest_id = doc_id
     history_doc.save()
 
+    Document2.objects.get(id=doc_id).dependencies.add(history_doc)
     return history_doc
 
   def trash(self):
-    # Get or create trash directory
-    trash_dir, created = Directory.objects.get_or_create(name=self.TRASH_DIR, owner=self.owner)
+    trash_dir = Directory.objects.get(name=self.TRASH_DIR, owner=self.owner)
     self.move(trash_dir, self.owner)
 
   def save(self, *args, **kwargs):
@@ -932,26 +942,21 @@ class Document2(models.Model):
             snippet['is_redacted'] = True
       self.data = json.dumps(data_dict)
 
-    # For non-root directories, get and save parent directory object if it doesn't exist
-    if not self.name == '/' and not self.parent_directory:
-      try:
-        directory = Directory.objects.get(name=self.dirname, owner=self.owner, type='directory')
-        self.parent_directory = directory
-      except Directory.DoesNotExist:
-        raise PopupException(_("Cannot save document because directory at path %s does not exist.") % self.dirname)
+    # TODO: Validate name, shouldn't contain slashes
+    # TODO: Prevent documents with same name and location from being saved
+    # TODO: Prevent Home and Trash directories from being deleted
+    # TODO: Prevent creating home or trash directories in any location
+
+    # Save document to home directory if parent directory isn't specified
+    if not self.parent_directory and not self.is_home_directory and not self.is_trash_directory:
+      home_dir = Document2.objects.get_home_directory(self.owner)
+      self.parent_directory = home_dir
 
     super(Document2, self).save(*args, **kwargs)
 
   def move(self, directory, user):
     if directory.can_write_or_exception(user=user):
       self.parent_directory = directory
-      self.name = os.path.join(directory.name, self.basename)
-
-      if self.is_directory:
-        for doc in self.children.all():
-          doc.move(directory=self, user=user)
-        # TODO: also move/rename history docs?
-
       self.save()
 
   def share(self, user, name='read', users=None, groups=None):
@@ -997,8 +1002,36 @@ class Document2(models.Model):
       }
     }
 
+class DirectoryManager(models.Manager):
+
+  def get_queryset(self):
+        return super(DirectoryManager, self).get_queryset().filter(type='directory')
+
+  def get_directory_by_path(self, user, path):
+    """
+    This can be an expensive operation b/c we have to traverse the path tree, so if possible, request a directory's
+    contents by UUID
+    """
+    cleaned_path = path.rstrip('/')
+    dir = Document2.objects.get_home_directory(user)
+    if cleaned_path:
+      path_tokens = cleaned_path.split('/')[1:]
+      for token in path_tokens:
+        try:
+          dir = dir.children.get(name=token)
+        except Document2.DoesNotExist:
+          raise FilesystemException(_('Requested invalid directory path for user %s: %s') % (user.username, path))
+
+    if not dir.is_directory:
+      raise FilesystemException(_('Requested path for user %s is not a directory: %s') % (user.username, path))
+
+    return Directory.objects.get(id=dir.id)
+
+
 class Directory(Document2):
   # e.g. name = '/' or '/dir1/dir2/f3'
+
+  objects = DirectoryManager()
 
   class Meta:
     proxy = True
@@ -1023,7 +1056,7 @@ class Directory(Document2):
     try:
       directory = Directory.objects.get(name=self.name, owner=self.owner, type='directory')
       if directory.pk != self.pk:
-        raise ValidationError('Directory for owner %s named %s already exists' % (self.name, self.owner))
+        raise FilesystemException(_('Directory for owner %s named %s already exists') % (self.name, self.owner))
     except Directory.DoesNotExist:
       pass  # no conflicts
     except Directory.MultipleObjectsReturned:

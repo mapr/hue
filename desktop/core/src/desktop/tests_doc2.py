@@ -84,6 +84,8 @@ class TestDocument2(object):
     data = json.loads(response.content)
 
     assert_equal(0, data['status'], data)
+    assert_true('directory' in data)
+    assert_equal(data['directory']['name'], 'test_mkdir', data)
 
 
   def test_directory_move(self):
@@ -96,23 +98,22 @@ class TestDocument2(object):
     assert_equal(0, data['status'], data)
 
     response = self.client.post('/desktop/api2/doc/move', {
-        'source_doc_id': json.dumps(Directory.objects.get(owner=self.user, name='/test_mv').id),
-        'destination_doc_id': json.dumps(Directory.objects.get(owner=self.user, name='/test_mv_dst').id)
+        'source_doc_id': json.dumps(Directory.objects.get(owner=self.user, name='test_mv').id),
+        'destination_doc_id': json.dumps(Directory.objects.get(owner=self.user, name='test_mv_dst').id)
     })
     data = json.loads(response.content)
 
     assert_equal(0, data['status'], data)
-
-    assert_true(Directory.objects.filter(owner=self.user, name='/test_mv_dst/test_mv').exists())
+    assert_equal(Directory.objects.get(name='test_mv', owner=self.user).path, '/test_mv_dst/test_mv')
 
 
   def test_directory_documents(self):
-    home_dir = Directory.objects.get(owner=self.user, name='/')
+    home_dir = Directory.objects.get(owner=self.user, name='')
 
-    dir1 = Directory.objects.create(name='/test_dir1', owner=self.user)
-    dir2 = Directory.objects.create(name='/test_dir2', owner=self.user)
-    query1 = Document2.objects.create(name='/query1.sql', type='query-hive', owner=self.user, data={})
-    query2 = Document2.objects.create(name='/query2.sql', type='query-hive', owner=self.user, data={})
+    dir1 = Directory.objects.create(name='test_dir1', owner=self.user)
+    dir2 = Directory.objects.create(name='test_dir2', owner=self.user)
+    query1 = Document2.objects.create(name='query1.sql', type='query-hive', owner=self.user, data={})
+    query2 = Document2.objects.create(name='query2.sql', type='query-hive', owner=self.user, data={})
     children = [dir1, dir2, query1, query2]
 
     home_dir.children.add(*children)

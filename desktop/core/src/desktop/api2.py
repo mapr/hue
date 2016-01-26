@@ -36,7 +36,7 @@ from beeswax.models import SavedQuery
 from desktop.lib.django_util import JsonResponse
 from desktop.lib.export_csvxls import make_response
 from desktop.lib.i18n import smart_str, force_unicode
-from desktop.models import Document2, Document, Directory, DocumentTag, import_saved_beeswax_query
+from desktop.models import Document2, Document, Directory, DocumentTag, FilesystemException, import_saved_beeswax_query
 from desktop.lib.exceptions_renderable import PopupException
 
 
@@ -63,7 +63,7 @@ def api_error_handler(func):
 @api_error_handler
 def get_documents(request):
   """
-  Returns all documents and directories found in the given path (required) and current user.
+  Returns all documents and directories found for the given uuid or path and current user.
   Optional params:
     page=<n>    - Controls pagination. Defaults to 1.
     limit=<n>   - Controls limit per page. Defaults to all.
@@ -75,18 +75,25 @@ def get_documents(request):
     text=<frag> - Search for fragment "frag" in names and descriptions.
   """
   path = request.GET.get('path', '/') # Expects path to be a Directory for now
+  uuid = request.GET.get('uuid')
 
-  try:
-    directory = Directory.objects.get(owner=request.user, name=path) # TODO perms
-  except Directory.DoesNotExist, e:
-    if path == '/':
-      directory, created = Directory.objects.get_or_create(name='/', owner=request.user)
+  if uuid:
+    try:
+      directory = Directory.objects.get(uuid=uuid)
+    except Directory.DoesNotExist, e:
+      raise PopupException(_('Failed to find directory with UUID: %s') % uuid)
+    except Directory.MultipleObjectsReturned:
+      raise PopupException(_('Found multiple directories for UUID: %s') % uuid)
+  else:  # Find by path
+    # If user does not have a home directory, we need to create one and import any orphan documents to it
+    try:
+      home_dir = Document2.objects.get_home_directory(request.user)
+    except Document2.DoesNotExist, e:
+      directory, created = Directory.objects.get_or_create(name='', owner=request.user)
       # Add any documents to the home directory
       directory.children.add(*Document2.objects.filter(owner=request.user).exclude(id=directory.id))
-    else:
-      raise e
 
-  parent = directory.parent_directory if path != '/' else None
+    directory = Directory.objects.get_directory_by_path(user=request.user, path=path) # TODO perms
 
   # Get querystring filters if any
   page = int(request.GET.get('page', 1))
@@ -105,10 +112,9 @@ def get_documents(request):
     documents = documents.all()[offset:last]
 
   return JsonResponse({
-      'path': path,
       'directory': directory.to_dict(),
-      'parent': parent.to_dict() if parent else None,
-      'documents': [doc.to_dict() for doc in documents if doc != parent],
+      'parent': directory.parent_directory.to_dict() if directory.parent_directory else None,
+      'documents': [doc.to_dict() for doc in documents],
       'page': page,
       'limit': limit,
       'count': count,
@@ -136,7 +142,7 @@ def _convert_documents(user):
         imported_tag  # No already imported docs
     ])
 
-    root_doc, created = Directory.objects.get_or_create(name='/', owner=user)
+    root_doc, created = Directory.objects.get_or_create(name='', owner=user)
     imported_docs = []
 
     for doc in docs:
@@ -181,7 +187,6 @@ def move_document(request):
     raise PopupException(_('Destination is not a directory'))
 
   source.move(destination, request.user)
-  source.save()
 
   return JsonResponse({'status': 0})
 
@@ -192,14 +197,13 @@ def create_directory(request):
   parent_path = json.loads(request.POST.get('parent_path'))
   name = json.loads(request.POST.get('name'))
 
-  parent_dir = Directory.objects.get(owner=request.user, name=parent_path)
+  parent_dir = Directory.objects.get_directory_by_path(user=request.user, path=parent_path)
 
-  path = os.path.join(parent_path, name)
-  file_doc = Directory.objects.create(name=path, owner=request.user, parent_directory=parent_dir)
+  directory = Directory.objects.create(name=name, owner=request.user, parent_directory=parent_dir)
 
   return JsonResponse({
       'status': 0,
-      'file': file_doc.to_dict()
+      'directory': directory.to_dict()
   })
 
 

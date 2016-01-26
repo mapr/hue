@@ -287,7 +287,7 @@ class OozieMockBase(object):
     self.user = User.objects.get(username='test')
 
     # Create home directory for user
-    self.home_dir, _ = Directory.objects.get_or_create(name='/', owner=self.user)
+    self.home_dir, _ = Directory.objects.get_or_create(name='', owner=self.user)
 
     self.wf = create_workflow(self.c, self.user)
     self.original_fs = originalCluster.FS_CACHE["default"]
@@ -397,7 +397,7 @@ class OozieBase(OozieServerProvider):
     self.cluster = OozieServerProvider.cluster
 
     # Create home directory for user
-    self.home_dir, _ = Directory.objects.get_or_create(name='/', owner=self.user)
+    self.home_dir, _ = Directory.objects.get_or_create(name='', owner=self.user)
 
     self.install_examples()
 
@@ -3147,7 +3147,7 @@ class TestOozieSubmissions(OozieBase):
     wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
     wf = Document2.objects.get(uuid=wf_uuid)
     wf.data.replace('hive2://localhost:10000/default', _get_hiveserver2_url())
-    home_dir = Directory.objects.get_or_create(owner=wf.owner, name='/')
+    home_dir, _ = Directory.objects.get_or_create(owner=wf.owner, name='')
     wf.save()
 
     # Somewhere we delete those by mistake
