@@ -906,18 +906,18 @@ class Document2(models.Model):
       raise PopupException(_("Document does not exist or you don't have the permission to access it."))
 
   def get_history(self):
-    return self.dependencies.filter(is_history=True).order_by('-last_modified')
+    return self.history.order_by('-last_modified')
 
   def add_to_history(self, user, data_dict):
-    doc_id = self.id # Need to copy as the clone messes it
+    doc_id = self.id  # Need to get doc_id before copy()
 
     history_doc = self.copy(name=self.name, owner=user)
     history_doc.update_data({'history': data_dict})
     history_doc.is_history = True
     history_doc.last_modified = None
+    history_doc.latest_id = doc_id
     history_doc.save()
 
-    Document2.objects.get(id=doc_id).dependencies.add(history_doc)
     return history_doc
 
   def trash(self):
