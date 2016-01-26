@@ -1060,7 +1060,9 @@ class Directory(Document2):
     except Directory.DoesNotExist:
       pass  # no conflicts
     except Directory.MultipleObjectsReturned:
-      raise Exception('Found multiple directories for owner %s named %s' % (self.owner, self.name))
+      directory_ids = [dir.id for dir in Directory.objects.filter(name=self.name, owner=self.owner, type='directory')]
+      raise FilesystemException(_('Found multiple directories for owner %s named %s with IDs: [%s]') %
+                                (self.owner, self.name, ', '.join(directory_ids)))
 
     super(Directory, self).save(*args, **kwargs)
 
