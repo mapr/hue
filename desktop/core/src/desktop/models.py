@@ -972,19 +972,23 @@ class Document2(models.Model):
       raise PopupException(_("Document does not exist or you don't have the permission to access it."))
 
   def get_history(self):
-    return self.dependencies.filter(is_history=True).order_by('-last_modified')
+    return self.history.order_by('-last_modified')
 
   def add_to_history(self, user, data_dict):
-    doc_id = self.id # Need to copy as the clone messes it
+    doc_id = self.id  # Need to get doc_id before copy()
 
     history_doc = self.copy(name=self.name, owner=user)
     history_doc.update_data({'history': data_dict})
     history_doc.is_history = True
     history_doc.last_modified = None
+    history_doc.latest_id = doc_id
     history_doc.save()
 
-    Document2.objects.get(id=doc_id).dependencies.add(history_doc)
     return history_doc
+
+  def trash(self):
+    trash_dir = Directory.objects.get(name=self.TRASH_DIR, owner=self.owner)
+    self.move(trash_dir, self.owner)
 
   def save(self, *args, **kwargs):
     # Set document parent to home directory if parent directory isn't specified
@@ -997,6 +1001,16 @@ class Document2(models.Model):
 
     # Redact query if needed
     self._redact_query()
+
+    # TODO: Validate name, shouldn't contain slashes
+    # TODO: Prevent documents with same name and location from being saved
+    # TODO: Prevent Home and Trash directories from being deleted
+    # TODO: Prevent creating home or trash directories in any location
+
+    # Save document to home directory if parent directory isn't specified
+    if not self.parent_directory and not self.is_home_directory and not self.is_trash_directory:
+      home_dir = Document2.objects.get_home_directory(self.owner)
+      self.parent_directory = home_dir
 
     super(Document2, self).save(*args, **kwargs)
 
