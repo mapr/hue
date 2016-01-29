@@ -94,7 +94,7 @@ def get_documents(request):
   count = 0
   if document.is_directory:
     directory = Directory.objects.get(id=document.id)
-    children = directory.documents(types=type_filters, search_text=search_text, order_by=sort)
+    children = directory.get_children_documents(types=type_filters, search_text=search_text, order_by=sort)
     count = children.count()
 
   # Paginate
@@ -107,6 +107,49 @@ def get_documents(request):
       'document': document.to_dict(),
       'parent': document.parent_directory.to_dict() if document.parent_directory else None,
       'children': [doc.to_dict() for doc in children] if children else [],
+      'page': page,
+      'limit': limit,
+      'count': count,
+      'types': type_filters,
+      'sort': sort,
+      'text': search_text
+  })
+
+
+@api_error_handler
+def get_shared_documents(request):
+  """
+  Returns the directories and documents that are shared with the current user, grouped by top-level directory.
+  Optional params:
+    page=<n>    - Controls pagination. Defaults to 1.
+    limit=<n>   - Controls limit per page. Defaults to all.
+    type=<type> - Show documents of given type(s) (directory, query-hive, query-impala, query-mysql, etc). Default to all.
+    sort=<key>  - Sort by the attribute <key>, which is one of:
+                    "name", "type", "owner", "last_modified"
+                  Accepts the form "-last_modified", which sorts in descending order.
+                  Default to "-last_modified".
+    text=<frag> - Search for fragment "frag" in names and descriptions.
+  """
+
+  # Get querystring filters if any
+  page = int(request.GET.get('page', 1))
+  limit = int(request.GET.get('limit', 0))
+  type_filters = request.GET.getlist('type', None)
+  sort = request.GET.get('sort', '-last_modified')
+  search_text = request.GET.get('text', None)
+
+  documents = Document2.objects.get_shared_documents(request.user, flatten=False, types=type_filters,
+                                                     search_text=search_text, order_by=sort)
+  count = documents.count()
+
+  # Paginate
+  if documents and limit > 0:
+    offset = (page - 1) * limit
+    last = offset + limit
+    documents = documents.all()[offset:last]
+
+  return JsonResponse({
+      'documents': [doc.to_dict() for doc in documents] if documents else [],
       'page': page,
       'limit': limit,
       'count': count,
