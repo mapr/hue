@@ -961,19 +961,23 @@ class Document2(models.Model):
     }
 
   def get_history(self):
-    return self.dependencies.filter(is_history=True).order_by('-last_modified')
+    return self.history.order_by('-last_modified')
 
   def add_to_history(self, user, data_dict):
-    doc_id = self.id # Need to copy as the clone messes it
+    doc_id = self.id  # Need to get doc_id before copy()
 
     history_doc = self.copy(name=self.name, owner=user)
     history_doc.update_data({'history': data_dict})
     history_doc.is_history = True
     history_doc.last_modified = None
+    history_doc.latest_id = doc_id
     history_doc.save()
 
-    Document2.objects.get(id=doc_id).dependencies.add(history_doc)
     return history_doc
+
+  def trash(self):
+    trash_dir = Directory.objects.get(name=self.TRASH_DIR, owner=self.owner)
+    self.move(trash_dir, self.owner)
 
   def save(self, *args, **kwargs):
     # Set document parent to home directory if parent directory isn't specified
@@ -1102,6 +1106,31 @@ class Document2(models.Model):
       permissions.update(write_perms.to_dict())
 
     return permissions
+
+  def _redact_query(self):
+    """
+    Optionally mask out the query from being saved to the database. This is because if the database contains sensitive
+    information like personally identifiable information, that information could be leaked into the Hue database and
+    logfiles.
+    """
+    if global_redaction_engine.is_enabled() and self.type == 'notebook':
+      data_dict = self.data_dict
+      snippets = data_dict.get('snippets', [])
+      for snippet in snippets:
+        if snippet['type'] in ('hive', 'impala'):  # TODO: Pull SQL types from canonical lookup
+          redacted_statement_raw = global_redaction_engine.redact(snippet['statement_raw'])
+          if snippet['statement_raw'] != redacted_statement_raw:
+            snippet['statement_raw'] = redacted_statement_raw
+            snippet['statement'] = global_redaction_engine.redact(snippet['statement'])
+            snippet['is_redacted'] = True
+      self.data = json.dumps(data_dict)
+
+
+class DirectoryManager(Document2Manager):
+
+  def get_queryset(self):
+    return super(DirectoryManager, self).get_queryset().filter(type='directory')
+
 
   def _redact_query(self):
     """

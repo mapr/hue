@@ -29,7 +29,6 @@ from beeswax.models import SavedQuery
 from beeswax.design import hql_query
 from useradmin.models import get_default_user_group
 
-
 class TestDocument2(object):
 
   def setUp(self):
