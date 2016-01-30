@@ -146,7 +146,7 @@ def get_shared_documents(request):
   if documents and limit > 0:
     offset = (page - 1) * limit
     last = offset + limit
-    documents = documents.all()[offset:last]
+    children = children.all()[offset:last]
 
   return JsonResponse({
       'documents': [doc.to_dict() for doc in documents] if documents else [],
@@ -260,7 +260,7 @@ def share_document(request):
   """
   Set who else or which other group can interact with the document.
 
-  Example of input: {'read': {'user_ids': [1, 2, 3], 'group_ids': [1, 2, 3]}}
+  Example of input: {'read': {'user_ids': [1, 2, 3], 'group_ids': [1, 2, 3], 'all': false}}
   """
   perms_dict = json.loads(request.POST.get('data'))
   uuid = json.loads(request.POST.get('uuid'))

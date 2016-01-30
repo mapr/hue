@@ -35,7 +35,7 @@ from django.core.urlresolvers import reverse
 
 from desktop.lib.django_test_util import make_logged_in_client
 from desktop.lib.test_utils import grant_access, add_permission, add_to_group, reformat_json, reformat_xml
-from desktop.models import Document, Document2
+from desktop.models import Directory, Document, Document2
 
 from hadoop import cluster as originalCluster
 from hadoop.pseudo_hdfs4 import is_live_cluster
@@ -3141,6 +3141,7 @@ class TestOozieSubmissions(OozieBase):
     wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
     wf = Document2.objects.get_by_uuid(uuid=wf_uuid)
     wf.data.replace('hive2://localhost:10000/default', _get_hiveserver2_url())
+    home_dir, _ = Directory.objects.get_or_create(owner=wf.owner, name='')
     wf.save()
 
     # Somewhere we delete those by mistake

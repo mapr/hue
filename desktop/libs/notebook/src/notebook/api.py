@@ -247,7 +247,9 @@ def historify(request):
   history_doc1.save()
 
   if history.get('id'): # If we come from a saved query
-    Document2.objects.get(id=history['id']).dependencies.add(history_doc)
+    query_doc = Document2.objects.get(id=history['id'])
+    history_doc.latest = query_doc
+    history_doc.save()
 
   response['status'] = 0
   response['id'] = history_doc.id
@@ -268,7 +270,7 @@ def get_history(request):
       'id': doc.id,
       'data': Notebook(document=doc).get_data(),
       'absoluteUrl': doc.get_absolute_url()
-      } for doc in Document2.objects.get_history(doc_type='query-%s' % doc_type, user=request.user)[:25]]
+      } for doc in Document2.objects.get_history.filter(doc_type='query-%s' % doc_type, user=request.user)[:25]]
   response['message'] = _('History fetched')
 
   return JsonResponse(response)
@@ -283,7 +285,7 @@ def clear_history(request):
   doc_type = request.POST.get('doc_type')
 
   response['status'] = 0
-  history = Document2.objects.get_history(doc_type='query-%s' % doc_type, user=request.user)
+  history = Document2.objects.get_history.filter(doc_type='query-%s' % doc_type, user=request.user)
   if notebook.get('id'):
     history = history.exclude(id=notebook.get('id'))
   response['updated'] = history.delete()
