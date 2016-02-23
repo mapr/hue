@@ -26,6 +26,7 @@ import posixpath
 import re
 import shutil
 import stat as stat_module
+import bz2file
 
 from datetime import datetime
 
@@ -680,6 +681,8 @@ def read_contents(codec_type, path, fs, offset, length):
             if path.endswith('.gz') and detect_gzip(contents):
                 codec_type = 'gzip'
                 offset = 0
+            elif (path.endswith('.bz2') or path.endswith('.bzip2')) and detect_bz2(contents):
+                codec_type = 'bz2'
             elif path.endswith('.avro') and detect_avro(contents):
                 codec_type = 'avro'
             elif detect_parquet(fhandle):
@@ -695,6 +698,8 @@ def read_contents(codec_type, path, fs, offset, length):
 
         if codec_type == 'gzip':
             contents = _read_gzip(fhandle, path, offset, length, stats)
+        elif codec_type == 'bz2':
+            contents = _read_bz2(fhandle, path, offset, length, stats)
         elif codec_type == 'avro':
             contents = _read_avro(fhandle, path, offset, length, stats)
         elif codec_type == 'parquet':
@@ -779,6 +784,16 @@ def _read_gzip(fhandle, path, offset, length, stats):
         raise PopupException(_("Failed to decompress file."))
     return contents
 
+def _read_bz2(fhandle, path, offset, length, stats):
+    contents = ''
+    try:
+        bz2_file_handler = bz2file.BZ2File(StringIO(fhandle.read()), 'r')
+        bz2_file_handler.seek(offset)
+        contents = bz2_file_handler.read1(length)
+    except:
+        logging.exception("Could not decompress file at %s" % path)
+        raise PopupException(_("Failed to decompress file."))
+    return contents
 
 def _read_simple(fhandle, path, offset, length, stats):
     contents = ''
@@ -794,6 +809,10 @@ def _read_simple(fhandle, path, offset, length, stats):
 def detect_gzip(contents):
     '''This is a silly small function which checks to see if the file is Gzip'''
     return contents[:2] == '\x1f\x8b'
+
+def detect_bz2(contents):
+    '''This is a silly small function which checks to see if the file is Bz2'''
+    return contents == 'BZh'
 
 
 def detect_avro(contents):

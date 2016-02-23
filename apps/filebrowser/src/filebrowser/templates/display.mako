@@ -73,7 +73,7 @@ ${ fb_components.menubar() }
           % if 'contents' in view and view['masked_binary_data']:
             <div class="alert alert-warning">${_("Warning: some binary data has been masked out with '&#xfffd'.")}</div>
           % endif
-          %if view['compression'] in ('avro', 'gzip', 'parquet', 'snappy'):
+          %if view['compression'] in ('avro', 'gzip', 'parquet', 'snappy', 'bz2'):
             <p class="muted"><i class="fa fa-info-circle"></i> ${_('Output rendered from compressed %s file.') % view['compression']}</p>
           %endif
             <div id="fileArea" data-bind="css: {'loading': isLoading}">
