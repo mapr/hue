@@ -136,7 +136,7 @@ ${ fb_components.menubar() }
                 <!-- ko if: $root.file().view.contents && $root.file().view.masked_binary_data() -->
                 <div class="alert alert-warning">${_("Warning: some binary data has been masked out with '&#xfffd'.")}</div>
                 <!-- /ko -->
-                <!-- ko if: ['avro', 'gzip', 'parquet', 'snappy'].indexOf($root.file().view.compression()) > -1 -->
+                <!-- ko if: ['avro', 'gzip', 'parquet', 'snappy', 'bz2'].indexOf($root.file().view.compression()) > -1 -->
                 <div class="alert alert-warning"><i class="fa fa-info-circle"></i> ${_('Output rendered from compressed %s file.') % view['compression']}</div>
                 <!-- /ko -->
               <!-- /ko -->
