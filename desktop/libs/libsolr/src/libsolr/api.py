@@ -47,7 +47,7 @@ class SolrApi(object):
   """
   http://wiki.apache.org/solr/CoreAdmin#CoreAdminHandler
   """
-  def __init__(self, solr_url, user, security_enabled=SECURITY_ENABLED.get()):
+  def __init__(self, solr_url, user, security_enabled=False):
     self._url = solr_url
     self._user = user
     self._client = HttpClient(self._url, logger=LOG)
