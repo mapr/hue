@@ -54,10 +54,8 @@ def get_fs_prefix(fs):
   return prefix
 
 def get_db_prefix(name='hive'):
-  if is_live_cluster():
     return 'hue_test_%s_%s' % (name, str(time.time()).replace('.', ''))
-  else:
-    return 'default'
+
 
 
 class LiveHdfs():

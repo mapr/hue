@@ -44,7 +44,7 @@ def assert_ok_response(response):
   nose.tools.assert_true(200, response.status_code)
   return response
 
-def make_logged_in_client(username="test", password="test", is_superuser=True, recreate=False, groupname=None):
+def make_logged_in_client(username="mapr", password="mapr", is_superuser=True, recreate=False, groupname=None):
   """
   Create a client with a user already logged in.
 

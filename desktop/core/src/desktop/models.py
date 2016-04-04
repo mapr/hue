@@ -34,7 +34,7 @@ from django.utils.translation import ugettext as _, ugettext_lazy as _t
 from desktop import appmanager
 from desktop.lib.i18n import force_unicode
 from desktop.lib.exceptions_renderable import PopupException
-from desktop.conf import DEFAULT_USER
+from desktop.conf import DEFAULT_USER, APP_BLACKLIST
 
 LOG = logging.getLogger(__name__)
 
@@ -300,26 +300,27 @@ class DocumentManager(models.Manager):
     except Exception, e:
       LOG.exception('error syncing pig')
 
-    try:
-      with transaction.atomic():
-        from search.models import Collection
+    if 'search' not in APP_BLACKLIST.get():
+      try:
+        with transaction.atomic():
+          from search.models import Collection
 
-        for dashboard in Collection.objects.all():
-          col_dict = dashboard.properties_dict['collection']
-          if not 'uuid' in col_dict:
-            _uuid = str(uuid.uuid4())
-            col_dict['uuid'] = _uuid
-            dashboard.update_properties({'collection': col_dict})
-            if dashboard.owner is None:
-              from useradmin.models import install_sample_user
-              owner = install_sample_user()
-            else:
-              owner = dashboard.owner
-            dashboard_doc = Document2.objects.create(name=dashboard.label, uuid=_uuid, type='search-dashboard', owner=owner, description=dashboard.label, data=dashboard.properties)
-            Document.objects.link(dashboard_doc, owner=owner, name=dashboard.label, description=dashboard.label, extra='search-dashboard')
-            dashboard.save()
-    except Exception, e:
-      LOG.exception('error syncing search')
+          for dashboard in Collection.objects.all():
+            col_dict = dashboard.properties_dict['collection']
+            if not 'uuid' in col_dict:
+              _uuid = str(uuid.uuid4())
+              col_dict['uuid'] = _uuid
+              dashboard.update_properties({'collection': col_dict})
+              if dashboard.owner is None:
+                from useradmin.models import install_sample_user
+                owner = install_sample_user()
+              else:
+                owner = dashboard.owner
+              dashboard_doc = Document2.objects.create(name=dashboard.label, uuid=_uuid, type='search-dashboard', owner=owner, description=dashboard.label, data=dashboard.properties)
+              Document.objects.link(dashboard_doc, owner=owner, name=dashboard.label, description=dashboard.label, extra='search-dashboard')
+              dashboard.save()
+      except Exception, e:
+        LOG.exception('error syncing search')
 
     try:
       with transaction.atomic():
@@ -431,7 +432,6 @@ class DocumentManager(models.Manager):
 
         # Next, filter these from our document query.
         docs = docs.exclude(id__in=docs_from_content)
-
       if docs.exists():
         LOG.info('Deleting %s documents' % docs.count())
         docs.delete()
