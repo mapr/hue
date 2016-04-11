@@ -2168,7 +2168,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-basic-namespace-missing.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-basic-namespace-missing.xml')
     contents = f.read()
     f.close()
 
@@ -2182,7 +2182,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-basic.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-basic.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2198,7 +2198,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-credentials.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-credentials.xml')
     import_workflow(workflow, f.read())
     f.close()
     credentials = Node.objects.get(workflow=workflow, node_type='hive').credentials
@@ -2214,7 +2214,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-basic-global-config.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-basic-global-config.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2233,7 +2233,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-decision.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-decision.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2252,7 +2252,7 @@ class TestImportWorkflow04(OozieMockBase):
 
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-decision-complex.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-decision-complex.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2271,7 +2271,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-distcp.0.1.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-distcp.0.1.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2284,7 +2284,7 @@ class TestImportWorkflow04(OozieMockBase):
   def test_import_workflow_forks(self):
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-forks.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-forks.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2302,7 +2302,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-mapreduce.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-mapreduce.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2318,7 +2318,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-pig.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-pig.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2336,7 +2336,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-sqoop.0.2.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-sqoop.0.2.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2355,7 +2355,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-ssh.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-ssh.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2372,7 +2372,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-java.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-java.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2392,7 +2392,7 @@ class TestImportWorkflow04(OozieMockBase):
   def test_import_workflow_shell(self):
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-shell.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-shell.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2416,7 +2416,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-fs.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-fs.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2437,7 +2437,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-email.0.1.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-email.0.1.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2457,7 +2457,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-generic.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-generic.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2476,7 +2476,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-java-multiple-kill.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-java-multiple-kill.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -2501,7 +2501,7 @@ class TestImportWorkflow04(OozieMockBase):
     """
     workflow = Workflow.objects.new_workflow(self.user)
     workflow.save()
-    f = open(self.HUE_HOME + 'apps/oozie/src/oozie/test_data/workflows/0.4/test-java-different-error-links.xml')
+    f = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-java-different-error-links.xml')
     import_workflow(workflow, f.read())
     f.close()
     workflow.save()
@@ -3225,7 +3225,7 @@ class TestDashboardWithOozie(OozieBase):
     # Check popup and reading workflow.xml and job.properties
     deployment_dir = self.fs.mktemp(prefix='test_submit_external_workflow')
     application_path = deployment_dir + '/workflow.xml'
-    oozie_xml = open(os.environ['HUE_HOME'] + '/apps/oozie/src/oozie/test_data/workflows/0.4/test-sleepworkflow.xml').read()
+    oozie_xml = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-sleepworkflow.xml').read()
     self.fs.create(application_path, data=oozie_xml)
     response = self.c.get(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}))
     assert_equal([{'name': 'REDUCER_SLEEP_TIME', 'value': ''}],
@@ -3246,7 +3246,7 @@ nameNode=maprfs:///
     if 'MAPR-SECURITY' == cluster_conf.MECHANISM.get():
         oozie_properties += """credentials={None: {'xml_name': None, 'properties': []}}"""
     self.fs.mkdir(deployment_dir + '/lib')
-    mapr_test_utils.copy_from_local(os.environ['HUE_HOME'] + '/apps/oozie/examples/lib/hadoop-examples.jar', deployment_dir + '/lib')
+    mapr_test_utils.copy_from_local('apps/oozie/examples/lib/hadoop-examples.jar', deployment_dir + '/lib')
     self.fs.create(deployment_dir + '/job.properties', data=oozie_properties)
 
     response = self.c.get(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}))
@@ -3764,8 +3764,8 @@ class TestOozieActions(OozieBase):
             data_path = u'/aggregate.data'
             output_path = u'/output'
             # add testData and script too root folder
-            mapr_test_utils.copy_from_local(os.environ['HUE_HOME'] + '/apps/oozie/examples/unmanaged/pig/aggregate.data', '/')
-            mapr_test_utils.copy_from_local(os.environ['HUE_HOME'] + '/apps/oozie/examples/unmanaged/pig/aggregate.pig', '/')
+            mapr_test_utils.copy_from_local('apps/oozie/examples/unmanaged/pig/aggregate.data', '/')
+            mapr_test_utils.copy_from_local('apps/oozie/examples/unmanaged/pig/aggregate.pig', '/')
 
             response = self.c.post(reverse('oozie:submit_workflow',
                                     args=[design_id]),
