@@ -3134,8 +3134,7 @@ class TestOozieSubmissions(OozieBase):
   def test_submit_hiveserver2_action(self):
     # Skip at kerberos cluster because of incorrect workflow for kerberos
     cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-    if cluster_conf.MECHANISM.get() == 'GSSAPI':
-        raise SkipTest
+    skip_if_kerberos()
     try:
         wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
         wf = Document2.objects.get(uuid=wf_uuid)
@@ -3939,10 +3938,10 @@ class TestOozieActions(OozieBase):
 class TestOozieSecurity(OozieBase):
 
     def test_mapr_security_job_design_action(self):
+        skip_if_kerberos()
         try:
             # check if cluster if secured and get security mechanism
             cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-            self.skip_if_kerberos()
             is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
             # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
             # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
@@ -3970,10 +3969,10 @@ class TestOozieSecurity(OozieBase):
             self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
 
     def test_mapr_security_job_workflow(self):
+        skip_if_kerberos()
         try:
             # check if cluster if secured and get security mechanism
             cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-            self.skip_if_kerberos()
             # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
             # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
             oozie_conf.SECURITY_ENABLED.set_for_testing(False)
@@ -4066,11 +4065,6 @@ class TestOozieSecurity(OozieBase):
     def skip_if_not_kerberos(cls):
         cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
         if cluster_conf.MECHANISM.get() != 'GSSAPI':
-            raise SkipTest
-
-    def skip_if_kerberos(cls):
-        cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-        if cluster_conf.MECHANISM.get() == 'GSSAPI':
             raise SkipTest
 
     @classmethod
@@ -4508,3 +4502,8 @@ def synchronize_workflow_attributes(workflow_json, correct_workflow_json):
     workflow_dict['attributes']['deployment_dir'] = correct_workflow_dict['attributes']['deployment_dir']
 
   return reformat_json(workflow_dict)
+
+def skip_if_kerberos():
+    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+    if cluster_conf.MECHANISM.get() == 'GSSAPI':
+        raise SkipTest
