@@ -1,5 +1,7 @@
 import subprocess
 import json
+import os
+import crypt
 
 def create_home_dir(home_user, do_as_user='mapr'):
     subprocess.Popen(["sudo", "-u", do_as_user, "hadoop", "fs", "-mkdir", "/user/" + home_user],
@@ -67,3 +69,25 @@ def kill_job(client, job_id):
         response = client.post("/jobbrowser/jobs/" + job_id + "/kill")
     except Exception as e:
         pass
+
+def remove_hue_krb5_file(do_as_user='mapr'):
+    maprcli_popen = subprocess.Popen(["sudo", "-u", do_as_user, "rm", "/tmp/hue_krb5_ccache"])
+    maprcli_stdout, maprcli_stderr = maprcli_popen.communicate()
+
+def create_hue_krb5_file(principal_list, do_as_user="mapr"):
+    for principal in principal_list:
+        maprcli_popen = subprocess.Popen(["sudo", "-u", do_as_user, "kinit", "-kt", "/opt/mapr/conf/mapr.keytab", "-c", "/tmp/hue_krb5_ccache", principal])
+        maprcli_stdout, maprcli_stderr = maprcli_popen.communicate()
+
+
+def create_user(username):
+    maprcli_popen = subprocess.Popen(["id", username],
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    maprcli_stdout, maprcli_stderr = maprcli_popen.communicate()
+    if 'no such user' in maprcli_stderr:
+        encPass = crypt.crypt(username, "22")
+        test_sudo_pass = 'mapr'
+        create_user_command = "useradd -p "+encPass+" " + username
+        os.system("""echo %s|sudo -S %s""" % (test_sudo_pass, create_user_command))
+
+

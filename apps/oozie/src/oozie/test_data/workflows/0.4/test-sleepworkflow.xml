@@ -1,0 +1,61 @@
+<workflow-app name="MapReduce_Sleep_jobs" xmlns="uri:oozie:workflow:0.5">
+    <start to="mapreduce-02c6"/>
+    <kill name="Kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <action name="mapreduce-02c6">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.reduce.tasks</name>
+                    <value>1</value>
+                </property>
+                <property>
+                    <name>mapred.mapper.class</name>
+                    <value>org.apache.hadoop.examples.SleepJob</value>
+                </property>
+                <property>
+                    <name>mapred.reducer.class</name>
+                    <value>org.apache.hadoop.examples.SleepJob</value>
+                </property>
+                <property>
+                    <name>mapred.mapoutput.key.class</name>
+                    <value>org.apache.hadoop.io.IntWritable</value>
+                </property>
+                <property>
+                    <name>mapred.mapoutput.value.class</name>
+                    <value>org.apache.hadoop.io.NullWritable</value>
+                </property>
+                <property>
+                    <name>mapred.output.format.class</name>
+                    <value>org.apache.hadoop.mapred.lib.NullOutputFormat</value>
+                </property>
+                <property>
+                    <name>mapred.input.format.class</name>
+                    <value>org.apache.hadoop.examples.SleepJob$SleepInputFormat</value>
+                </property>
+                <property>
+                    <name>mapred.partitioner.class</name>
+                    <value>org.apache.hadoop.examples.SleepJob</value>
+                </property>
+                <property>
+                    <name>mapred.speculative.execution</name>
+                    <value>false</value>
+                </property>
+                <property>
+                    <name>sleep.job.map.sleep.time</name>
+                    <value>0</value>
+                </property>
+                <property>
+                    <name>sleep.job.reduce.sleep.time</name>
+                    <value>${REDUCER_SLEEP_TIME}</value>
+                </property>
+            </configuration>
+        </map-reduce>
+        <ok to="End"/>
+        <error to="Kill"/>
+    </action>
+    <end name="End"/>
+</workflow-app>

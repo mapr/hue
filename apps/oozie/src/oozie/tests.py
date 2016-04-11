@@ -23,10 +23,19 @@ import os
 import StringIO
 import shutil
 import tempfile
+from wsgiref.validate import assert_
 import zipfile
 import liboozie.conf as oozie_conf
 import hadoop
+import socket
+import time
+import random
 
+
+from desktop.conf import KERBEROS
+from jobbrowser.conf import SHARE_JOBS
+from hadoop import conf as webhdfs_conf
+from hadoop.fs.webhdfs import WebHdfs
 from datetime import datetime
 
 from itertools import chain
@@ -62,6 +71,7 @@ LOG = logging.getLogger(__name__)
 
 
 _INITIALIZED = False
+IS_MOCK_USED = False
 
 
 class MockOozieApi:
@@ -234,12 +244,24 @@ class OozieMockBase(object):
     add_to_group("mapr")
     self.user = User.objects.get(username='mapr')
     self.wf = create_workflow(self.c, self.user)
+    global IS_MOCK_USED
+    IS_MOCK_USED = True
+
 
 
   def tearDown(self):
     oozie_api.OozieApi = oozie_api.OriginalOozieApi
     Workflow.objects.check_workspace = Workflow.objects.original_check_workspace
     oozie_api._api_cache = None
+
+    if hasattr(oozie_api, 'OriginalOozieApi'):
+        delattr(oozie_api, 'OriginalOozieApi')
+
+    if hasattr(oozie_api, '_api_cache'):
+        delattr(oozie_api, '_api_cache')
+
+    if hasattr(Workflow.objects, 'original_check_workspace'):
+        delattr(Workflow.objects, 'original_check_workspace')
 
     History.objects.all().delete()
     for coordinator in Coordinator.objects.all():
@@ -341,12 +363,10 @@ class OozieBase(OozieServerProvider):
 
     reset = ENABLE_V2.set_for_testing(True) # Somewhere this is reseted
     try:
-      pass
       self.c.post(reverse('oozie:install_examples'))
     finally:
       reset()
       mapr_test_utils.create_home_dir('mapr', 'mapr')
-
     _INITIALIZED = True
 
 
@@ -2139,6 +2159,7 @@ class TestImportWorkflow04(OozieMockBase):
   def setUp(self):
     super(TestImportWorkflow04, self).setUp()
     self.setup_simple_workflow()
+    self.HUE_HOME = os.environ['HUE_HOME']
 
   @raises(RuntimeError)
   def test_import_workflow_namespace_error(self):
@@ -2675,7 +2696,6 @@ class TestPermissions(OozieBase):
 
   def test_coordinator_permissions(self):
     raise SkipTest
-
     coord = create_coordinator(self.wf, self.c, self.user)
 
     response = self.c.get(reverse('oozie:edit_coordinator', args=[coord.id]))
@@ -2972,7 +2992,7 @@ class TestEditorWithOozie(OozieBase):
     dir_stat = mapr_test_utils.stats(self.wf.deployment_dir)
     dir_name = self.wf.deployment_dir.split('/')[-1]
     assert_equal('mapr', dir_stat['user_owner'])
-    assert_equal('users', dir_stat['group_owner'])
+    assert_true('users' == dir_stat['group_owner'] or 'mapr' == dir_stat['group_owner'])
     assert_equal(dir_name, dir_stat['file_name'])
 
 
@@ -3068,98 +3088,107 @@ class TestImportWorkflow04WithOozie(OozieBase):
 class TestOozieSubmissions(OozieBase):
 
   def test_submit_fork_action(self):
-    wf_uuid = "a3b8b8d5-d690-c4b9-5885-9d458a007744"
-    wf = Document2.objects.get(uuid=wf_uuid)
-    doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
-    doc.share_to_default()
-    response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
-                           data={
-                               u'form-0-name': [u'oozie.use.system.libpath'],
-                               u'form-MAX_NUM_FORMS': [u'1000'],
-                               u'form-1-name': [u'output'],
-                               u'form-TOTAL_FORMS': [u'2'],
-                               u'form-1-value': [u'/user/mapr'],
-                               u'form-INITIAL_FORMS': [u'2'],
-                               u'form-0-value': [u'True']
-                           },
-                           follow=True)
-    job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-    # kill al running jobs
-    assert_true(job.status in ('SUCCEEDED', 'KILLED'), job.status)
-
-
+    try:
+        wf_uuid = "a3b8b8d5-d690-c4b9-5885-9d458a007744"
+        wf = Document2.objects.get(uuid=wf_uuid)
+        doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
+        doc.share_to_default()
+        response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data={
+                                   u'form-0-name': [u'oozie.use.system.libpath'],
+                                   u'form-MAX_NUM_FORMS': [u'1000'],
+                                   u'form-1-name': [u'output'],
+                                   u'form-TOTAL_FORMS': [u'2'],
+                                   u'form-1-value': [u'/user/mapr'],
+                                   u'form-INITIAL_FORMS': [u'2'],
+                                   u'form-0-value': [u'True']
+                               },
+                               follow=True)
+        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+        assert_true(job.status in ('SUCCEEDED'), job.status)
+    finally:
+        self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
   def test_submit_mapr_reduce_action(self):
-    wf_uuid = "9f731852-0b1a-e7dd-1203-cf14778cdf20"
-    wf = Document2.objects.get(uuid=wf_uuid)
-    doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
-    doc.share_to_default()
-    response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
-                           data={
-                               u'form-0-name': [u'oozie.use.system.libpath'],
-                               u'form-MAX_NUM_FORMS': [u'1000'],
-                               u'form-1-name': [u'REDUCER_SLEEP_TIME'],
-                               u'form-TOTAL_FORMS': [u'2'],
-                               u'form-1-value': [u'5'],
-                               u'form-INITIAL_FORMS': [u'2'],
-                               u'form-0-value': [u'True']
-                           },
-                           follow=True)
-    job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-    assert_true(job.status in ('SUCCEEDED', 'KILLED'), job.status)
+    try:
+        wf_uuid = "9f731852-0b1a-e7dd-1203-cf14778cdf20"
+        wf = Document2.objects.get(uuid=wf_uuid)
+        doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
+        doc.share_to_default()
+        response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data={
+                                   u'form-0-name': [u'oozie.use.system.libpath'],
+                                   u'form-MAX_NUM_FORMS': [u'1000'],
+                                   u'form-1-name': [u'REDUCER_SLEEP_TIME'],
+                                   u'form-TOTAL_FORMS': [u'2'],
+                                   u'form-1-value': [u'5'],
+                                   u'form-INITIAL_FORMS': [u'2'],
+                                   u'form-0-value': [u'True']
+                               },
+                               follow=True)
+        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+        assert_true(job.status in ('SUCCEEDED'), job.status)
+    finally:
+        self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
   def test_submit_hiveserver2_action(self):
     # Skip at kerberos cluster because of incorrect workflow for kerberos
     cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-    if cluster_conf.MECHANISM.get() == 'GSSAPI':
-        raise SkipTest
-    wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
-    wf = Document2.objects.get(uuid=wf_uuid)
-    wf.data.replace('hive2://localhost:10000/default', _get_hiveserver2_url())
-    wf.save()
+    skip_if_kerberos()
+    try:
+        wf_uuid = "c1c3cba9-edec-fb6f-a526-9f80b66fe993"
+        wf = Document2.objects.get(uuid=wf_uuid)
+        wf.data.replace('hive2://localhost:10000/default', _get_hiveserver2_url())
+        wf.save()
 
-    # Somewhere we delete those by mistake
-    doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
-    doc.share_to_default()
+        # Somewhere we delete those by mistake
+        doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
+        doc.share_to_default()
 
-    response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
-                           data={
-                               u'form-0-name': [u'oozie.use.system.libpath'],
-                               u'form-MAX_NUM_FORMS': [u'1000'],
-                               u'form-TOTAL_FORMS': [u'1'],
-                               u'form-INITIAL_FORMS': [u'1'],
-                               u'form-0-value': [u'True']
-                           },
-                           follow=True)
-    job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+        response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data={
+                                   u'form-0-name': [u'oozie.use.system.libpath'],
+                                   u'form-MAX_NUM_FORMS': [u'1000'],
+                                   u'form-TOTAL_FORMS': [u'1'],
+                                   u'form-INITIAL_FORMS': [u'1'],
+                                   u'form-0-value': [u'True']
+                               },
+                               follow=True)
+        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
 
-    assert_true(job.status in ('SUCCEEDED', 'KILLED'), job.status) # Dies for some cluster setup reason
+        assert_true(job.status in ('SUCCEEDED'), job.status) # Dies for some cluster setup reason
+    finally:
+        self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
 
   def test_submit_spark_action(self):
-    wf_uuid = "2d667ab2-70f9-c2bf-0726-abe84fa7130d"
-    wf = Document2.objects.get(uuid=wf_uuid)
+    try:
+        wf_uuid = "2d667ab2-70f9-c2bf-0726-abe84fa7130d"
+        wf = Document2.objects.get(uuid=wf_uuid)
 
-    # Somewhere we delete those by mistake
-    doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
-    doc.share_to_default()
+        # Somewhere we delete those by mistake
+        doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
+        doc.share_to_default()
+        output_dir = '/user/mapr/spark_action_output' + str(random.randrange(10000))
 
-    response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
-                           data={
-                               u'form-0-name': [u'oozie.use.system.libpath'],
-                               u'form-MAX_NUM_FORMS': [u'1000'],
-                               u'form-1-name': [u'input'],
-                               u'form-TOTAL_FORMS': [u'3'],
-                               u'form-1-value': [u'/oozie/workspaces/data/sonnets.txt'],
-                               u'form-2-name': [u'output'],
-                               u'form-INITIAL_FORMS': [u'3'],
-                               u'form-2-value': [u'here'],
-                               u'form-0-value': [u'True']
-                           },
-                           follow=True)
-    job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+        response = self.c.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data={
+                                   u'form-0-name': [u'oozie.use.system.libpath'],
+                                   u'form-MAX_NUM_FORMS': [u'1000'],
+                                   u'form-1-name': [u'input'],
+                                   u'form-TOTAL_FORMS': [u'3'],
+                                   u'form-1-value': [u'/oozie/workspaces/data/sonnets.txt'],
+                                   u'form-2-name': [u'output'],
+                                   u'form-INITIAL_FORMS': [u'3'],
+                                   u'form-2-value': [output_dir],
+                                   u'form-0-value': [u'True']
+                               },
+                               follow=True)
+        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
 
-    assert_true(job.status in ('SUCCEEDED', 'KILLED'), job.status) # Dies for some cluster setup reason
+        assert_true(job.status in ('SUCCEEDED'), job.status) # Dies for some cluster setup reason
+    finally:
+        self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
 
   def test_oozie_page(self):
@@ -3179,7 +3208,8 @@ class TestDashboardWithOozie(OozieBase):
 
   def setUp(self):
     super(TestDashboardWithOozie, self).setUp()
-
+    cluster_conf = webhdfs_conf.HDFS_CLUSTERS['default']
+    self.fs = WebHdfs.from_config(cluster_conf)
     self.c = make_logged_in_client()
     self.wf = create_workflow(self.c, self.user)
     self.setup_simple_workflow()
@@ -3191,50 +3221,61 @@ class TestDashboardWithOozie(OozieBase):
       LOG.exception('failed to tear down tests')
 
   def test_submit_external_workflow(self):
-    raise SkipTest
     # Check popup and reading workflow.xml and job.properties
-    oozie_xml = self.wf.to_xml({'output': '/path'})
-    deployment_dir = self.cluster.fs.mktemp(prefix='test_submit_external_workflow')
+    deployment_dir = self.fs.mktemp(prefix='test_submit_external_workflow')
     application_path = deployment_dir + '/workflow.xml'
-
-    self.cluster.fs.create(application_path, data=oozie_xml)
-
+    oozie_xml = open('apps/oozie/src/oozie/test_data/workflows/0.4/test-sleepworkflow.xml').read()
+    self.fs.create(application_path, data=oozie_xml)
     response = self.c.get(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}))
-    assert_equal([{'name': 'SLEEP', 'value': ''}, {'name': 'output', 'value': ''}],
+    assert_equal([{'name': 'REDUCER_SLEEP_TIME', 'value': ''}],
                   response.context['params_form'].initial)
-
+    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+    is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
     oozie_properties = """
 #
 # Licensed to the Hue
 #
-nameNode=hdfs://localhost:8020
-jobTracker=localhost:8021
-my_prop_not_filtered=10
-    """
-    self.cluster.fs.create(deployment_dir + '/job.properties', data=oozie_properties)
+oozie.use.system.libpath=True
+security_enabled=%s
+REDUCER_SLEEP_TIME=1
+jobTracker=maprfs:///
+nameNode=maprfs:///
+""" % is_secure_cluster
+
+    if 'MAPR-SECURITY' == cluster_conf.MECHANISM.get():
+        oozie_properties += """credentials={None: {'xml_name': None, 'properties': []}}"""
+    self.fs.mkdir(deployment_dir + '/lib')
+    mapr_test_utils.copy_from_local('apps/oozie/examples/lib/hadoop-examples.jar', deployment_dir + '/lib')
+    self.fs.create(deployment_dir + '/job.properties', data=oozie_properties)
 
     response = self.c.get(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}))
-    assert_equal([{'name': 'SLEEP', 'value': ''}, {'name': 'my_prop_not_filtered', 'value': '10'}, {'name': 'output', 'value': ''}],
+    expected_initial_context = [{'name': 'oozie.use.system.libpath', 'value': 'True'},
+                  {'name': 'security_enabled', 'value': '%s' % is_secure_cluster},
+                  {'name': 'REDUCER_SLEEP_TIME', 'value': '1'}]
+    if 'MAPR-SECURITY' == cluster_conf.MECHANISM.get():
+        expected_initial_context.append({'name': 'credentials', 'value': "{None: {'xml_name': None, 'properties': []}}"})
+    assert_equal(expected_initial_context,
                   response.context['params_form'].initial)
-
-    # Submit, just check if submittion worked
-    response = self.c.post(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}), {
-        u'form-MAX_NUM_FORMS': [u''],
-        u'form-TOTAL_FORMS': [u'3'],
-        u'form-INITIAL_FORMS': [u'3'],
-        u'form-0-name': [u'SLEEP'],
-        u'form-0-value': [u'ilovesleep'],
-        u'form-1-name': [u'my_prop_not_filtered'],
-        u'form-1-value': [u'10'],
-        u'form-2-name': [u'output'],
-        u'form-2-value': [u'/path/output'],
-    }, follow=True)
+    response = self.c.post(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}),
+                           {u'form-0-name': [u'oozie.use.system.libpath'],
+                            u'form-MAX_NUM_FORMS': [u'1000'],
+                            u'form-1-name': [u'security_enabled'],
+                            u'form-TOTAL_FORMS': [u'3'],
+                            u'form-1-value': [u'False'],
+                            u'form-2-name': [u'REDUCER_SLEEP_TIME'],
+                            u'form-INITIAL_FORMS': [u'3'],
+                            u'form-2-value': [u'1'],
+                            u'form-0-value': [u'True']},
+                           follow=True)
     assert_true(response.context['oozie_workflow'], response.content)
+    try:
+        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+        assert_true(job.status in ('SUCCEEDED'), job.status)
+    except:
+        self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+        raise Exception("Test failed. Job is in incorrect state.")
 
-    # Clean-up
-    response = self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
-    data = json.loads(response.content)
-    assert_equal(0, data.get('status'), data)
+
 
   def test_oozie_not_running_message(self):
     raise SkipTest # Not reseting the oozie url for some reason
@@ -3665,245 +3706,382 @@ class TestOozieActions(OozieBase):
         OozieBase.setUp(self)
 
     def test_run_sqoop_action(self):
-        design_id = 8
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-1-name': [u'output'],
-                                      u'form-TOTAL_FORMS': [u'2'],
-                                      u'form-1-value': [u'/user/mapr/sqoopTest'],
-                                      u'form-INITIAL_FORMS': [u'2'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 8 + int(IS_MOCK_USED)
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-1-name': [u'output'],
+                                          u'form-TOTAL_FORMS': [u'2'],
+                                          u'form-1-value': [u'/user/mapr/sqoopTest'],
+                                          u'form-INITIAL_FORMS': [u'2'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED', 'KILLED'), job.status)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
 
-        result = mapr_test_utils.read_file('/user/mapr/sqoopTest/part-m-00000')
-        assert_true(('1,a' in result) & ('2,a' in result) & ('3,a' in result))
-        mapr_test_utils.remove_dir('/user/mapr/sqoopTest')
+            result = mapr_test_utils.read_file('/user/mapr/sqoopTest/part-m-00000')
+            assert_true(('1,a' in result) & ('2,a' in result) & ('3,a' in result))
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+            mapr_test_utils.remove_dir('/user/mapr/sqoopTest')
 
     def test_run_map_reduce_action(self):
-        design_id = 7
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-1-name': [u'REDUCER_SLEEP_TIME'],
-                                      u'form-TOTAL_FORMS': [u'2'],
-                                      u'form-1-value': [u'1'],
-                                      u'form-INITIAL_FORMS': [u'2'],
-                                      u'form-0-value': [u'true']
-                                      },
-                                follow=True)
-
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
-
-
+        try:
+            response = self.run_mapreduce_action()
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
     def test_shell_action(self):
-        design_id = 6
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-TOTAL_FORMS': [u'1'],
-                                      u'form-INITIAL_FORMS': [u'1'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 6 + int(IS_MOCK_USED)
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-TOTAL_FORMS': [u'1'],
+                                          u'form-INITIAL_FORMS': [u'1'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
     def test_pig_action(self):
-        design_id = 5
-        script_path = u'/aggregate.pig'
-        data_path = u'/aggregate.data'
-        output_path = u'/output'
-        # add testData and script too root folder
-        mapr_test_utils.copy_from_local('/opt/mapr/hue/hue-3.9.0/apps/oozie/examples/unmanaged/pig/aggregate.data', '/')
-        mapr_test_utils.copy_from_local('/opt/mapr/hue/hue-3.9.0/apps/oozie/examples/unmanaged/pig/aggregate.pig', '/')
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 5 + int(IS_MOCK_USED)
+            script_path = u'/aggregate.pig'
+            data_path = u'/aggregate.data'
+            output_path = u'/output'
+            # add testData and script too root folder
+            mapr_test_utils.copy_from_local('apps/oozie/examples/unmanaged/pig/aggregate.data', '/')
+            mapr_test_utils.copy_from_local('apps/oozie/examples/unmanaged/pig/aggregate.pig', '/')
 
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-1-name': [u'input'],
-                                      u'form-TOTAL_FORMS': [u'3'],
-                                      u'form-1-value': [data_path],
-                                      u'form-2-name': [u'output'],
-                                      u'form-INITIAL_FORMS': [u'3'],
-                                      u'form-2-value': [output_path],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-1-name': [u'input'],
+                                          u'form-TOTAL_FORMS': [u'3'],
+                                          u'form-1-value': [data_path],
+                                          u'form-2-name': [u'output'],
+                                          u'form-INITIAL_FORMS': [u'3'],
+                                          u'form-2-value': [output_path],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        # wait for job executing
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
+            # wait for job executing
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
 
-        # verify result
-        result = mapr_test_utils.read_file('/output/part-r-00000')
-        assert ('and,5196' in result)
-        assert ('you,2041' in result)
+            # verify result
+            result = mapr_test_utils.read_file('/output/part-r-00000')
+            assert ('and,5196' in result)
+            assert ('you,2041' in result)
 
-        # clean test
-        mapr_test_utils.remove_dir(script_path)
-        mapr_test_utils.remove_dir(data_path)
-        mapr_test_utils.remove_dir(output_path)
-
-
+        finally:
+            # clean test
+            mapr_test_utils.remove_dir(script_path)
+            mapr_test_utils.remove_dir(data_path)
+            mapr_test_utils.remove_dir(output_path)
+            # kill job if it is not finished
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
     def test_hive_action(self):
-        design_id = 4
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-TOTAL_FORMS': [u'1'],
-                                      u'form-INITIAL_FORMS': [u'1'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 4 + int(IS_MOCK_USED)
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-TOTAL_FORMS': [u'1'],
+                                          u'form-INITIAL_FORMS': [u'1'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
     def test_fs_action(self):
-        design_id = 3
-        testDir = '/tmp/testFs'
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-1-name': [u'output'],
-                                      u'form-TOTAL_FORMS': [u'2'],
-                                      u'form-1-value': [testDir],
-                                      u'form-INITIAL_FORMS': [u'2'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 3 + int(IS_MOCK_USED)
+            testDir = '/tmp/testFs'
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-1-name': [u'output'],
+                                          u'form-TOTAL_FORMS': [u'2'],
+                                          u'form-1-value': [testDir],
+                                          u'form-INITIAL_FORMS': [u'2'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
 
-        # check /tmp/testFS directory was created
-        stat = mapr_test_utils.stats(testDir)
-        assert_equal('testFs', stat['file_name'])
-        assert_equal('directory', stat['type'])
-        assert_equal('mapr', stat['user_owner'])
-        assert_equal('users', stat['group_owner'])
+            # check /tmp/testFS directory was created
+            stat = mapr_test_utils.stats(testDir)
+            assert_equal('testFs', stat['file_name'])
+            assert_equal('directory', stat['type'])
+            assert_equal('mapr', stat['user_owner'])
+            assert_true('users' == stat['group_owner'] or 'mapr' == stat['group_owner'])
 
-        # remove test directory
-        mapr_test_utils.remove_dir(testDir)
+        finally:
+            mapr_test_utils.remove_dir(testDir)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+
+
 
     def test_email_action(self):
-        design_id = 2
-        response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-TOTAL_FORMS': [u'1'],
-                                      u'form-INITIAL_FORMS': [u'1'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 2 + int(IS_MOCK_USED)
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-TOTAL_FORMS': [u'1'],
+                                          u'form-INITIAL_FORMS': [u'1'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
 
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
 
     def test_dist_cp_action(self):
-        design_id = 1
-        result_dir = u'/user/mapr/output'
+        try:
+            # +1 to examples ids if mock oozie base were initialized
+            design_id = 1 + int(IS_MOCK_USED)
+            result_dir = u'/user/mapr/output'
+            response = self.c.post(reverse('oozie:submit_workflow',
+                                    args=[design_id]),
+                                    data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                          u'form-MAX_NUM_FORMS': [u'1000'],
+                                          u'form-1-name': [u'OUTPUT'],
+                                          u'form-TOTAL_FORMS': [u'3'],
+                                          u'form-1-value': [result_dir],
+                                          u'form-2-name': [u'MAP_NUMBER'],
+                                          u'form-INITIAL_FORMS': [u'3'],
+                                          u'form-2-value': [u'1'],
+                                          u'form-0-value': [u'true']},
+                                    follow=True)
+
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+            dir_content = mapr_test_utils.list_directory(result_dir)
+            assert_true(("midsummer.txt" in dir_content) & ("sonnets.txt" in dir_content))
+        finally:
+            mapr_test_utils.remove_dir(result_dir)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+
+    def test_suspend_resume_workflow_action(self):
+        try:
+            response = self.run_mapreduce_action()
+            workflow_id = response.context['oozie_workflow'].id
+            response = self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'suspend']))
+            # check that workflow is in suspended status for 15 seconds
+            start_time = time.time()
+            timeout = 15
+            while(time.time() - start_time < timeout):
+                response = self.c.get(reverse('pig:watch', args=[workflow_id]))
+                response = json.loads(response.content)
+                assert_true(response['workflow']['status'] == 'SUSPENDED')
+            response = self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'resume']))
+            job = OozieServerProvider.wait_until_completion(workflow_id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
+
+    def test_kill_workflow_action(self):
+        try:
+            response = self.run_mapreduce_action()
+            workflow_id = response.context['oozie_workflow'].id
+            response = self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
+            response = self.c.get(reverse('pig:watch', args=[workflow_id]))
+            response = json.loads(response.content)
+            assert_true(response['workflow']['status'] == 'KILLED')
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
+
+    def run_mapreduce_action(self):
+        # +1 to examples ids if mock oozie base were initialized
+        design_id = 7 + int(IS_MOCK_USED)
         response = self.c.post(reverse('oozie:submit_workflow',
-                                args=[design_id]),
-                                data={u'form-0-name': [u'oozie.use.system.libpath'],
-                                      u'form-MAX_NUM_FORMS': [u'1000'],
-                                      u'form-1-name': [u'OUTPUT'],
-                                      u'form-TOTAL_FORMS': [u'3'],
-                                      u'form-1-value': [result_dir],
-                                      u'form-2-name': [u'MAP_NUMBER'],
-                                      u'form-INITIAL_FORMS': [u'3'],
-                                      u'form-2-value': [u'1'],
-                                      u'form-0-value': [u'true']},
-                                follow=True)
-
-        job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-        assert_true(job.status in ('SUCCEEDED'), job.status)
-        dir_content = mapr_test_utils.list_directory(result_dir)
-        assert_true(("midsummer.txt" in dir_content) & ("sonnets.txt" in dir_content))
-        mapr_test_utils.remove_dir(result_dir)
-
+                                       args=[design_id]),
+                               data={u'form-0-name': [u'oozie.use.system.libpath'],
+                                     u'form-MAX_NUM_FORMS': [u'1000'],
+                                     u'form-1-name': [u'REDUCER_SLEEP_TIME'],
+                                     u'form-TOTAL_FORMS': [u'2'],
+                                     u'form-1-value': [u'1'],
+                                     u'form-INITIAL_FORMS': [u'2'],
+                                     u'form-0-value': [u'true']
+                                     },
+                               follow=True)
+        return response
 
 class TestOozieSecurity(OozieBase):
 
     def test_mapr_security_job_design_action(self):
-        # check if cluster if secured and get security mechanism
-        cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-
-        # skip this test if cluster security is GSSAPI
-        cluster_security_mechanism = cluster_conf.MECHANISM.get()
-        if cluster_security_mechanism == 'GSSAPI':
-            raise SkipTest
-
-        is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
-
-        # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
-        # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
-        oozie_conf.SECURITY_ENABLED.set_for_testing(False)
-        response = self.submit_dist_cp_action()
-        if is_secure_cluster:
-            assert_equal(response.status_code, 500)
-        else:
-            assert_equal(response.status_code, 200)
-            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-            assert_true(job.status in ('SUCCEEDED'), job.status)
-
-        oozie_conf.SECURITY_ENABLED.set_for_testing(True)
-        response = self.submit_dist_cp_action()
-
-        if not is_secure_cluster:
-            assert_equal(response.status_code, 500)
-            # check that there are no running jobs
-        else:
-            assert_equal(response.status_code, 200)
-            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-            assert_true(job.status in ('SUCCEEDED'), job.status)
-
+        skip_if_kerberos()
+        try:
+            # check if cluster if secured and get security mechanism
+            cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+            is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
+            # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
+            # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
+            oozie_conf.SECURITY_ENABLED.set_for_testing(False)
+            response = self.submit_dist_cp_action()
+            workflow_id = ''
+            if is_secure_cluster:
+                assert_equal(response.status_code, 500)
+            else:
+                assert_equal(response.status_code, 200)
+                workflow_id = response.context['oozie_workflow'].id
+                job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+                assert_true(job.status in ('SUCCEEDED'), job.status)
+            oozie_conf.SECURITY_ENABLED.set_for_testing(True)
+            response = self.submit_dist_cp_action()
+            if not is_secure_cluster:
+                assert_equal(response.status_code, 500)
+            else:
+                assert_equal(response.status_code, 200)
+                workflow_id = response.context['oozie_workflow'].id
+                job = OozieServerProvider.wait_until_completion(workflow_id)
+                assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            oozie_conf.SECURITY_ENABLED.set_for_testing(is_secure_cluster)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
 
     def test_mapr_security_job_workflow(self):
-        # check if cluster if secured and get security mechanism
+        skip_if_kerberos()
+        try:
+            # check if cluster if secured and get security mechanism
+            cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+            # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
+            # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
+            oozie_conf.SECURITY_ENABLED.set_for_testing(False)
+
+            response = self.submit_mapr_reduce_workflow()
+            is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
+            workflow_id = ''
+            if is_secure_cluster:
+                assert_equal(response.status_code, 500)
+            else:
+                assert_equal(response.status_code, 200)
+                workflow_id = response.context['oozie_workflow'].id
+                job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+                assert_true(job.status in ('SUCCEEDED'), job.status)
+
+            oozie_conf.SECURITY_ENABLED.set_for_testing(True)
+            response = self.submit_mapr_reduce_workflow()
+
+            if not is_secure_cluster:
+                assert_equal(response.status_code, 500)
+            else:
+                assert_equal(response.status_code, 200)
+                workflow_id = response.context['oozie_workflow'].id
+                job = OozieServerProvider.wait_until_completion(workflow_id)
+                assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            oozie_conf.SECURITY_ENABLED.set_for_testing(is_secure_cluster)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[workflow_id, 'kill']))
+
+
+    def test_kerberos_principal_action(self):
+        self.skip_if_not_kerberos()
+        try:
+            # skip this test if cluster security is not GSSAPI
+            mapr_principal = KERBEROS.HUE_PRINCIPAL.get()
+            http_principal = self.set_only_http_principal(mapr_principal)
+            response = self.submit_dist_cp_action()
+            assert_equal(response.status_code, 500)
+            self.set_http_and_mapr_principals(http_principal, mapr_principal)
+            response = self.submit_dist_cp_action()
+            assert_equal(response.status_code, 200)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            # Recover kerberos auth if test failed
+            self.set_http_and_mapr_principals(http_principal, mapr_principal)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+
+
+    def test_kerberos_principal_workflow(self):
+        self.skip_if_not_kerberos()
+        try:
+            # skip this test if cluster security is not GSSAPI
+            mapr_principal = KERBEROS.HUE_PRINCIPAL.get()
+            http_principal = self.set_only_http_principal(mapr_principal)
+            response = self.submit_mapr_reduce_workflow()
+            assert_equal(response.status_code, 500)
+
+            self.set_http_and_mapr_principals(http_principal, mapr_principal)
+            response = self.submit_mapr_reduce_workflow()
+            assert_equal(response.status_code, 200)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            # Recover kerberos auth if test failed
+            self.set_http_and_mapr_principals(http_principal, mapr_principal)
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+
+
+    def test_kerberos_incorrect_host(self):
+        self.skip_if_not_kerberos()
+        try:
+            # skip if oozie is not on localhost
+            oozie_hostname = oozie_conf.OOZIE_URL.get()
+            if socket.gethostname() not in oozie_conf.OOZIE_URL.get():
+                raise SkipTest
+            # Change oozie host for localhost, so principal will came from unexpected host
+            oozie_conf.OOZIE_URL.set_for_testing('http://localhost:11000/oozie')
+            response = self.submit_dist_cp_action()
+            assert_equal(response.status_code, 500)
+            oozie_conf.OOZIE_URL.set_for_testing(oozie_hostname)
+            response = self.submit_dist_cp_action()
+            assert_equal(response.status_code, 200)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.c.post(reverse('oozie:manage_oozie_jobs', args=[response.context['oozie_workflow'].id, 'kill']))
+
+    @classmethod
+    def skip_if_not_kerberos(cls):
         cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-
-        # skip this test if cluster security is GSSAPI
-        if cluster_conf.MECHANISM.get() == 'GSSAPI':
+        if cluster_conf.MECHANISM.get() != 'GSSAPI':
             raise SkipTest
-        # If SECURITY_ENABLED is True, hue configures for MAPR-SECURE mechanism automatically. By setting true,
-        # we disable MAPR-SECURE mechanism in hue - oozie communication, while oozie is still secure.
-        oozie_conf.SECURITY_ENABLED.set_for_testing(False)
 
-        response = self.submit_mapr_reduce_workflow()
+    @classmethod
+    def set_only_http_principal(cls, mapr_principal):
+        http_principal = mapr_principal.replace('mapr', 'HTTP')
+        mapr_test_utils.remove_hue_krb5_file()
+        mapr_test_utils.create_hue_krb5_file([http_principal])
+        return http_principal
 
-        is_secure_cluster = cluster_conf.SECURITY_ENABLED.get()
-
-        if is_secure_cluster:
-            assert_equal(response.status_code, 500)
-        else:
-            assert_equal(response.status_code, 200)
-            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-            assert_true(job.status in ('SUCCEEDED'), job.status)
-
-        oozie_conf.SECURITY_ENABLED.set_for_testing(True)
-        response = self.submit_mapr_reduce_workflow()
-
-        if not is_secure_cluster:
-            assert_equal(response.status_code, 500)
-            # check that there are no running jobs
-        else:
-            assert_equal(response.status_code, 200)
-            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
-            assert_true(job.status in ('SUCCEEDED'), job.status)
+    @classmethod
+    def set_http_and_mapr_principals(cls, http_principal, mapr_principal):
+        mapr_test_utils.remove_hue_krb5_file()
+        mapr_test_utils.create_hue_krb5_file([http_principal, mapr_principal])
 
     def submit_dist_cp_action(self):
-        design_id = 1
+        # +1 to examples ids if mock oozie base were initialized
+        design_id = 1 + int(IS_MOCK_USED)
         result_dir = u'/user/mapr/output'
         data = {u'form-0-name': [u'oozie.use.system.libpath'],
                 u'form-MAX_NUM_FORMS': [u'1000'],
@@ -3938,6 +4116,122 @@ class TestOozieSecurity(OozieBase):
                                follow=True)
         return response
 
+class TestSubmissionPermission(OozieBase):
+
+    def setUp(self):
+        OozieBase.setUp(self)
+        #create not_me user
+        another_test_user = 'not_me'
+        mapr_test_utils.create_user(another_test_user)
+        cluster_conf = webhdfs_conf.HDFS_CLUSTERS['default']
+        self.fs = WebHdfs.from_config(cluster_conf)
+        another_user_home = '/user/' + another_test_user
+        self.fs.mkdir(another_user_home)
+        self.fs.chown(another_user_home, another_test_user, another_test_user, True)
+        self.client_not_me = make_logged_in_client(username=another_test_user, password=another_test_user, is_superuser=False, groupname='default')
+        grant_access(another_test_user, "default", "oozie")
+
+    def test_workflow_user_permission(self):
+        try:
+            wf_uuid = "9f731852-0b1a-e7dd-1203-cf14778cdf20"
+            wf = Document2.objects.get(uuid=wf_uuid)
+            doc = Document.objects.link(wf, owner=wf.owner, name=wf.name, description=wf.description, extra='workflow2')
+            doc.share_to_default()
+            data={                 u'form-0-name': [u'oozie.use.system.libpath'],
+                                   u'form-MAX_NUM_FORMS': [u'1000'],
+                                   u'form-1-name': [u'REDUCER_SLEEP_TIME'],
+                                   u'form-TOTAL_FORMS': [u'2'],
+                                   u'form-1-value': [u'5'],
+                                   u'form-INITIAL_FORMS': [u'2'],
+                                   u'form-0-value': [u'True']
+                               }
+            response = self.client_not_me.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data,
+                               follow=True)
+            assert_true(response.status_code == 500)
+            # change deployment permission to 777 recursively
+            self.fs.chmod('/oozie/deployments', '777', True)
+            response = self.client_not_me.post(reverse('oozie:editor_submit_workflow', kwargs={'doc_id': wf.id}),
+                               data,
+                               follow=True)
+            assert_true(response.status_code == 200)
+            job = OozieServerProvider.wait_until_completion(response.context['oozie_workflow'].id)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+        finally:
+            self.fs.chmod('/oozie/deployments', '755', True)
+
+    def test_coordinator_user_permission(self):
+        try:
+            example_coordinator_id = 50003
+            data={u'form-0-name': [u'directory'],
+                                     u'form-3-name': [u'end_date'],
+                                     u'form-3-value': [u'2013-06-05T00:00Z'],
+                                     u'form-MAX_NUM_FORMS': [u'1000'],
+                                     u'form-1-name': [u'oozie.use.system.libpath'],
+                                     u'form-TOTAL_FORMS': [u'4'],
+                                     u'form-1-value': [u'True'],
+                                     u'form-2-name': [u'start_date'],
+                                     u'form-INITIAL_FORMS': [u'4'],
+                                     u'form-2-value': [u'2013-06-01T00:00Z'],
+                                     u'form-0-value': [u'/tmp/coordinator-output']}
+            response = self.client_not_me.post(reverse('oozie:editor_submit_coordinator', kwargs={'doc_id': example_coordinator_id}),
+                               data,
+                               follow=True)
+            assert_true(response.status_code == 500)
+            # change deployment permission to 777 recursively
+            self.fs.chmod('/oozie/deployments', '777', True)
+            response = self.client_not_me.post(reverse('oozie:editor_submit_coordinator', kwargs={'doc_id': example_coordinator_id}),
+                               data,
+                               follow=True)
+            assert_equal(response.status_code, 200)
+            running_coordinator_id = response.redirect_chain[0][0].split('/')[5]
+            job = OozieServerProvider.wait_until_completion(running_coordinator_id, 1500)
+            assert_true(job.status in ('SUCCEEDED'), job.status)
+            assert_true('Project Gutenberg' in mapr_test_utils.read_file('/tmp/coordinator-output/20130601/part-00000'))
+        finally:
+            mapr_test_utils.remove_dir('/tmp/coordinator-output')
+            self.fs.chmod('/oozie/deployments', '755', True)
+
+    def test_bundle_user_permission(self):
+        try:
+            example_bundle_id = 50004
+            data = {u'form-0-name': u'oozie.use.system.libpath',
+                                     u'form-MAX_NUM_FORMS': u'1000',
+                                     u'form-1-name': u'root_output',
+                                     u'form-TOTAL_FORMS': u'2',
+                                     u'form-1-value': u'/tmp/bundle-example',
+                                     u'form-INITIAL_FORMS': u'2',
+                                     u'form-0-value': u'true'}
+            response = self.client_not_me.post(reverse('oozie:editor_submit_bundle', kwargs={'doc_id': example_bundle_id}),
+                               data,
+                               follow=True)
+            assert_true(response.status_code == 500)
+            # change deployment permission to 777 recursively
+            self.fs.chmod('/oozie/deployments', '777', True)
+            response = self.client_not_me.post(reverse('oozie:editor_submit_bundle', kwargs={'doc_id': example_bundle_id}),
+                               data,
+                               follow=True)
+            assert_equal(response.status_code, 200)
+            running_bundle_id = response.redirect_chain[0][0].split('/')[5]
+            self.wait_until_bundle_completion(running_bundle_id)
+            assert_true('Project Gutenberg' in mapr_test_utils.read_file('/tmp/bundle-example/coordinator1/20130601/part-00000'))
+        finally:
+            mapr_test_utils.remove_dir('/tmp/bundle-example')
+            self.fs.chmod('/oozie/deployments', '755', True)
+
+    def wait_until_bundle_completion(self, running_bundle_id, timeout=1000, step=5, expected_status='SUCCEEDED'):
+        start = time.time()
+        status = ''
+        while time.time() - start < timeout:
+            time.sleep(step)
+            response = self.c.get(reverse('oozie:list_oozie_bundle', kwargs={'job_id': running_bundle_id}))
+            status = response.context[0]._data['oozie_bundle'].status
+            if status == expected_status:
+                break
+            if status not in ('PREP', 'RUNNING'):
+                raise Exception('Bundle completion failed with status %s' % status)
+        if status != expected_status:
+            raise Exception('Completion took more time than expected')
 
 class GeneralTestsWithOozie(OozieBase):
   def setUp(self):
@@ -4208,3 +4502,8 @@ def synchronize_workflow_attributes(workflow_json, correct_workflow_json):
     workflow_dict['attributes']['deployment_dir'] = correct_workflow_dict['attributes']['deployment_dir']
 
   return reformat_json(workflow_dict)
+
+def skip_if_kerberos():
+    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+    if cluster_conf.MECHANISM.get() == 'GSSAPI':
+        raise SkipTest
