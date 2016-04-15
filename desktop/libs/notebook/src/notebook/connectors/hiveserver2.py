@@ -17,10 +17,7 @@
 
 import logging
 import re
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import StringIO
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
