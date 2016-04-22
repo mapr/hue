@@ -2,6 +2,8 @@ import subprocess
 import json
 import os
 import crypt
+from nose.plugins.skip import SkipTest
+import hadoop
 
 def create_home_dir(home_user, do_as_user='mapr'):
     subprocess.Popen(["sudo", "-u", do_as_user, "hadoop", "fs", "-mkdir", "/user/" + home_user],
@@ -88,6 +90,25 @@ def create_user(username):
         encPass = crypt.crypt(username, "22")
         test_sudo_pass = 'mapr'
         create_user_command = "useradd -p "+encPass+" " + username
-        os.system("""echo %s|sudo -S %s""" % (test_sudo_pass, create_user_command))
+        os.system("""echo %s|sudo -S %s &> /dev/null""" % (test_sudo_pass, creat e_user_command))
+
+def skip_if_not_kerberos():
+    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+    if cluster_conf.MECHANISM.get() != 'GSSAPI':
+        raise SkipTest
+
+def set_only_http_principal(mapr_principal):
+    http_principal = mapr_principal.replace('mapr', 'HTTP')
+    remove_hue_krb5_file()
+    create_hue_krb5_file([http_principal])
+    return http_principal
+
+def set_http_and_mapr_principals(http_principal, mapr_principal):
+    remove_hue_krb5_file()
+    create_hue_krb5_file([http_principal, mapr_principal])
+
+def run_sh_script(script_path):
+    os.system(script_path + " &> /dev/null")
+
 
 

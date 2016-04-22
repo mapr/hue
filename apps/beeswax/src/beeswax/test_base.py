@@ -27,7 +27,7 @@ import time
 from nose.tools import assert_true, assert_false
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
-
+from desktop.lib import thrift_util
 from desktop.lib.django_test_util import make_logged_in_client
 from desktop.lib.paths import get_run_root
 from desktop.lib.python_util import find_unused_port
@@ -35,8 +35,10 @@ from desktop.lib.security_util import get_localhost_name
 from desktop.lib.test_utils import add_to_group, grant_access
 from hadoop import pseudo_hdfs4
 from hadoop.pseudo_hdfs4 import is_live_cluster, get_db_prefix
-
+from hadoop import conf as webhdfs_conf
+from hadoop.fs.webhdfs import WebHdfs
 import beeswax.conf
+import random
 
 from beeswax.server.dbms import get_query_server_config
 from beeswax.server import dbms
@@ -47,6 +49,7 @@ _INITIALIZED = False
 _SHARED_HIVE_SERVER_PROCESS = None
 _SHARED_HIVE_SERVER = None
 _SHARED_HIVE_SERVER_CLOSER = None
+session = None
 
 
 LOG = logging.getLogger(__name__)
@@ -88,30 +91,18 @@ def _start_server(cluster):
 
 
 def get_shared_beeswax_server(db_name='default'):
-  global _SHARED_HIVE_SERVER
-  global _SHARED_HIVE_SERVER_CLOSER
-  if _SHARED_HIVE_SERVER is None:
-
-    cluster = pseudo_hdfs4.shared_cluster()
-
-    if is_live_cluster():
-      def s():
-        pass
-    else:
-      s = _start_mini_hs2(cluster)
-
     start = time.time()
     started = False
     sleep = 1
 
     make_logged_in_client()
-    user = User.objects.get(username='test')
+    user = User.objects.get(username='mapr')
     query_server = get_query_server_config()
     db = dbms.get(user, query_server)
-
+    global session
     while not started and time.time() - start <= 30:
       try:
-        db.open_session(user)
+        session = db.open_session(user)
         started = True
         break
       except Exception, e:
@@ -120,10 +111,6 @@ def get_shared_beeswax_server(db_name='default'):
 
     if not started:
       raise Exception("Server took too long to come up.")
-
-    _SHARED_HIVE_SERVER, _SHARED_HIVE_SERVER_CLOSER = cluster, s
-
-  return _SHARED_HIVE_SERVER, _SHARED_HIVE_SERVER_CLOSER
 
 
 def _start_mini_hs2(cluster):
@@ -339,13 +326,24 @@ class BeeswaxSampleProvider(object):
   """
   @classmethod
   def setup_class(cls):
+    cluster_conf = webhdfs_conf.HDFS_CLUSTERS['default']
+    cls.fs = WebHdfs.from_config(cluster_conf)
     cls.db_name = get_db_prefix(name='hive')
-    cls.cluster, shutdown = get_shared_beeswax_server(cls.db_name)
-    cls.client = make_logged_in_client(username='test', is_superuser=False)
-    add_to_group('test')
-    grant_access("test", "test", "beeswax")
+    # clear cashed clients
+    dbms.DBMS_CACHE = {}
+    thrift_util._connection_pool = thrift_util.ConnectionPooler()
+    get_shared_beeswax_server(cls.db_name)
+    cls.client = make_logged_in_client(username='mapr', is_superuser=False)
+    add_to_group('mapr')
+    grant_access("mapr", "mapr", "beeswax")
+    cls.user_home = '/user/mapr'
+    cls.fs.do_as_user('mapr', cls.fs.create_home_dir, cls.user_home)
+    cls.fs_prefix = cls.user_home + '/hive_test_dir' + str(random.randint(0, 10000000))
+
     # Weird redirection to avoid binding nonsense.
-    cls.shutdown = [ shutdown ]
+    def shutdown():
+        pass
+    cls.shutdown = [shutdown]
     cls.init_beeswax_db()
 
   @classmethod
@@ -353,7 +351,7 @@ class BeeswaxSampleProvider(object):
     if is_live_cluster():
       # Delete test DB and tables
       client = make_logged_in_client()
-      user = User.objects.get(username='test')
+      user = User.objects.get(username='mapr')
       query_server = get_query_server_config()
       db = dbms.get(user, query_server)
 
@@ -381,7 +379,7 @@ class BeeswaxSampleProvider(object):
     make_query(cls.client, 'CREATE DATABASE %(db)s' % {'db': cls.db_name}, wait=True)
     make_query(cls.client, 'CREATE DATABASE %(db)s_other' % {'db': cls.db_name}, wait=True)
 
-    data_file = cls.cluster.fs_prefix + u'/beeswax/sample_data_échantillon_%d.tsv'
+    data_file = '/user/mapr/sample_data_ench_%d.tsv'
 
     # Create a "test_partitions" table.
     CREATE_PARTITIONED_TABLE = """
@@ -403,9 +401,9 @@ class BeeswaxSampleProvider(object):
 
     # Insert additional partition data into "test_partitions" table
     ADD_PARTITION = """
-      ALTER TABLE `%(db)s`.`test_partitions` ADD PARTITION(baz='baz_foo', boom='boom_bar') LOCATION '%(fs_prefix)s/baz_foo/boom_bar'
-    """ % {'db': cls.db_name, 'fs_prefix': cls.cluster.fs_prefix}
-    make_query(cls.client, ADD_PARTITION, wait=True, local=False)
+      ALTER TABLE `test_partitions` ADD PARTITION(baz='baz_foo', boom='boom_bar') LOCATION '%(fs_prefix)s/baz_foo/boom_bar'
+    """ % {'fs_prefix': cls.fs_prefix}
+    make_query(cls.client, ADD_PARTITION, database=cls.db_name, wait=True, local=False)
 
     # Create a bunch of other tables
     CREATE_TABLE = """
@@ -459,11 +457,10 @@ class BeeswaxSampleProvider(object):
       <num>     0x<hex_num>
     where <num> goes from 0 to 255 inclusive.
     """
-    cls.cluster.fs.setuser(cls.cluster.superuser)
-    f = cls.cluster.fs.open(filename, "w")
+    data = ''
     for x in xrange(256):
-      f.write("%d\t0x%x\n" % (x, x))
-    f.close()
+        data += "%d\t0x%x\n" % (x, x)
+    cls.fs.create(filename, data=data)
 
   @classmethod
   def _make_i18n_data_file(cls, filename, encoding):
@@ -473,15 +470,14 @@ class BeeswaxSampleProvider(object):
       <num>     <unichr(num)>
     where <num> goes from 0 to 255 inclusive.
     """
-    cls.cluster.fs.setuser(cls.cluster.superuser)
-    f = cls.cluster.fs.open(filename, "w")
+    f = cls.fs.open(filename, "w")
     for x in xrange(256):
       f.write("%d\t%s\n" % (x, unichr(x).encode(encoding)))
     f.close()
 
   @classmethod
   def _make_custom_data_file(cls, filename, data):
-    f = cls.cluster.fs.open(filename, "w")
+    f = cls.fs.open(filename, "w")
     for x in data:
       f.write("%s\n" % x)
     f.close()
