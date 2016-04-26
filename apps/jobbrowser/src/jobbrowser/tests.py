@@ -38,6 +38,8 @@ from oozie.models import Workflow
 from jobbrowser import models, views
 from jobbrowser.conf import SHARE_JOBS
 from jobbrowser.models import can_view_job, can_modify_job, Job, LinkJobLogs
+from hadoop import conf as webhdfs_conf
+from hadoop.fs.webhdfs import WebHdfs
 
 
 LOG = logging.getLogger(__name__)
@@ -83,10 +85,11 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
   @classmethod
   def setup_class(cls):
     OozieServerProvider.setup_class()
-
-    cls.username = 'hue_jobbrowser_test'
+    cluster_conf = webhdfs_conf.HDFS_CLUSTERS['default']
+    cls.fs = WebHdfs.from_config(cluster_conf)
+    cls.username = 'mapr'
     cls.home_dir = '/user/%s' % cls.username
-    cls.cluster.fs.do_as_user(cls.username, cls.cluster.fs.create_home_dir, cls.home_dir)
+    cls.fs.do_as_user(cls.username, cls.fs.create_home_dir, cls.home_dir)
 
     cls.client = make_logged_in_client(username=cls.username, is_superuser=False, groupname='test')
     cls.user = User.objects.get(username=cls.username)
@@ -95,8 +98,7 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
     grant_access(cls.username, 'test', 'oozie')
     add_to_group(cls.username)
 
-    cls.prev_user = cls.cluster.fs.user
-    cls.cluster.fs.setuser(cls.username)
+    cls.prev_user = cls.fs.user
 
     cls.install_examples()
     cls.design = cls.create_design()
@@ -123,10 +125,10 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
       Document.objects.filter(name__contains=cls.username).delete()
       Workflow.objects.filter(name__contains=cls.username).delete()
       # Remove user home directories.
-      cls.cluster.fs.do_as_superuser(cls.cluster.fs.rmtree, cls.home_dir)
+      cls.fs.do_as_superuser(cls.fs.rmtree, cls.home_dir)
     except:
-      LOG.exception('failed to teardown %s' % self.home_dir)
-    cls.cluster.fs.setuser(cls.prev_user)
+      LOG.exception('failed to teardown %s' % cls.home_dir)
+    cls.fs.setuser(cls.prev_user)
 
   @classmethod
   def create_design(cls):
@@ -155,8 +157,8 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
       return
 
     cls.client.post(reverse('oozie:install_examples'))
-    cls.cluster.fs.do_as_user(cls.username, cls.cluster.fs.create_home_dir, cls.home_dir)
-    cls.cluster.fs.do_as_superuser(cls.cluster.fs.chmod, cls.home_dir, 0777, True)
+    cls.fs.do_as_user(cls.username, cls.fs.create_home_dir, cls.home_dir)
+    cls.fs.do_as_superuser(cls.fs.chmod, cls.home_dir, 0777, True)
 
     _INITIALIZED = True
 
@@ -178,9 +180,9 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
     INPUT_DIR = TestJobBrowserWithHadoop.home_dir + '/input'
     OUTPUT_DIR = TestJobBrowserWithHadoop.home_dir + '/output'
     try:
-      TestJobBrowserWithHadoop.cluster.fs.mkdir(TestJobBrowserWithHadoop.home_dir + "/jt-test_failed_jobs")
-      TestJobBrowserWithHadoop.cluster.fs.mkdir(INPUT_DIR)
-      TestJobBrowserWithHadoop.cluster.fs.rmtree(OUTPUT_DIR)
+      TestJobBrowserWithHadoop.fs.mkdir(TestJobBrowserWithHadoop.home_dir + "/jt-test_failed_jobs")
+      TestJobBrowserWithHadoop.fs.mkdir(INPUT_DIR)
+      TestJobBrowserWithHadoop.fs.rmtree(OUTPUT_DIR)
     except:
       LOG.exception('failed to teardown tests')
 

@@ -2159,7 +2159,6 @@ class TestImportWorkflow04(OozieMockBase):
   def setUp(self):
     super(TestImportWorkflow04, self).setUp()
     self.setup_simple_workflow()
-    self.HUE_HOME = os.environ['HUE_HOME']
 
   @raises(RuntimeError)
   def test_import_workflow_namespace_error(self):
