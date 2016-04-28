@@ -90,7 +90,7 @@ def create_user(username):
         encPass = crypt.crypt(username, "22")
         test_sudo_pass = 'mapr'
         create_user_command = "useradd -p "+encPass+" " + username
-        os.system("""echo %s|sudo -S %s &> /dev/null""" % (test_sudo_pass, creat e_user_command))
+        os.system("""echo %s|sudo -S %s &> /dev/null""" % (test_sudo_pass, create_user_command))
 
 def skip_if_not_kerberos():
     cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
