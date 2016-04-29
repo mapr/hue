@@ -325,8 +325,6 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
         map_task_id = '0' + map_task_id
     map_hadoop_job_id = hadoop_job_id[:-4] + map_task_id
     map_task_id = (map_hadoop_job_id + '_m_000000').replace('job', 'task')
-    pass
-    map_task_id = map_task_id.replace('job', 'task')
     # The map task should say success (empty input)
     response = TestJobBrowserWithHadoop.client.get('/jobbrowser/jobs/%s/tasks/%s' % (map_hadoop_job_id, map_task_id))
     assert_true('succeed' in response.content)
