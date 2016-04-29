@@ -23,14 +23,16 @@ import unittest
 import re
 import hadoop
 import hadoop.yarn.resource_manager_api as resource_manager_api
+from hadoop.yarn import mapreduce_api
 import desktop.lib.mapr_test_utils as mapr_test_utils
-from desktop.conf import KERBEROS
+from hadoop import cluster
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_true, assert_false, assert_equal
 
 from desktop.lib.django_test_util import make_logged_in_client
+from desktop.lib import thrift_util
 from desktop.lib.test_utils import grant_access, add_to_group
 from desktop.models import Document
 from hadoop import cluster
@@ -108,23 +110,31 @@ class TestJobBrowserSecurity(unittest.TestCase, OozieServerProvider):
 
     def check_security(self, rm_jt_conf, message, security_type):
         try:
-            response = self.client.get('/jobbrowser/jobs/?format=json')
+            self.client.get('/jobbrowser/jobs/?format=json')
             current_mechanism = rm_jt_conf.MECHANISM.get()
-            resource_manager_api._api_cache = None
             rm_jt_conf.MECHANISM.set_for_testing('none')
+            self.clean_cache()
             try:
-                response = self.client.get('/jobbrowser/jobs/?format=json')
+                self.client.get('/jobbrowser/jobs/?format=json')
             except Exception as e:
                 assert_true(message in str(e), "Should be failed because of incorrect security mechanism")
+            else:
+                raise AssertionError('request should fail because of wrong security mechanism')
             rm_jt_conf.MECHANISM.set_for_testing(security_type)
-            resource_manager_api._api_cache = None
+            self.clean_cache()
             response = self.client.get('/jobbrowser/jobs/?format=json')
             assert_equal(response.status_code, 200, "Incorrect response status %s. Should be 200 OK"
                          % response.status_code)
         finally:
             # clean up test results
+            self.clean_cache()
             rm_jt_conf.MECHANISM.set_for_testing(current_mechanism)
-            resource_manager_api._api_cache = None
+
+    def clean_cache(self):
+        thrift_util._connection_pool = thrift_util.ConnectionPooler()
+        resource_manager_api._api_cache = None
+        cluster.MR_CACHE = None
+        cluster.get_default_mrcluster()
 
     def test_kerberos_mechanism(self):
         cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
