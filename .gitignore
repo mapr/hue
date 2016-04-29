@@ -106,3 +106,8 @@ dependency-reduced-pom.xml
 
 # Node Modules
 node_modules/
+
+# Grunt
+.grunt/
+_SpecRunner.html
+
