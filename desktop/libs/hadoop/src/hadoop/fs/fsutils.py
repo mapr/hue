@@ -89,3 +89,14 @@ def _do_overwrite(fs, path, copy_data):
     fs.rename(path_dest, path)
 
 
+def do_newfile_save(fs, path, data, encoding):
+    """
+    Save data to the path 'path' on the filesystem 'fs'.
+
+    There must not be a pre-existing file at that path.
+    """
+    new_file = fs.open(path, "w")
+    try:
+        new_file.write(data.encode(encoding))
+    finally:
+        new_file.close()
