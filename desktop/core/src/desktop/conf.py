@@ -20,6 +20,7 @@ import logging
 import os
 import socket
 import stat
+import subprocess
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -58,6 +59,8 @@ def coerce_file(path):
     raise Exception('File %s does not exist.' % path)
   return path
 
+  if p.returncode != 0:
+    raise subprocess.CalledProcessError(p.returncode, script)
 
 def coerce_timedelta(value):
   return datetime.timedelta(seconds=int(value))
