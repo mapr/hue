@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import os
 
@@ -57,6 +58,13 @@ class Command(NoArgsCommand):
     fs.do_as_user(fs.DEFAULT_USER, fs.copyFromLocal, local_dir, remote_data_dir)
 
     # Load jobs
-    install_sample_user()
+    user = install_sample_user()
+    path = os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures/initial_pig_examples.json')
+    with open(path, "r") as jsonFile:
+      data = json.load(jsonFile)
+    data[0]['fields']['owner'] = user.id
+    with open(path, "w") as jsonFile:
+      jsonFile.write(json.dumps(data))
+
     management.call_command('loaddata', 'initial_pig_examples.json', verbosity=2)
     Document.objects.sync()
