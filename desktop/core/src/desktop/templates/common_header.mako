@@ -464,10 +464,10 @@ if USE_NEW_EDITOR.get():
        <li class="dropdown oozie">
          <a title="${_('Query data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Query Editors <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
+           <%
+                 from desktop.conf import USE_NEW_EDITOR
+           %>
            % if 'beeswax' in apps:
-             <%
-               from desktop.conf import USE_NEW_EDITOR
-             %>
              % if USE_NEW_EDITOR.get():
              <li><a href="${ url('notebook:editor') }?type=hive"><img src="${ static(apps['beeswax'].icon_path) }" class="app-icon"/> ${_('Hive')}</a></li>
              % else:
