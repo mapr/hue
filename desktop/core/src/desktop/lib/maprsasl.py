@@ -30,8 +30,22 @@ from ctypes import *
 java_home = get_java_home()
 lib1 = cdll.LoadLibrary(java_home + '/jre/lib/amd64/server/libjvm.so')
 
+def import_non_local(name, custom_name=None):
+    import imp
+
+    custom_name = custom_name or name
+
+    f, pathname, desc = imp.find_module(name, sys.path[1:])
+    module = imp.load_module(custom_name, f, pathname, desc)
+    f.close()
+
+    return module
+
+# Choose maprsecurity.so from /opt/mapr/libexp/ directory if exists (Bug 23354)
+sys.path.insert(1, "/opt/mapr/libexp/")
+maprsecurity = import_non_local('maprsecurity')
+
 from requests.auth import AuthBase
-import maprsecurity
 import security_pb2
 import base64
 
