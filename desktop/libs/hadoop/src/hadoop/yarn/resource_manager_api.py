@@ -33,7 +33,6 @@ from desktop.lib.maprsasl import HttpMaprAuth
 
 
 LOG = logging.getLogger(__name__)
-DEFAULT_USER = 'hue'
 
 _API_VERSION = 'v1'
 _JSON_CONTENT_TYPE = 'application/json'
@@ -97,7 +96,7 @@ class ResourceManagerApi(object):
     return "ResourceManagerApi at %s" % (self._url,)
 
   def setuser(self, user):
-    curr = self.user
+    curr = user
     self._thread_local.user = user
     return curr
 

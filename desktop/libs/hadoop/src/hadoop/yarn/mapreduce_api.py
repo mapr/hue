@@ -29,7 +29,6 @@ from hadoop.yarn.resource_manager_api import get_resource_manager
 
 
 LOG = logging.getLogger(__name__)
-DEFAULT_USER = 'hue'
 
 _API_VERSION = 'v1'
 _JSON_CONTENT_TYPE = 'application/json'
@@ -47,7 +46,7 @@ def get_mapreduce_api(username):
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('No Resource Manager are available.'))
-        API_CACHE = MapreduceApi(yarn_cluster.PROXY_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
+        API_CACHE = MapreduceApi(username, yarn_cluster.PROXY_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -58,7 +57,7 @@ def get_mapreduce_api(username):
 
 class MapreduceApi(object):
 
-  def __init__(self, oozie_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
+  def __init__(self, username, oozie_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
     self._user = username      
     self._url = posixpath.join(oozie_url, 'proxy')
     self._client = HttpClient(self._url, logger=LOG)
