@@ -20,7 +20,7 @@ import logging
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.paginator import Paginator
 from desktop.lib.rest.http_client import RestException
-
+from django.utils.functional import wraps
 from hadoop import cluster
 from hadoop.cluster import jt_ha, rm_ha
 from hadoop.api.jobtracker.ttypes import ThriftJobPriority, TaskTrackerNotFoundException, ThriftJobState
@@ -30,7 +30,8 @@ import hadoop.yarn.mapreduce_api as mapreduce_api
 import hadoop.yarn.node_manager_api as node_manager_api
 import hadoop.yarn.resource_manager_api as resource_manager_api
 import hadoop.yarn.spark_history_server_api as spark_history_server_api
-
+from hadoop.cluster import get_next_ha_mrcluster, get_next_ha_yarncluster
+from desktop.lib.exceptions_renderable import PopupException
 from jobbrowser.conf import SHARE_JOBS
 from jobbrowser.models import Job, JobLinkage, TaskList, Tracker
 from jobbrowser.yarn_models import Application, Job as YarnJob, KilledJob as KilledYarnJob, Container, SparkJob

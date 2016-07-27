@@ -102,6 +102,7 @@ def job_not_assigned(request, jobid, path):
 
 
 def jobs(request):
+
   user = request.GET.get('user', request.user.username)
   state = request.GET.get('state')
   text = request.GET.get('text')
