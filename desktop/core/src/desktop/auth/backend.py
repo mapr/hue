@@ -315,7 +315,7 @@ class PamBackend(DesktopBackendBase):
     username = force_username_case(username)
     pam_services = desktop.conf.AUTH.PAM_SERVICE.get().split()
     for service in pam_services:
-        if pam.authenticate(username, password, desktop.conf.AUTH.PAM_SERVICE.get()):
+        if pam.authenticate(username, password, service):
           is_super = False
           if User.objects.count() == 0:
             is_super = True
