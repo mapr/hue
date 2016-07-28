@@ -122,7 +122,8 @@ class Resource(object):
 
     @return: A dictionary of the JSON result.
     """
-    return self.invoke("POST", relpath, params, data, self._make_headers(contenttype, headers), files, allow_redirects)
+    return self.invoke("POST", relpath, params, data, headers=self._make_headers(contenttype, headers), files=files,
+                       allow_redirects=allow_redirects)
 
 
   def put(self, relpath=None, params=None, data=None, contenttype=None, allow_redirects=False):
@@ -136,7 +137,8 @@ class Resource(object):
 
     @return: A dictionary of the JSON result.
     """
-    return self.invoke("PUT", relpath, params, data, self._make_headers(contenttype), allow_redirects)
+    return self.invoke("PUT", relpath, params, data, headers=self._make_headers(contenttype),
+                       allow_redirects=allow_redirects)
 
 
   def _make_headers(self, contenttype=None, headers=None):
