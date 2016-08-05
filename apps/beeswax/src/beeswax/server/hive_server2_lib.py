@@ -530,6 +530,7 @@ class HiveServerClient:
     impersonation_enabled = False
     auth_username = self.query_server['auth_username'] # Pass-through LDAP/PAM authentication
     auth_password = self.query_server['auth_password']
+    hive_mechanism = str(beeswax_conf.MECHANISM.get()).upper()
 
     if principal:
       kerberos_principal_short_name = principal.split('/', 1)[0]
