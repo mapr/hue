@@ -38,5 +38,5 @@ PORT=Config(
 SENTRY_CONF_DIR = Config(
   key='sentry_conf_dir',
   help=_t('Sentry configuration directory, where sentry-site.xml is located.'),
-  default=os.environ.get("SENTRY_CONF_DIR", '/etc/sentry/conf')
+  default=os.environ.get("SENTRY_CONF_DIR", '/opt/mapr/sentry/sentry-1.6.0/conf')
 )
