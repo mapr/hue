@@ -45,8 +45,8 @@ from desktop.redaction import global_redaction_engine
 LOG = logging.getLogger(__name__)
 
 SAMPLE_USER_ID = 1100713
-SAMPLE_USER_INSTALL = 'hue'
-SAMPLE_USER_OWNERS = ['hue', 'sample']
+SAMPLE_USER_INSTALL = 'sample'
+SAMPLE_USER_OWNERS = ['sample']
 
 SAMPLE_USERNAME = DEFAULT_USER.get()
 UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
