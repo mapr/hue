@@ -221,7 +221,7 @@ ${ comps.menubar() }
   </div>
 </div>
 
-% elif job.applicationType == 'MR2':
+% elif job.applicationType in ('MR2', 'MAPREDUCE'):
 
 <div class="container-fluid">
   <div class="row-fluid">
