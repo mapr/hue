@@ -109,11 +109,13 @@ class UserChangeForm(django.contrib.auth.forms.UserChangeForm):
   language = forms.ChoiceField(label=_t("Language Preference"),
                                choices=LANGUAGES,
                                required=False)
-  if desktop_conf.AUTH.BACKEND.get() == "desktop.auth.backend.PamBackend":
+  
+  if "desktop.auth.backend.PamBackend" in desktop_conf.AUTH.BACKEND.get():
     password1.widget.attrs['readonly'] =  True
     password2.widget.attrs['readonly'] =  True
     password_old.widget.attrs['readonly'] =  True
-    ensure_home_directory.widget.attrs['readonly'] =  True
+    ensure_home_directory.widget.attrs['readonly'] = True
+    ensure_home_directory.widget.attrs['onclick'] = 'return false'
 
   unlock_account = forms.BooleanField(label=_t("Unlock Account"),
                                       help_text=_t("Unlock user's account for login."),
@@ -139,10 +141,15 @@ class UserChangeForm(django.contrib.auth.forms.UserChangeForm):
       self.fields['last_name'].widget.attrs['readonly'] = True
       self.fields['email'].widget.attrs['readonly'] = True
       if 'is_active' in self.fields:
+        # Attribute 'disabled' cannot be used here, because 'disabled' fields are not sent to the server.
+        # Attribute 'readonly' used here to to make element looks like disabled.
+        # But 'readonly' attribute not works on checkboxes, so checkbox disables through onclick='return false'.
         self.fields['is_active'].widget.attrs['readonly'] = True
+        self.fields['is_active'].widget.attrs['onclick'] = 'return false'
       if 'is_superuser' in self.fields:
         self.fields['is_superuser'].widget.attrs['readonly'] = True
-      if 'unlock_account' in self.fields:
+        self.fields['is_superuser'].widget.attrs['onclick'] = 'return false'
+    if 'unlock_account' in self.fields:
         self.fields['unlock_account'].widget.attrs['readonly'] = True
       if 'groups' in self.fields:
         self.fields['groups'].widget.attrs['readonly'] = True

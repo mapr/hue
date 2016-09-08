@@ -48,6 +48,10 @@ input[type=submit] {
   margin-left: 50px;
 }
 
+input[type=checkbox][readonly] {
+  opacity: .7;
+}
+
 .nav-tabs .active {
   font-weight: bold;
 }
