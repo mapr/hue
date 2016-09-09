@@ -984,6 +984,11 @@ div.box {
   color: #338BB8;
 }
 
+.jHueSelectorReadonly {
+  opacity: .7;
+  cursor: not-allowed;
+}
+
 .modal-body iframe {
   border: 0;
   width: 100%;
