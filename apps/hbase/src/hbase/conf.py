@@ -54,7 +54,7 @@ THRIFT_TRANSPORT = Config(
 HBASE_CONF_DIR = Config(
   key='hbase_conf_dir',
   help=_t('HBase configuration directory, where hbase-site.xml is located.'),
-  default=os.environ.get("HBASE_CONF_DIR", '/etc/hbase/conf')
+  default=os.environ.get("HBASE_CONF_DIR", '/opt/mapr/hbase/hbase-1.1.1/conf')
 )
 
 # Hidden, just for making patching of older version of Hue easier. To remove in Hue 4.
