@@ -487,7 +487,7 @@ class TaskAttempt(object):
                       None,
                       'attemptid=%s&filter=%s&plaintext=true' % (self.attemptId, log_filter),
                       None))
-    LOGGER.info('Retrieving %s' % (url,))
+    LOG.info('Retrieving %s' % (url,))
     try:
       data = self.get_url_data(url)
     except urllib2.URLError:
@@ -496,7 +496,7 @@ class TaskAttempt(object):
     return data
 
   def get_url_data(self, url):
-    LOGGER.info('Retrieving %s' % (url,))
+    LOG.info('Retrieving %s' % (url,))
 
     if self.task.jt.client.conf.mechanism in ['GSSAPI']:
       handlers = urllib2_kerberos.HTTPKerberosAuthHandler()
@@ -611,7 +611,7 @@ class LinkJobLogs(object):
     try:
       return '<a href="%s" target="_blank">%s</a>' % (reverse('jobbrowser.views.single_job', kwargs={'job': match.group(0)}), match.group(0))
     except:
-      LOGGER.exception('failed to replace mr links: %s' % (match.groups(),))
+      LOG.exception('failed to replace mr links: %s' % (match.groups(),))
       return match.group(0)
 
 
