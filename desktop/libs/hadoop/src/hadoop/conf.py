@@ -210,12 +210,14 @@ def config_validator(user):
     res.extend(mr_down)
 
   # YARN_CLUSTERS
-  if YARN_CLUSTERS.keys():
-    res.extend(test_yarn_configurations(user))
+  submit_to_yarn = False
   for name in YARN_CLUSTERS.keys():
     cluster = YARN_CLUSTERS[name]
     if cluster.SUBMIT_TO.get():
+      submit_to_yarn = True
       submit_to.append('yarn_clusters.' + name)
+  if submit_to_yarn:
+    res.extend(test_yarn_configurations(user))
 
   if not submit_to:
     res.append(("hadoop", "Please designate one of the MapReduce or "
