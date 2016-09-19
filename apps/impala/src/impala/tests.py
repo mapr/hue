@@ -76,7 +76,7 @@ class TestMockedImpala:
     assert_true('Query Editor' in response.content)
 
   def test_saved_queries(self):
-    user = User.objects.get(username='test')
+    user = User.objects.get(username='mapr')
 
     response = self.client.get("/impala/list_designs")
     assert_equal(len(response.context['page'].object_list), 0)
@@ -113,8 +113,8 @@ class TestImpalaIntegration:
       raise SkipTest
 
     cls.client = make_logged_in_client()
-    cls.user = User.objects.get(username='test')
-    add_to_group('test')
+    cls.user = User.objects.get(username='mapr')
+    add_to_group('mapr')
     cls.db = dbms.get(cls.user, get_query_server_config(name='impala'))
     cls.DATABASE = get_db_prefix(name='impala')
 
@@ -238,7 +238,7 @@ def create_saved_query(app_name, owner):
 
 def test_ssl_cacerts():
   for desktop_kwargs, conf_kwargs, expected in [
-      ({'present': False}, {'present': False}, '/etc/hue/cacerts.pem'),
+      ({'present': False}, {'present': False}, '/opt/mapr/hue/hue-3.9.0/cert.pem'),
       ({'present': False}, {'data': 'local-cacerts.pem'}, 'local-cacerts.pem'),
 
       ({'data': 'global-cacerts.pem'}, {'present': False}, 'global-cacerts.pem'),
