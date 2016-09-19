@@ -756,8 +756,8 @@ def _read_avro(fhandle, path, offset, length, stats):
             data_file_reader.close()
 
         contents = "".join(contents_list)
-    except:
-        logging.exception("Could not read avro file at %s" % path)
+    except Exception, e:
+        logging.exception('Could not read avro file at "%s": %s' % (path, e))
         raise PopupException(_("Failed to read Avro file."))
     return contents
 
@@ -768,8 +768,8 @@ def _read_parquet(fhandle, path, offset, length, stats):
         parquet._dump(fhandle, ParquetOptions(), out=dumped_data)
         dumped_data.seek(offset)
         return dumped_data.read()
-    except:
-        logging.exception("Could not read parquet file at %s" % path)
+    except Exception, e:
+        logging.exception('Could not read parquet file at "%s": %s' % (path, e))
         raise PopupException(_("Failed to read Parquet file."))
 
 
@@ -779,8 +779,8 @@ def _read_gzip(fhandle, path, offset, length, stats):
         raise PopupException(_("Offsets are not supported with Gzip compression."))
     try:
         contents = GzipFile('', 'r', 0, StringIO(fhandle.read())).read(length)
-    except:
-        logging.exception("Could not decompress file at %s" % path)
+    except Exception, e:
+        logging.exception('Could not decompress file at "%s": %s' % (path, e))
         raise PopupException(_("Failed to decompress file."))
     return contents
 
@@ -800,8 +800,8 @@ def _read_simple(fhandle, path, offset, length, stats):
     try:
         fhandle.seek(offset)
         contents = fhandle.read(length)
-    except:
-        logging.exception("Could not read file at %s" % path)
+    except Exception, e:
+        logging.exception('Could not read file at "%s": %s' % (path, e))
         raise PopupException(_("Failed to read file."))
     return contents
 
