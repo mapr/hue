@@ -31,6 +31,7 @@ import stat as statconsts
 import subprocess
 import urlparse
 import threading
+import re
 
 from thrift.transport import TTransport
 
@@ -192,7 +193,10 @@ class Hdfs(object):
 
   @staticmethod
   def normpath(path):
-    res = posixpath.normpath(path)
+    # Remove schema if it was passed here by some reasons
+    res = re.sub(r'^\w*:', '', path)
+
+    res = posixpath.normpath(res)
     # Python normpath() doesn't eliminate leading double slashes
     if res.startswith('//'):
       return res[1:]
