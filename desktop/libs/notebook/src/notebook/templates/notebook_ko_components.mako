@@ -268,6 +268,14 @@ from desktop.views import _ko
         self.savePath = ko.observable('');
         self.saveOverwrite = ko.observable(true);
 
+        $("#saveResultsModal")
+          .on("show", function () {
+            self.snippet.inSaveResultModal(true);
+          })
+          .on("hide", function() {
+            self.snippet.inSaveResultModal(false);
+          });
+
         self.trySaveResults = function() {
           self.saveResults();
 

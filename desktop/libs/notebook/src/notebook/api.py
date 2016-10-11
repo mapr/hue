@@ -38,6 +38,7 @@ LOG = logging.getLogger(__name__)
 
 
 DEFAULT_HISTORY_NAME = ''
+DEFAULT_EXPORT_NAME = ''
 
 
 @require_POST
@@ -582,6 +583,18 @@ def export_result(request):
   # Passed by check_document_access_permission but unused by APIs
   notebook = json.loads(request.POST.get('notebook', '{}'))
   snippet = json.loads(request.POST.get('snippet', '{}'))
+
+  if not notebook['id']:
+    # Mark this notebook as history to make it not visible in Hue UI
+    doc = Document2.objects.create(name=DEFAULT_EXPORT_NAME, type=notebook['type'], owner=request.user, is_history=True)
+    Document.objects.link(doc, name=doc.name, owner=doc.owner, description=doc.description, extra=notebook['type'])
+  
+    notebook['uuid'] = doc.uuid
+    notebook['snippets'] = [snippet]
+    doc.update_data(notebook)
+    doc.save()
+    notebook['id'] = doc.id
+
   data_format = json.loads(request.POST.get('format', 'hdfs-file'))
   destination = json.loads(request.POST.get('destination', ''))
   overwrite = json.loads(request.POST.get('overwrite', False))
@@ -598,11 +611,11 @@ def export_result(request):
     response['status'] = 0
   elif data_format == 'hive-table':
     notebook_id = notebook['id'] or request.GET.get('editor', request.GET.get('notebook'))
-    response['watch_url'] = reverse('notebook:execute_and_watch') + '?action=save_as_table&notebook=' + str(notebook_id) + '&snippet=0&destination=' + destination
+    response['watch_url'] = reverse('notebook:execute_and_watch') + '?action=save_as_table&notebook=' + str(notebook_id) + '&snippet=' + snippet['id'] + '&destination=' + destination
     response['status'] = 0
   elif data_format == 'hdfs-directory':
     notebook_id = notebook['id'] or request.GET.get('editor', request.GET.get('notebook'))
-    response['watch_url'] = reverse('notebook:execute_and_watch') + '?action=insert_as_query&notebook=' + str(notebook_id) + '&snippet=0&destination=' + destination
+    response['watch_url'] = reverse('notebook:execute_and_watch') + '?action=insert_as_query&notebook=' + str(notebook_id) + '&snippet=' + snippet['id'] + '&destination=' + destination
     response['status'] = 0
 
   return JsonResponse(response)

@@ -130,12 +130,15 @@ def browse(request, database, table):
 @check_document_access_permission()
 def execute_and_watch(request):
   notebook_id = request.GET.get('editor', request.GET.get('notebook'))
-  snippet_id = int(request.GET['snippet'])
+  snippet_id = request.GET.get('snippet')
+
   action = request.GET['action']
   destination = request.GET['destination']
 
   notebook = Notebook(document=Document2.objects.get(id=notebook_id)).get_data()
-  snippet = notebook['snippets'][snippet_id]
+  for snippet in notebook['snippets']:
+    if snippet['id'] == snippet_id:
+      break
   editor_type = snippet['type']
 
   api = get_api(request, snippet)

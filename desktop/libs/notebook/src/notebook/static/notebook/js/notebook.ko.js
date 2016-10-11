@@ -189,6 +189,8 @@
     self.availableSnippets = vm.availableSnippets();
     self.inFocus = ko.observable(false);
 
+    self.inSaveResultModal = ko.observable(false);
+
     self.getAceMode = function() {
       return vm.getSnippetViewSettings(self.type()).aceMode;
     };
