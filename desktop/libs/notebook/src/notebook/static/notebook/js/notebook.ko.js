@@ -1683,7 +1683,11 @@
         data.data.can_write = data.user_perms.can_write;
         var notebook = data.data;
         self.loadNotebook(notebook);
-        hueUtils.changeURL('/notebook/editor?editor=' + data.document.id);
+        if (self.editorMode) {
+          hueUtils.changeURL('/notebook/editor?editor=' + data.document.id);
+        } else {
+          hueUtils.changeURL('/notebook/notebook?notebook=' + data.document.id);
+        }
       });
     };
 
