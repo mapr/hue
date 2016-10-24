@@ -34,7 +34,7 @@ $(DEVTOOLS):
 	@echo "--- Installing development tool: $@"
 	@# Force downloads from pypi host - developer sites are sometimes dead!
 	$(ENV_EASY_INSTALL) -f http://package.mapr.com/tools/desktop-sdk-python-packages/ \
-	   -H package.mapr.com $(SETUPTOOLS_OPTS) $@
+	   -H package.mapr.com $(SETUPTOOLS_OPTS) $(subst ],,$(subst [,==,$@))
 
 $(BLD_DIR):
 	@mkdir -p $@
