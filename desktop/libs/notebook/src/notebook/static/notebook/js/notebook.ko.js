@@ -310,6 +310,33 @@
     }
 
     self.statement_raw = ko.observable(typeof snippet.statement_raw != "undefined" && snippet.statement_raw != null ? snippet.statement_raw : '');
+
+    var removeScripts = function(html) {
+      var container = $('<div>').html(html);
+
+      // remove all <script> tags
+      container.find('script').remove();
+
+      // remove all on... attributes, like onclick
+      container.find('*').each(function(index, el) {
+        $.each(el.attributes, function(index, attr) {
+          if(attr.name.indexOf('on') == 0) {
+            el.removeAttribute(attr.name);
+          }
+        });
+      });
+
+      return container.html();
+    };
+    self.statement_safe = ko.computed({
+      read: function() {
+        return removeScripts(self.statement_raw());
+      },
+      write: function(statement) {
+        self.statement_raw(removeScripts(statement));
+      }
+    });
+
     self.selectedStatement = ko.observable('');
     self.aceSize = ko.observable(typeof snippet.aceSize != "undefined" && snippet.aceSize != null ? snippet.aceSize : 100);
     // self.statement_raw.extend({ rateLimit: 150 }); // Should prevent lag from typing but currently send the old query when using the key shortcut
