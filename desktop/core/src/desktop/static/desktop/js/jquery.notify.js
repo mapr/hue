@@ -48,10 +48,15 @@
     var _this = this;
     var MARGIN = 10;
 
-    _this.options.message = $("<span>").html(_this.options.message).text(); // escape HTML messages
+    _this.options.message = $("<span>").html(_this.options.message).text(); // remove HTML tags
+    // This construction converts HTML entities to their text representation
+    // message like "&lt;script&gt;alert(1)&lt;/script&gt;" will be converted to "<script>alert(1)</script>"
 
     if (_this.options.level == TYPES.ERROR && $(".jHueNotify.alert-error").length > 0) {
-      $(".jHueNotify.alert-error").find(".message").html("<i class='fa fa-exclamation-triangle'></i> <strong>" + _this.options.message + "</strong>");
+      $(".jHueNotify.alert-error").find(".message").append(
+        "<i class='fa fa-exclamation-triangle'>&nbsp;</i>",
+        $("<strong>").text(_this.options.message)
+      );
     }
     else {
       var el = $("#jHueNotify").clone();
@@ -69,14 +74,22 @@
 
       if (_this.options.level == TYPES.ERROR) {
         el.addClass("alert-error");
-        el.find(".message").html("<i class='fa fa-exclamation-triangle'></i> <strong>" + _this.options.message + "</strong>");
+        el.find(".message").append(
+          "<i class='fa fa-exclamation-triangle'>&nbsp;</i>",
+          $("<strong>").text(_this.options.message)
+        );
       }
       else if (_this.options.level == TYPES.INFO) {
         el.addClass("alert-info");
-        el.find(".message").html("<i class='fa fa-info-circle'></i> <strong>" + _this.options.message + "</strong>");
+        el.find(".message").append(
+          "<i class='fa fa-info-circle'>&nbsp;</i>",
+          $("<strong>").text(_this.options.message)
+        );
       }
       else {
-        el.find(".message").html(_this.options.message);
+        el.find(".message").append(
+          $("<strong>").text(_this.options.message)
+        );
       }
 
       if (_this.options.css != null) {
