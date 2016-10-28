@@ -21,6 +21,7 @@ var links = (function($) {
     'name': null,
     'link_config_values': [],
     'connector_id': 0,
+    'connector_name': '',
     'creation_date': null,
     'creation_user': null,
     'update_date': null,
@@ -30,6 +31,7 @@ var links = (function($) {
       var _attrs = $.extend(true, {}, attrs);
       _attrs = transform_keys(_attrs, {
         'connector-id': 'connector_id',
+        'connector-name': 'connector_name',
         'link-config-values': 'link_config_values'
       });
       _attrs = transform_values(_attrs, {
@@ -55,7 +57,7 @@ var links = (function($) {
       self.connector = ko.computed(function() {
         var connector = null;
         $.each(self.connectors(), function(index, $connector) {
-          if ($connector.id() == self.connector_id()) {
+          if ($connector.name() == self.connector_name()) {
             connector = $connector;
           }
         });
