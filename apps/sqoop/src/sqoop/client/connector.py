@@ -49,6 +49,16 @@ class Connector(object):
 
     return Connector(**force_dict_to_strings(connector_dict))
 
+  @staticmethod
+  def from_dict_new(connector_dict):
+    connector_dict['link-config'] = connector_dict['link-config']['configs']
+    if 'FROM' in connector_dict['job-config']:
+      connector_dict['job-config']['FROM'] = connector_dict['job-config']['FROM']['configs']
+    if 'TO' in connector_dict['job-config']:
+      connector_dict['job-config']['TO'] = connector_dict['job-config']['TO']['configs']
+
+    return Connector.from_dict(connector_dict)
+
   def to_dict(self):
     d = {
       'id': self.id,
@@ -63,4 +73,14 @@ class Connector(object):
       d['job-config']['FROM'] = [ job_config.to_dict() for job_config in self.job_config['FROM'] ]
     if 'TO' in self.job_config:
       d['job-config']['TO'] = [ job_config.to_dict() for job_config in self.job_config['TO'] ]
+    return d
+
+  def to_dict_new(self):
+    d = self.to_dict()
+    d['link-config'] = {'configs': d['link-config'], 'validators': []}
+    if 'FROM' in d['job-config']:
+      d['job-config']['FROM'] = {'configs': d['job-config']['FROM'], 'validators': []}
+    if 'TO' in d['job-config']:
+      d['job-config']['TO'] = {'configs': d['job-config']['TO'], 'validators': []}
+
     return d

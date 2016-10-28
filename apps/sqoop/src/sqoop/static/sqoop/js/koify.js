@@ -91,7 +91,17 @@ var koify = (function($, undefined) {
         dataType: 'json',
         type: 'GET',
         success: $.noop,
-        error: $.noop
+        error: function(jqXHR, textStatus, errorThrown) {
+          var contentType = jqXHR.getResponseHeader('Content-Type');
+          var message;
+          if(contentType == 'text/plain') {
+            message = jqXHR.responseText.split('\n\n')[0];
+            message = message.split('\n').join(' / ');
+          } else {
+            message = jqXHR.responseText;
+          }
+          $(document).trigger("error", message);
+        }
       }, options || {});
       $.ajax(request);
     },
@@ -193,23 +203,23 @@ var koify = (function($, undefined) {
     },
     loadUrl: function(persist) {
       var self = this;
-      return self.base_url + ((persist) ? self.id() : '');
+      return self.base_url + ((persist) ? self.name() : '');
     },
     saveUrl: function() {
       var self = this;
       if (self.id() > -1) {
-        return self.base_url +  self.id();
+        return self.base_url + encodeURI(self.name());
       } else {
         return self.base_url;
       }
     },
     cloneUrl: function() {
       var self = this;
-      return self.base_url +  self.id() + '/clone';
+      return self.base_url + encodeURI(self.name()) + '/clone';
     },
     deleteUrl: function() {
       var self = this;
-      return self.base_url +  self.id() + '/delete';
+      return self.base_url + encodeURI(self.name()) + '/delete';
     }
   });
 

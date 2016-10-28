@@ -20,6 +20,7 @@ var submissions = (function($) {
 
   var SubmissionModel = koify.Model.extend({
     'job': -1,
+    'job_name': null,
     'progress': 0.0,
     'status': 'NEVER_EXECUTED',
     'creation_date': 0,
@@ -30,6 +31,7 @@ var submissions = (function($) {
       var self = this;
       var _attrs = $.extend(true, {}, attrs || {});
       _attrs = transform_keys(_attrs, {
+        'job-name': 'job_name',
         'creation-date': 'creation_date',
         'last-update-date': 'last_update_date',
         'external-id': 'external_id',
@@ -82,26 +84,26 @@ var submissions = (function($) {
   }
 
   function put_submission(submission) {
-    if (submission_registry[submission.job()]) {
-      if (submission_registry[submission.job()].creation_date() < submission.creation_date() ||
-          (submission_registry[submission.job()].creation_date() == submission.creation_date() && submission_registry[submission.job()].last_update_date() < submission.last_update_date())) {
-        submission_registry[submission.job()] = submission;
+    if (submission_registry[submission.job_name()]) {
+      if (submission_registry[submission.job_name()].creation_date() < submission.creation_date() ||
+          (submission_registry[submission.job_name()].creation_date() == submission.creation_date() && submission_registry[submission.job_name()].last_update_date() < submission.last_update_date())) {
+        submission_registry[submission.job_name()] = submission;
       }
     } else {
-      submission_registry[submission.job()] = submission;
+      submission_registry[submission.job_name()] = submission;
     }
   }
 
-  function get_submission(job_id) {
-    return submission_registry[job_id];
+  function get_submission(job_name) {
+    return submission_registry[job_name];
   }
 
-  function set_default_submission(job_id) {
-    var submission = get_submission(job_id);
+  function set_default_submission(job_name) {
+    var submission = get_submission(job_name);
     if (!submission) {
-      put_submission(new Submission({modelDict: {job: job_id}}));
+      put_submission(new Submission({modelDict: {job_name: job_name}}));
     }
-    return get_submission(job_id);
+    return get_submission(job_name);
   }
 
   $(document).on('loaded.submissions', function(e, nodes, options) {
