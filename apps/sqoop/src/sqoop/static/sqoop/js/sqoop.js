@@ -104,9 +104,10 @@ var viewModel = new (function() {
 
   self.connector = ko.computed(function() {
     if (self.link() && self.link().connector_id()) {
-      for (var index in self.connectors()) {
-        if (self.connectors()[index].id() == self.link().connector_id()) {
-          return self.connectors()[index];
+      for (var _connectors = self.connectors(), index = 0; index < _connectors.length; ++index) {
+        var _connector = _connectors[index];
+        if (_connector.id() == self.link().connector_id()) {
+          return _connector;
         }
       }
     }
@@ -119,7 +120,7 @@ var viewModel = new (function() {
       return self.connectors()[0];
     }
     var connectorArr = ko.utils.arrayFilter(self.connectors(), function (connector) {
-      return connector.id() == self.from_link().connector_id();
+      return connector.name() == self.from_link().connector_name();
     });
     return (connectorArr.length > 0) ? connectorArr[0] : self.connectors()[0];
   });
@@ -130,7 +131,7 @@ var viewModel = new (function() {
       return self.connectors()[0];
     }
     var connectorArr = ko.utils.arrayFilter(self.connectors(), function (connector) {
-      return connector.id() == self.to_link().connector_id();
+      return connector.name() == self.to_link().connector_name();
     });
     return (connectorArr.length > 0) ? connectorArr[0] : self.connectors()[0];
   });
@@ -263,6 +264,7 @@ var viewModel = new (function() {
     if (self.link()) {
       if (!self.link().persisted()) {
         self.link().connector_id(self.connector().id());
+        self.link().connector_name(self.connector().name());
       }
       self.link().save();
     }
@@ -305,12 +307,16 @@ var viewModel = new (function() {
     if (job) {
       if (!job.from_link_id()) {
         job.from_connector_id((self.from_connector()) ? self.from_connector().id() : null);
+        job.from_connector_name((self.from_connector()) ? self.from_connector().name() : null);
         job.from_link_id((self.from_link()) ? self.from_link().id() : null);
+        job.from_link_name((self.from_link()) ? self.from_link().name() : null);
       }
 
       if (!job.to_link_id()) {
         job.to_connector_id((self.to_connector()) ? self.to_connector().id() : null);
+        job.to_connector_name((self.to_connector()) ? self.to_connector().name() : null);
         job.to_link_id((self.to_link()) ? self.to_link().id() : null);
+        job.to_link_name((self.to_link()) ? self.to_link().name() : null);
       }
 
       job.save();
@@ -320,7 +326,7 @@ var viewModel = new (function() {
   self.chooseJobById = function(id) {
     var found_job = false;
     $.each(self.jobs(), function(index, job) {
-      if (job.id() == id) {
+      if (job.id() == id || job.name() == id) {
         found_job = true;
         job.selected(true);
       } else {
@@ -455,7 +461,7 @@ function set_jobs(e, jobs, options) {
 
 function update_job_submissions(e, submissions, options) {
   $.each(submissions, function(index, submission) {
-    var job = jobs.getJob(submission.job());
+    var job = jobs.getJob(submission.job_name());
     if (job) {
       job.submission(submission);
     }
