@@ -23,9 +23,13 @@ var jobs = (function($) {
     'id': -1,
     'name': null,
     'from_connector_id': 0,
+    'from_connector_name': '',
     'from_link_id': 0,
+    'from_link_name': '',
     'to_connector_id': 0,
+    'to_connector_name': '',
     'to_link_id': 0,
+    'to_link_name': '',
     'from_config_values': [],
     'to_config_values': [],
     'driver_config_values': [],
@@ -39,8 +43,12 @@ var jobs = (function($) {
       _attrs = transform_keys(_attrs, {
         'from-connector-id': 'from_connector_id',
         'to-connector-id': 'to_connector_id',
+        'from-connector-name': 'from_connector_name',
+        'to-connector-name': 'to_connector_name',
         'from-link-id': 'from_link_id',
         'to-link-id': 'to_link_id',
+        'from-link-name': 'from_link_name',
+        'to-link-name': 'to_link_name',
         'from-config-values': 'from_config_values',
         'to-config-values': 'to_config_values',
         'driver-config-values': 'driver_config_values',
@@ -86,11 +94,12 @@ var jobs = (function($) {
       self.submission = ko.computed({
         owner: self,
         read: function () {
-          return submissions.setDefaultSubmission(this.id());
+          return submissions.setDefaultSubmission(this.name());
         },
         write: function (submission) {
           submissions.putSubmission(submission);
-          self.id.valueHasMutated();
+          // self.id.valueHasMutated();
+          self.name.valueHasMutated();
 
           if (self.runningInterval == 0 && self.isRunning()) {
             self.runningInterval = setInterval(function() {
@@ -114,7 +123,7 @@ var jobs = (function($) {
         return self.submission() && $.inArray(self.submission().status(), ['SUCCEEDED']) > -1;
       });
       self.hasFailed = ko.computed(function() {
-        return self.submission() && $.inArray(self.submission().status(), ['FAILURE_ON_SUBMIT', 'FAILED']) > -1;
+        return self.submission() && $.inArray(self.submission().status(), ['FAILURE_ON_SUBMIT', 'FAILED', 'FAILED_TO_GET_STATUS']) > -1;
       });
       self.outputDirectoryFilebrowserURL = ko.computed(function() {
         var output_directory = null;
@@ -173,7 +182,7 @@ var jobs = (function($) {
       self.fromLink = ko.computed(function() {
         var link = null;
         $.each(self.links(), function(index, $link) {
-          if (self.from_link_id() == $link.id()) {
+          if (self.from_link_name() == $link.name()) {
             link = $link;
           }
         });
@@ -182,7 +191,7 @@ var jobs = (function($) {
       self.toLink = ko.computed(function() {
         var link = null;
         $.each(self.links(), function(index, $link) {
-          if (self.to_link_id() == $link.id()) {
+          if (self.to_link_name() == $link.name()) {
             link = $link;
           }
         });
@@ -243,12 +252,20 @@ var jobs = (function($) {
             default:
             case 1:
               var error = data.errors[0];
+              if(data.exception) {
+                try {
+                  var exception = data.exception.substr(0, data.exception.lastIndexOf('}') + 1);
+                  exception = $.parseJSON(exception);
+                  error += ' / ' + exception['message'];
+                  error += ' / ' + exception['error-code-message'];
+                } catch(e) {} // prevent from cases where exception has another format
+              }
               $(document).trigger('start_fail.job', [self, options, error]);
             break;
           }
         }
       }, options);
-      self.request('/sqoop/api/jobs/' + self.id() + '/start', options);
+      self.request('/sqoop/api/jobs/' + self.name() + '/start', options);
     },
     'stop': function(options) {
       var self = this;
@@ -268,7 +285,7 @@ var jobs = (function($) {
           }
         }
       }, options);
-      self.request('/sqoop/api/jobs/' + self.id() + '/stop', options);
+      self.request('/sqoop/api/jobs/' + self.name() + '/stop', options);
     },
     'getStatus': function(options) {
       var self = this;
@@ -283,12 +300,13 @@ var jobs = (function($) {
             break;
             default:
             case 1:
+              self.submission().status('FAILED_TO_GET_STATUS');
               $(document).trigger('get_status_fail.job', [self, options, data]);
             break;
           }
         }
       }, options);
-      self.request('/sqoop/api/jobs/' + self.id() + '/status', options);
+      self.request('/sqoop/api/jobs/' + self.name() + '/status', options);
     },
     'getData': function() {
       var self = this;
@@ -321,11 +339,11 @@ var jobs = (function($) {
   }
 
   function put_job(job) {
-    job_registry[job.id()] = job;
+    job_registry[job.name()] = job;
   }
 
-  function get_job(id) {
-    return job_registry[id];
+  function get_job(name) {
+    return job_registry[name];
   }
 
   function sync_jobs(jobs) {

@@ -769,6 +769,7 @@ body {
 .card, .sidebar-nav .nav-list {
   border-radius: 0;
   border: none;
+  background: none;
 }
 
 .hue-context-menu {
