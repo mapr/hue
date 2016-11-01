@@ -1546,7 +1546,7 @@ ${ hueIcons.symbols() }
 
 
 <script type="text/html" id="text-snippet-body">
-  <div data-bind="attr:{'id': 'editor_' + id()}, html: statement_raw, value: statement_raw, medium: {}" data-placeHolder="${ _('Type your text here, select some text to format it') }" class="text-snippet"></div>
+  <div data-bind="attr:{'id': 'editor_' + id()}, html: statement_safe, value: statement_safe, medium: {}" data-placeHolder="${ _('Type your text here, select some text to format it') }" class="text-snippet"></div>
 </script>
 
 
