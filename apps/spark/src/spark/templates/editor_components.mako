@@ -610,7 +610,7 @@ from django.utils.translation import ugettext as _
 </script>
 
 <script type="text/html" id="text-snippet-body">
-  <div data-bind="attr:{'id': 'editor_'+id()}, html: statement_raw, value: statement_raw, medium: {}" class="text-snippet"></div>
+  <div data-bind="attr:{'id': 'editor_'+id()}, html: statement_safe, value: statement_safe, medium: {}" class="text-snippet"></div>
 </script>
 
 <script type="text/html" id="executable-snippet-body">
