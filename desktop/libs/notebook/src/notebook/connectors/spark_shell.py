@@ -252,7 +252,11 @@ class SparkApi(Api):
   def check_status(self, notebook, snippet):
     api = get_spark_api(self.user)
     session = _get_snippet_session(notebook, snippet)
-    cell = snippet['result']['handle']['id']
+
+    try:
+      cell = snippet['result']['handle']['id']
+    except Exception:
+      raise SessionExpired('Snippet has no result handle')
 
     try:
       response = api.fetch_data(session['id'], cell)
