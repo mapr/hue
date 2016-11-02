@@ -1838,8 +1838,8 @@ ${ hueIcons.symbols() }
             <div style="width:100%;">
               <!-- ko component: { name: 'property-selector', params: { properties: properties } } --><!-- /ko -->
             </div>
-            <div style="clear:both; padding-left: 120px;">
-              <!-- ko if: availableNewProperties().length -->
+            <!--
+            <div style="clear:both; padding-left: 120px;" data-bind="if: availableNewProperties().length">
               <select data-bind="options: availableNewProperties,
                        optionsText: 'nice_name',
                        optionsValue: 'name',
@@ -1851,8 +1851,8 @@ ${ hueIcons.symbols() }
                 }" style="margin-left:10px;vertical-align: text-top;">
                 <i class="fa fa-plus"></i>
               </a>
-              <!-- /ko -->
             </div>
+            -->
             <!-- /ko -->
             <!-- /ko -->
             <br/>
