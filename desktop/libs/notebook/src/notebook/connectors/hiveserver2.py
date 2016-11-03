@@ -23,6 +23,7 @@ import StringIO
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 
+from desktop.lib.conf import BoundConfig, Config
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.i18n import force_unicode
 from desktop.models import DefaultConfiguration
@@ -45,11 +46,11 @@ try:
   from beeswax.server.dbms import get_query_server_config, QueryServerException
   from beeswax.views import _parse_out_hadoop_jobs
 except ImportError, e:
-  LOG.exception('Hive and HiveServer2 interfaces are not enabled')
+  LOG.warn('Hive and HiveServer2 interfaces are not enabled')
 
 try:
+  from impala import api   # Force checking if Impala is enabled
   from impala.conf import CONFIG_WHITELIST as impala_settings
-  from impala import views   # Force checking if Impala is enabled
 except ImportError, e:
   LOG.warn("Impala app is not enabled")
   impala_settings = None
@@ -70,6 +71,12 @@ def query_error_handler(func):
         raise QueryError(message)
   return decorator
 
+
+def is_hive_enabled():
+  return hive_settings is not None and type(hive_settings) == BoundConfig
+
+def is_impala_enabled():
+  return impala_settings is not None and type(impala_settings) == BoundConfig
 
 class HiveConfiguration(object):
 
@@ -100,7 +107,7 @@ class HiveConfiguration(object):
       "key": "settings",
       "help_text": _("Hive and Hadoop configuration properties."),
       "type": "settings",
-      "options": [config.lower() for config in hive_settings.get()]
+      "options": [config.lower() for config in hive_settings.get()] if is_hive_enabled() and hasattr(hive_settings, 'get') else []
     }
   ]
 
@@ -118,7 +125,7 @@ class ImpalaConfiguration(object):
       "key": "settings",
       "help_text": _("Impala configuration properties."),
       "type": "settings",
-      "options": [config.lower() for config in impala_settings.get()] if impala_settings is not None else []
+      "options": [config.lower() for config in impala_settings.get()] if is_impala_enabled() else []
     }
   ]
 
