@@ -39,3 +39,10 @@ urlpatterns = patterns('metastore.views',
   url(r'^table/(?P<database>\w+)/(?P<table>\w+)/partitions/drop$', 'drop_partition', name='drop_partition'),
   url(r'^table/(?P<database>\w+)/(?P<table>\w+)/alter_column$', 'alter_column', name='alter_column'),
 )
+
+urlpatterns += patterns('metastore.api',
+  url(r'^api/create_kudu_internal/?$', 'create_internal_kudu_table', name='create_internal_kudu_table'),
+  url(r'^api/validate_kudu_table/?$', 'validate_kudu_table', name='validate_kudu_table'),
+  url(r'^api/validate_kudu_columns/?$', 'validate_kudu_columns', name='validate_kudu_columns'),
+  url(r'^api/validate_kudu_partitions/?$', 'validate_kudu_partitions', name='validate_kudu_partitions'),
+)
