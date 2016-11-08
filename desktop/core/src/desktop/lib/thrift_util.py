@@ -282,6 +282,11 @@ def connect_to_thrift(conf):
       if conf.mechanism in saslClients:
           saslc = saslClients[conf.mechanism]()
       else: saslc = sasl.Client()
+
+      # Hive sometimes returns bigger result for query 'SET -v'
+      # than default limit (2**16 - 1)
+      saslc.setAttr("maxbufsize", 2**17 - 1)
+
       saslc.setAttr("host", str(conf.host))
       saslc.setAttr("service", str(conf.kerberos_principal))
       if conf.mechanism == 'PLAIN':
