@@ -22,6 +22,7 @@ import time
 from django.utils.translation import ugettext as _
 
 from desktop.lib.django_util import JsonResponse
+
 from libsentry.api import get_api
 from libsentry.sentry_site import get_sentry_server_admin_groups
 from hadoop.cluster import get_defaultfs
@@ -30,6 +31,14 @@ from beeswax.api import autocomplete
 
 
 LOG = logging.getLogger(__name__)
+
+
+PRIVILEGE_HIERARCHY = {
+  'SELECT': 0,
+  'INSERT': 1,
+  'ALL': 2
+}
+SENTRY_PRIVILEGE_KEY = 'SENTRY_PRIVILEGE'
 
 
 def fetch_hive_path(request):
@@ -425,3 +434,172 @@ def list_sentry_privileges_for_provider(request):
     result['message'] = unicode(str(e), "utf8")
 
   return JsonResponse(result)
+
+
+def filter_objects_by_user_and_privilege(request):
+  result = {'status': -1, 'message': 'Error'}
+
+  try:
+    user = request.POST.get('userName', 'jennykim')  # TODO: remove hard-coded username for testing
+    groups = get_groups_for_user(user)
+    roles = set([])
+    for groupName in groups:
+      group_roles = get_api(request.user).list_sentry_roles_by_group(groupName)
+      roles.update([role['name'] for role in group_roles])
+
+    privileges = []
+    for roleName in roles:
+      role_privileges = get_api(request.user).list_sentry_privileges_by_role(roleName)
+      privileges.extend(role_privileges)  # This may result in duplicates but will get reduced in hierarchy tree
+
+    privilege_hierarchy = _to_privilege_hierarchy(privileges)
+
+    #authorizableSet = [json.loads(request.POST['authorizableHierarchy'])]
+    action = request.POST.get('action', 'SELECT').upper()
+    authorizableSet = [
+      {u'column': None, u'table': u'customers', u'db': u'default', u'server': u'server1'},
+      {u'column': None, u'table': u'sample_07', u'db': u'default', u'server': u'server1'},
+      {u'column': None, u'table': u'sample_08', u'db': u'default', u'server': u'server1'},
+      {u'column': None, u'table': u'web_logs', u'db': u'default', u'server': u'server1'},
+      {u'column': 'salary', u'table': u'sample_08', u'db': u'default', u'server': u'server1'},
+      {u'column': 'code', u'table': u'sample_08', u'db': u'default', u'server': u'server1'},
+      {u'column': 'total_emp', u'table': u'sample_08', u'db': u'default', u'server': u'server1'},
+      {u'column': 'total_emp', u'table': u'sample_07', u'db': u'default', u'server': u'server1'},
+    ]
+    filtered_objects = []
+
+    for authorizable in authorizableSet:
+      if _is_object_action_authorized(hierarchy=privilege_hierarchy, object=authorizable, action=action):
+        filtered_objects.append(authorizable)
+
+    result['authorized_objects'] = filtered_objects
+    result['user'] = user
+    result['groups'] = groups
+    result['roles'] = list(roles)
+    result['message'] = ''
+    result['status'] = 0
+  except Exception, e:
+    LOG.exception("could not filter objects by user and privilege")
+    result['message'] = unicode(str(e), "utf8")
+
+  return JsonResponse(result)
+
+
+def get_groups_for_user(user):
+  # TODO: Need to implement a way to fetch all groups for a given user
+  return ['analysts']
+
+
+def _to_privilege_hierarchy(privileges):
+  """
+  TODO: Refactor this to be cleaner and more efficient (avoid redundant-insertion)
+  Converts a list of privileges to a hierarchical tree of privileges by object, where the privilege is stored into a key
+  named SENTRY_PRIVILEGE_KEY.
+  NOTE: This assumes no objects share the same name as SENTRY_PRIVILEGE_KEY
+  """
+  hierarchy = {}
+
+  for privilege in privileges:
+    if privilege['column']:
+      if privilege['server'] not in hierarchy:
+        hierarchy[privilege['server']] = {
+          privilege['database']: {
+            privilege['table']: {
+              privilege['column']: {
+                SENTRY_PRIVILEGE_KEY: privilege
+            }
+          }
+        }
+      }
+      elif privilege['database'] not in hierarchy[privilege['server']]:
+        hierarchy[privilege['server']][privilege['database']] = {
+          privilege['table']: {
+            privilege['column']: {
+              SENTRY_PRIVILEGE_KEY: privilege
+            }
+          }
+        }
+      elif privilege['table'] not in hierarchy[privilege['server']][privilege['database']]:
+        hierarchy[privilege['server']][privilege['database']][privilege['table']] = {
+          privilege['column']: {
+            SENTRY_PRIVILEGE_KEY: privilege
+          }
+        }
+      else:  # We don't need to check if column is in the hierarchy b/c it's the lowest level object
+        hierarchy[privilege['server']][privilege['database']][privilege['table']][privilege['column']] = {
+          SENTRY_PRIVILEGE_KEY: privilege
+        }
+    elif privilege['table']:
+      if privilege['server'] not in hierarchy:
+        hierarchy[privilege['server']] = {
+          privilege['database']: {
+            privilege['table']: {
+              SENTRY_PRIVILEGE_KEY: privilege
+            }
+          }
+        }
+      elif privilege['database'] not in hierarchy[privilege['server']]:
+        hierarchy[privilege['server']][privilege['database']] = {
+          privilege['table']: {
+            SENTRY_PRIVILEGE_KEY: privilege
+          }
+        }
+      elif privilege['table'] not in hierarchy[privilege['server']][privilege['database']]:
+        hierarchy[privilege['server']][privilege['database']][privilege['table']] = {
+          SENTRY_PRIVILEGE_KEY: privilege
+        }
+      else:
+        hierarchy[privilege['server']][privilege['database']][privilege['table']][SENTRY_PRIVILEGE_KEY] = privilege
+    elif privilege['database']:
+      if privilege['server'] not in hierarchy:
+        hierarchy[privilege['server']] = {
+          privilege['database']: {
+            SENTRY_PRIVILEGE_KEY: privilege
+          }
+        }
+      elif privilege['database'] not in hierarchy[privilege['server']]:
+        hierarchy[privilege['server']][privilege['database']] = {
+          SENTRY_PRIVILEGE_KEY: privilege
+        }
+      else:
+        hierarchy[privilege['server']][privilege['database']][SENTRY_PRIVILEGE_KEY] = privilege
+    else:  # Server scope privilege
+      if privilege['server'] not in hierarchy:
+        hierarchy[privilege['server']] = {
+          SENTRY_PRIVILEGE_KEY: privilege
+        }
+      else:
+        hierarchy[privilege['server']][SENTRY_PRIVILEGE_KEY] = privilege
+
+  return hierarchy
+
+
+def _is_object_action_authorized(hierarchy, object, action='SELECT'):
+  requested_action_level = PRIVILEGE_HIERARCHY[action]
+  server, db, table, column = object['server'], object['db'], object['table'], object['column']
+
+  # Initialize all privileges for all object levels to non-authorized by default
+  privileges_applied = {
+    'server': -1,
+    'db': -1,
+    'table': -1,
+    'column': -1
+  }
+
+  if server:  # Get server-level privilege
+    if server in hierarchy:
+      if SENTRY_PRIVILEGE_KEY in hierarchy[server]:
+        privileges_applied['server'] = PRIVILEGE_HIERARCHY[hierarchy[server][SENTRY_PRIVILEGE_KEY]['action']]
+      if db and db in hierarchy[server]: # Get db-level privilege
+        if SENTRY_PRIVILEGE_KEY in hierarchy[server][db]:
+          privileges_applied['db'] = PRIVILEGE_HIERARCHY[hierarchy[server][db][SENTRY_PRIVILEGE_KEY]['action']]
+        if table and table in hierarchy[server][db]:  # Get table-level privilege
+          if SENTRY_PRIVILEGE_KEY in hierarchy[server][db][table]:
+            privileges_applied['table'] = PRIVILEGE_HIERARCHY[hierarchy[server][db][table][SENTRY_PRIVILEGE_KEY]['action']]
+          if column and column in hierarchy[server][db][table]:  # Get column-level privilege
+            # Since column is the lowest level, it must have a SENTRY_PRIVILEGE set
+            privileges_applied['column'] = PRIVILEGE_HIERARCHY[hierarchy[server][db][table][column][SENTRY_PRIVILEGE_KEY]['action']]
+
+  # A privilege hierarchy exists and at least one of the granted privileges is greater than or equal to requested action
+  is_authorized = privileges_applied and max(privileges_applied.values()) >= requested_action_level
+  return is_authorized
