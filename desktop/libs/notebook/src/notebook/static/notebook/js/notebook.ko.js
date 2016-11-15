@@ -1312,6 +1312,9 @@ var EditorViewModel = (function() {
     };
 
     self.checkStatus = function () {
+      options = $.extend({
+          handleExpiredSession: true
+      }, options);
       $.post("/notebook/api/check_status", {
         notebook: ko.mapping.toJSON(notebook.getContext()),
         snippet: ko.mapping.toJSON(self.getContext())
