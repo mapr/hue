@@ -15,8 +15,11 @@
 # limitations under the License.
 
 from django.contrib import admin
-from desktop.models import Document, DocumentPermission, DocumentTag
+from desktop.models import Document, DocumentPermission, DocumentTag, Document2, Document2Permission
 
 admin.site.register(Document)
 admin.site.register(DocumentPermission)
 admin.site.register(DocumentTag)
+
+admin.site.register(Document2)
+admin.site.register(Document2Permission)

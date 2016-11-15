@@ -873,7 +873,10 @@
       });
     };
 
-    self.checkStatus = function () {
+    self.checkStatus = function (options) {
+      options = $.extend({
+        handleExpiredSession: true
+      }, options);
       $.post("/notebook/api/check_status", {
         notebook: ko.mapping.toJSON(notebook.getContext()),
         snippet: ko.mapping.toJSON(self.getContext())
@@ -907,7 +910,11 @@
             self.progress(99);
           }
         } else if (data.status == -3) {
+          // Statement expired
           self.status('expired');
+        } else if (data.status == -2 && !options.handleExpiredSession) {
+          // Session expired and we don't want to recreate it inside self._ajaxError()
+          self.status('ready');
         } else {
           self._ajaxError(data);
         }
@@ -1023,7 +1030,9 @@
 
     self.init = function () {
       if (self.status() == 'running' || self.status() == 'available') {
-        self.checkStatus();
+        self.checkStatus({
+          handleExpiredSession: false // Not create sessions on notebook initialisation
+        });
       }
       else if (self.status() == 'loading') {
         self.status('failed');

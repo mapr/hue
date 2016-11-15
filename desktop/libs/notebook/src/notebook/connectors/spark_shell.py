@@ -167,8 +167,13 @@ class SparkApi(Api):
       time.sleep(1)
 
     if status['state'] != 'idle':
+      # Prevent from session leak: try to close session as it is in bad state
+      try:
+        api.cancel(response['id'])
+      except:
+        pass
       info = '\n'.join(status['log']) if status['log'] else 'timeout'
-      raise QueryError(_('The Spark session could not be created in the cluster: %s') % info)
+      raise QueryError(_('The Spark session "%s" could not be created in the cluster: %s') % (lang, info))
 
     return {
         'type': lang,
