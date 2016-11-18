@@ -1817,13 +1817,23 @@ ${ hueIcons.symbols() }
             <p>${ _('There are currently no active sessions.') }</p>
             <!-- /ko -->
             <!-- ko foreach: sessions -->
-            <h4 data-bind="text: $root.getSnippetName(type())" style="clear:left; display: inline-block"></h4>
+
+            <!-- ko if: $root.getSnippetName(type()) -->
+              <h4 data-bind="text: $root.getSnippetName(type())" style="clear:left; display: inline-block"></h4>
+            <!-- /ko -->
+            <!-- ko if: !$root.getSnippetName(type()) -->
+              <h4 style="clear:left; display: inline-block">
+                <span data-bind="text: type()"></span>
+                <small class="text-error"> / wrong session type</small>
+              </h4>
+            <!-- /ko -->
+
             <div class="session-actions">
               <a class="inactive-action pointer" title="${ _('Recreate session') }" rel="tooltip" data-bind="click: function() { $root.selectedNotebook().restartSession($data) }"><i class="fa fa-refresh" data-bind="css: { 'fa-spin': restarting }"></i> ${ _('Recreate') }</a>
               <a class="inactive-action pointer margin-left-10" title="${ _('Close session') }" rel="tooltip" data-bind="click: function() { $root.selectedNotebook().closeAndRemoveSession($data) }"><i class="fa fa-times"></i> ${ _('Close') }</a>
               <a class="inactive-action pointer margin-left-10" title="${ _('Save session settings as default') }" rel="tooltip" data-bind="click: function() { $root.selectedNotebook().saveDefaultUserProperties($data) }"><i class="fa fa-save"></i> ${ _('Set as default settings') }</a>
             </div>
-            <!-- ko if: type()== 'impala' && typeof properties != 'undefined' -->
+            <!-- ko if: type() == 'impala' && 'http_addr' in properties() -->
 
             <ul class="nav nav-list" style="border: none; padding: 0;">
               <li class="nav-header">${ _('address')}</li>

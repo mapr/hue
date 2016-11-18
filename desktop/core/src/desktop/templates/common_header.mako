@@ -474,7 +474,7 @@ if USE_NEW_EDITOR.get():
              <li><a href="/${apps['beeswax'].display_name}"><img src="${ static(apps['beeswax'].icon_path) }" class="app-icon"/> ${_('Hive')}</a></li>
              % endif
            % endif
-           % if 'impala' in apps:
+           % if 'impala' in apps and 'beeswax' in apps:
              % if USE_NEW_EDITOR.get(): ## impala requires beeswax anyway
              <li><a href="${ url('notebook:editor') }?type=impala"><img src="${ static(apps['impala'].icon_path) }" class="app-icon"/> ${_('Impala')}</a></li>
              % else:
@@ -503,7 +503,7 @@ if USE_NEW_EDITOR.get():
        % elif query_apps[1] == 1:
           <li><a href="/${apps[query_apps[0]].display_name}">${apps[query_apps[0]].nice_name}</a></li>
        % endif
-       % if 'beeswax' in apps:
+       % if 'spark' in apps:
         <%
           from notebook.conf import SHOW_NOTEBOOKS
         %>
@@ -542,7 +542,7 @@ if USE_NEW_EDITOR.get():
        <li class="dropdown">
          <a title="${_('Manage data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Data Browsers <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
-           % if 'metastore' in apps:
+           % if 'metastore' in apps and 'beeswax' in apps:
              <li><a href="/${apps['metastore'].display_name}"><img src="${ static(apps['metastore'].icon_path) }" class="app-icon"/> ${_('Metastore Tables')}</a></li>
            % endif
            % if 'hbase' in apps:
@@ -636,13 +636,13 @@ if USE_NEW_EDITOR.get():
          <li class="dropdown">
            <a title="${_('Hadoop Security')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Security <b class="caret"></b></a>
            <ul role="menu" class="dropdown-menu">
-             % if HIVE_V1.get():
+             % if HIVE_V1.get() and 'beeswax' in apps:
              <li><a href="${ url('security:hive') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables')}</a></li>
              % endif
-             % if HIVE_V2.get():
+             % if HIVE_V2.get() and 'beeswax' in apps:
              <li><a href="${ url('security:hive2') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables v2')}</a></li>
              % endif
-             % if SOLR_V2.get():
+             % if SOLR_V2.get() and 'beeswax' in apps:
              <li><a href="${ url('security:solr') }">&nbsp;<i class="fa fa-database"></i>&nbsp;&nbsp;${_('Solr Collections')}</a></li>
              % endif
              <li><a href="${ url('security:hdfs') }">&nbsp;<i class="fa fa-file"></i>&nbsp;&nbsp;${_('File ACLs')}</a></li>

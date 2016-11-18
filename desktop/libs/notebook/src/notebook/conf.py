@@ -22,6 +22,7 @@ except ImportError:
 
 from django.utils.translation import ugettext_lazy as _t
 
+from desktop.conf import APP_BLACKLIST
 from desktop.lib.conf import Config, UnspecifiedConfigSection, ConfigSection,\
   coerce_json_dict, coerce_string, coerce_bool
 
@@ -32,12 +33,19 @@ def get_interpreters(user=None):
 
   interpreters = INTERPRETERS.get()
 
+  app_blacklist = APP_BLACKLIST.get()
+  interpreter_blacklist = []
+  if 'impala' in app_blacklist or 'beeswax' in app_blacklist:
+    interpreter_blacklist.append('impala')
+  if 'beeswax' in app_blacklist:
+    interpreter_blacklist.append('hive')
+
   return [{
       "name": interpreters[i].NAME.get(),
       "type": i,
       "interface": interpreters[i].INTERFACE.get(),
       "options": interpreters[i].OPTIONS.get()}
-      for i in interpreters
+      for i in interpreters if i not in interpreter_blacklist
   ]
 
 
