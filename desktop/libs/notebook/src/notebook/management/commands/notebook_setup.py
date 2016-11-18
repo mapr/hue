@@ -23,6 +23,7 @@ from django.contrib.auth.models import User
 from django.core import management
 from django.core.management.base import BaseCommand
 
+from desktop.conf import APP_BLACKLIST
 from desktop.models import Directory, Document, Document2, Document2Permission, SAMPLE_USER_OWNERS
 from useradmin.models import get_default_user_group, install_sample_user
 
@@ -60,6 +61,12 @@ class Command(BaseCommand):
       # Share with default group
       examples_dir.share(sample_user, Document2Permission.READ_PERM, groups=[get_default_user_group()])
       LOG.info('Successfully installed sample notebook')
+
+    if 'beeswax' in APP_BLACKLIST.get():
+      message = ('Can\'t fully install Spark examples because Hive blacklisted. '
+                 'Please configure and install Hive examples.')
+      LOG.warn(message)
+      raise Warning(message)
 
     from beeswax.management.commands.beeswax_install_examples import Command
     app_name = 'beeswax'

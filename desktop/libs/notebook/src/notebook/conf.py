@@ -58,12 +58,19 @@ def get_ordered_interpreters(user=None):
   reordered_interpreters = interpreters_shown_on_wheel + \
                            [i for i in interpreters if i not in interpreters_shown_on_wheel]
 
+  app_blacklist = appmanager.get_apps_dict(user)
+  interpreter_blacklist = []
+  if 'impala' in app_blacklist or 'beeswax' in app_blacklist:
+    interpreter_blacklist.append('impala')
+  if 'beeswax' in app_blacklist:
+    interpreter_blacklist.append('hive')
+
   return [{
       "name": interpreters[i].NAME.get(),
       "type": i,
       "interface": interpreters[i].INTERFACE.get(),
       "options": interpreters[i].OPTIONS.get()}
-      for i in reordered_interpreters
+      for i in reordered_interpreters if i not in interpreter_blacklist
   ]
 
 INTERPRETERS = UnspecifiedConfigSection(

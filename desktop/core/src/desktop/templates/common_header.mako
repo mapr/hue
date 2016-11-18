@@ -280,6 +280,9 @@ ${ hueIcons.symbols() }
        <li class="dropdown oozie">
          <a title="${_('Query data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-terminal inline-block hideMoreThan950"></i><span class="hide950">Query Editors</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
+           <%
+                 from desktop.conf import USE_NEW_EDITOR
+           %>
            % if 'beeswax' in apps:
              % if USE_NEW_EDITOR.get():
              <li><a href="${ url('notebook:editor') }?type=hive"><img src="${ static(apps['beeswax'].icon_path) }" class="app-icon"/> ${_('Hive')}</a></li>
@@ -287,7 +290,7 @@ ${ hueIcons.symbols() }
              <li><a href="/${apps['beeswax'].display_name}"><img src="${ static(apps['beeswax'].icon_path) }" class="app-icon"/> ${_('Hive')}</a></li>
              % endif
            % endif
-           % if 'impala' in apps:
+           % if 'impala' in apps and 'beeswax' in apps:
              % if USE_NEW_EDITOR.get(): ## impala requires beeswax anyway
              <li><a href="${ url('notebook:editor') }?type=impala"><img src="${ static(apps['impala'].icon_path) }" class="app-icon"/> ${_('Impala')}</a></li>
              % else:
@@ -316,7 +319,7 @@ ${ hueIcons.symbols() }
        % elif query_apps[1] == 1:
           <li><a href="/${apps[query_apps[0]].display_name}"><i class="fa fa-terminal hideMoreThan950"></i><span class="hide950">${apps[query_apps[0]].nice_name}</span></a></li>
        % endif
-       % if 'beeswax' in apps:
+       % if 'spark' in apps:
         <%
           from notebook.conf import SHOW_NOTEBOOKS
         %>
@@ -355,7 +358,7 @@ ${ hueIcons.symbols() }
        <li class="dropdown">
          <a title="${_('Manage data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-database inline-block hideMoreThan950"></i><span class="hide950">Data Browsers</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
-           % if 'metastore' in apps:
+           % if 'metastore' in apps and 'beeswax' in apps:
              <li><a href="/${apps['metastore'].display_name}"><img src="${ static(apps['metastore'].icon_path) }" class="app-icon"/> ${_('Metastore Tables')}</a></li>
            % endif
            % if 'hbase' in apps:
@@ -455,14 +458,14 @@ ${ hueIcons.symbols() }
          <li class="dropdown">
            <a title="${_('Hadoop Security')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-unlock inline-block hideMoreThan950"></i><span class="hide950">Security</span> <b class="caret"></b></a>
            <ul role="menu" class="dropdown-menu">
-             % if HIVE_V1.get():
-             <li><a href="${ url('security:hive') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"> ${_('Hive Tables')}</a></li>
+             % if HIVE_V1.get() and 'beeswax' in apps:
+             <li><a href="${ url('security:hive') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables')}</a></li>
              % endif
-             % if HIVE_V2.get():
-             <li><a href="${ url('security:hive2') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"> ${_('Hive Tables v2')}</a></li>
+             % if HIVE_V2.get() and 'beeswax' in apps:
+             <li><a href="${ url('security:hive2') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables v2')}</a></li>
              % endif
-             % if SOLR_V2.get():
-             <li><a href="${ url('security:solr') }">&nbsp;<i class="fa fa-database"></i>&nbsp;${_('Solr Collections')}</a></li>
+             % if SOLR_V2.get() and 'beeswax' in apps:
+             <li><a href="${ url('security:solr') }">&nbsp;<i class="fa fa-database"></i>&nbsp;&nbsp;${_('Solr Collections')}</a></li>
              % endif
              <li><a href="${ url('security:hdfs') }">&nbsp;<i class="fa fa-file"></i>&nbsp;${_('File ACLs')}</a></li>
            </ul>
