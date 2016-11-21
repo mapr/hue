@@ -70,24 +70,17 @@ def auth_error_handler(view_fn):
 class S3FileSystem(object):
   def __init__(self, s3_connection):
     self._s3_connection = s3_connection
-    self._bucket_cache = None
-
-  def _init_bucket_cache(self):
-    if self._bucket_cache is None:
-      try:
-        buckets = self._s3_connection.get_all_buckets()
-      except S3ResponseError, e:
-        raise S3FileSystemException(e.message or e.reason)
-      self._bucket_cache = {}
-      for bucket in buckets:
-        self._bucket_cache[bucket.name] = bucket
 
   def _get_bucket(self, name):
-    self._init_bucket_cache()
     name = name.lower()
-    if name not in self._bucket_cache:
-      self._bucket_cache[name] = self._s3_connection.get_bucket(name)
-    return self._bucket_cache[name]
+    return self._s3_connection.get_bucket(name, validate=True)
+
+  def _get_all_buckets(self):
+    bucket_dict = {}
+    buckets = self._s3_connection.get_all_buckets()
+    for bucket in buckets:
+      bucket_dict[bucket.name] = bucket
+    return bucket_dict
 
   def _get_or_create_bucket(self, name):
     try:
@@ -99,7 +92,6 @@ class S3FileSystem(object):
           'If you are attempting to create a bucket, this bucket name is already reserved.') % name)
       elif e.status == 404:
         bucket = self._s3_connection.create_bucket(name, location=self._get_location())
-        self._bucket_cache[name] = bucket
       elif e.status == 400:
         raise S3FileSystemException(_('Failed to create bucket named "%s": %s') % (name, e.reason))
       else:
@@ -114,8 +106,6 @@ class S3FileSystem(object):
       for key in bucket.list():
         key.delete()
       self._s3_connection.delete_bucket(name)
-      # Remove bucket from bucket cache
-      self._bucket_cache.pop(name)
       LOG.info('Successfully deleted bucket name "%s" and all its contents.' % name)
     except S3ResponseError, e:
       if e.status == 403:
@@ -216,6 +206,7 @@ class S3FileSystem(object):
     return s3file.open(key, mode=mode)
 
   @translate_s3_error
+  @auth_error_handler
   def read(self, path, offset, length):
     fh = self.open(path, 'r')
     fh.seek(offset, os.SEEK_SET)
@@ -240,6 +231,7 @@ class S3FileSystem(object):
     return self._stats(path) is not None
 
   @translate_s3_error
+  @auth_error_handler
   def stats(self, path):
     path = normpath(path)
     stats = self._stats(path)
@@ -248,13 +240,13 @@ class S3FileSystem(object):
     raise S3FileSystemException("No such file or directory: '%s'" % path)
 
   @translate_s3_error
+  @auth_error_handler
   def listdir_stats(self, path, glob=None):
     if glob is not None:
       raise NotImplementedError(_("Option `glob` is not implemented"))
 
     if s3.is_root(path):
-      self._init_bucket_cache()
-      return sorted([S3Stat.from_bucket(b) for b in self._bucket_cache.values()], key=lambda x: x.name)
+      return sorted([S3Stat.from_bucket(b) for b in self._get_all_buckets().values()], key=lambda x: x.name)
 
     bucket_name, prefix = s3.parse_uri(path)[:2]
     bucket = self._get_bucket(bucket_name)
@@ -270,6 +262,7 @@ class S3FileSystem(object):
     return res
 
   @translate_s3_error
+  @auth_error_handler
   def listdir(self, path, glob=None):
     return [s3.parse_uri(x.path)[2] for x in self.listdir_stats(path, glob)]
 
