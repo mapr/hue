@@ -19,6 +19,8 @@ from desktop import conf
 from desktop.lib.i18n import smart_unicode
 from django.utils.translation import ugettext as _
 
+app_blacklist = conf.APP_BLACKLIST.get()
+
 home_url = url('desktop.views.home')
 from desktop.conf import USE_NEW_EDITOR
 if USE_NEW_EDITOR.get():
@@ -458,9 +460,9 @@ if USE_NEW_EDITOR.get():
      <ul class="nav nav-pills pull-left">
        <li><a title="${_('My documents')}" rel="navigator-tooltip" href="${ home_url }" style="padding-bottom:2px!important"><i class="fa fa-home" style="font-size: 19px"></i></a></li>
        <%
-         query_apps = count_apps(apps, ['beeswax', 'impala', 'rdbms', 'pig', 'jobsub', 'spark']);
+         query_apps = count_apps(apps, ['beeswax', 'impala', 'rdbms', 'pig', 'jobsub']);
        %>
-       % if query_apps[1] > 1:
+       % if query_apps[1] >= 1:
        <li class="dropdown oozie">
          <a title="${_('Query data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Query Editors <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
@@ -474,7 +476,7 @@ if USE_NEW_EDITOR.get():
              <li><a href="/${apps['beeswax'].display_name}"><img src="${ static(apps['beeswax'].icon_path) }" class="app-icon"/> ${_('Hive')}</a></li>
              % endif
            % endif
-           % if 'impala' in apps and 'beeswax' in apps:
+           % if 'impala' in apps and 'beeswax' not in app_blacklist:
              % if USE_NEW_EDITOR.get(): ## impala requires beeswax anyway
              <li><a href="${ url('notebook:editor') }?type=impala"><img src="${ static(apps['impala'].icon_path) }" class="app-icon"/> ${_('Impala')}</a></li>
              % else:
@@ -500,10 +502,8 @@ if USE_NEW_EDITOR.get():
            % endif
          </ul>
        </li>
-       % elif query_apps[1] == 1:
-          <li><a href="/${apps[query_apps[0]].display_name}">${apps[query_apps[0]].nice_name}</a></li>
        % endif
-       % if 'spark' in apps:
+       % if 'notebook' in apps:
         <%
           from notebook.conf import SHOW_NOTEBOOKS
         %>
@@ -538,11 +538,11 @@ if USE_NEW_EDITOR.get():
        <%
          data_apps = count_apps(apps, ['metastore', 'hbase', 'sqoop', 'zookeeper']);
        %>
-       % if data_apps[1] > 1:
+       % if data_apps[1] >= 1:
        <li class="dropdown">
          <a title="${_('Manage data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Data Browsers <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
-           % if 'metastore' in apps and 'beeswax' in apps:
+           % if 'metastore' in apps and 'beeswax' not in app_blacklist:
              <li><a href="/${apps['metastore'].display_name}"><img src="${ static(apps['metastore'].icon_path) }" class="app-icon"/> ${_('Metastore Tables')}</a></li>
            % endif
            % if 'hbase' in apps:
@@ -556,8 +556,6 @@ if USE_NEW_EDITOR.get():
            % endif
          </ul>
        </li>
-       % elif data_apps[1] == 1:
-         <li><a href="/${apps[data_apps[0]].display_name}">${apps[data_apps[0]].nice_name}</a></li>
        % endif
        % if 'oozie' in apps:
        <li class="dropdown oozie">
@@ -636,13 +634,13 @@ if USE_NEW_EDITOR.get():
          <li class="dropdown">
            <a title="${_('Hadoop Security')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">Security <b class="caret"></b></a>
            <ul role="menu" class="dropdown-menu">
-             % if HIVE_V1.get() and 'beeswax' in apps:
+             % if HIVE_V1.get() and 'beeswax' not in app_blacklist:
              <li><a href="${ url('security:hive') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables')}</a></li>
              % endif
-             % if HIVE_V2.get() and 'beeswax' in apps:
+             % if HIVE_V2.get() and 'beeswax' not in app_blacklist:
              <li><a href="${ url('security:hive2') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables v2')}</a></li>
              % endif
-             % if SOLR_V2.get() and 'beeswax' in apps:
+             % if SOLR_V2.get() and 'beeswax' not in app_blacklist:
              <li><a href="${ url('security:solr') }">&nbsp;<i class="fa fa-database"></i>&nbsp;&nbsp;${_('Solr Collections')}</a></li>
              % endif
              <li><a href="${ url('security:hdfs') }">&nbsp;<i class="fa fa-file"></i>&nbsp;&nbsp;${_('File ACLs')}</a></li>
