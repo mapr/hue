@@ -526,7 +526,7 @@ class TestFileBrowserWithHadoop(object):
     finish = []
     try:
       prefix = self.cluster.fs_prefix + '/test_view_snappy_compressed'
-      self.self.cluster.fs.mkdir(prefix)
+      self.cluster.fs.mkdir(prefix)
 
       f = cluster.fs.open(prefix + '/test-view.snappy', "w")
       f.write(snappy.compress('This is a test of the emergency broadcasting system.'))
@@ -541,22 +541,22 @@ class TestFileBrowserWithHadoop(object):
       f.close()
 
       # Snappy compressed fail
-      response = c.get('/filebrowser/view=%s/test-view.notsnappy?compression=snappy' % prefix)
+      response = self.c.get('/filebrowser/view=%s/test-view.notsnappy?compression=snappy' % prefix)
       assert_true('Failed to decompress' in response.context['message'], response)
 
       # Snappy compressed succeed
-      response = c.get('/filebrowser/view=%s/test-view.snappy' % prefix)
+      response = self.c.get('/filebrowser/view=%s/test-view.snappy' % prefix)
       assert_equal('snappy', response.context['view']['compression'])
       assert_equal(response.context['view']['contents'], 'This is a test of the emergency broadcasting system.', response)
 
       # Snappy compressed succeed
-      response = c.get('/filebrowser/view=%s/test-view.stillsnappy' % prefix)
+      response = self.c.get('/filebrowser/view=%s/test-view.stillsnappy' % prefix)
       assert_equal('snappy', response.context['view']['compression'])
       assert_equal(response.context['view']['contents'], 'The broadcasters of your area in voluntary cooperation with the FCC and other authorities.', response)
 
       # Largest snappy compressed file
       finish.append( MAX_SNAPPY_DECOMPRESSION_SIZE.set_for_testing(1) )
-      response = c.get('/filebrowser/view=%s/test-view.stillsnappy?compression=snappy' % prefix)
+      response = self.c.get('/filebrowser/view=%s/test-view.stillsnappy?compression=snappy' % prefix)
       assert_true('File size is greater than allowed max snappy decompression size of 1' in response.context['message'], response)
 
     finally:
@@ -676,6 +676,23 @@ class TestFileBrowserWithHadoop(object):
     response = self.c.get('/filebrowser/view=%s/test-parquet.parquet' % prefix)
 
     assert_true('FRANCE' in response.context['view']['contents'])
+
+
+  def test_view_parquet_snappy(self):
+    if not snappy_installed():
+      raise SkipTest
+
+    prefix = self.cluster.fs_prefix + '/test_view_parquet_snappy'
+    self.cluster.fs.mkdir(prefix)
+
+    with open('apps/filebrowser/src/filebrowser/test_data/parquet-snappy.parquet') as f:
+      hdfs = self.cluster.fs.open(prefix + '/test-parquet-snappy.parquet', "w")
+      hdfs.write(f.read())
+
+    # autodetect
+    response = self.c.get('/filebrowser/view=%s/test-parquet-snappy.parquet' % prefix)
+
+    assert_true('SR3_ndw_otlt_cmf_xref_INA' in response.context['view']['contents'], response.context['view']['contents'])
 
 
   def test_view_gz(self):
