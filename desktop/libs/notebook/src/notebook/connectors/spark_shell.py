@@ -314,15 +314,16 @@ class SparkApi(Api):
       }
     elif content['status'] == 'error':
       tb = content.get('traceback', None)
+      evalue = content.get('evalue', None)
 
       if tb is None or not tb:
         msg = content.get('ename', 'unknown error')
-
-        evalue = content.get('evalue')
         if evalue is not None:
           msg = '%s: %s' % (msg, evalue)
       else:
         msg = ''.join(tb)
+        if evalue is not None:
+          msg = "%s\n%s" % (evalue, msg)
 
       raise QueryError(msg)
 
