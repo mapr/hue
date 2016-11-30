@@ -35,14 +35,10 @@ shift
 #get spark_home
   if [ $command == "livy_server" ]; then
     if [ -z "$SPARK_HOME" ]; then
-        if [ -d /opt/mapr/spark/spark-* ]; then
-          cd /opt/mapr/spark/spark-*
-          SPARK_HOME=`pwd`
-          export SPARK_HOME=`pwd`
-        else
-          echo "Cannot export spark home!"
-          exit 0
-        fi
+        SPARK_HOME=$(for i in /opt/mapr/spark/*;
+                 do echo $i;
+             done | sort -t. -k 1r,1 -k 2nr,2 -k 3nr,3 | head -1)
+        export SPARK_HOME=$SPARK_HOME
     fi
     export PATH="$PATH:$SPARK_HOME/bin"
   fi
