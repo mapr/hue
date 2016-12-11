@@ -142,7 +142,7 @@ ${ hueIcons.symbols() }
         </svg>
       </a>
       <div class="compose-action btn-group">
-        <button class="btn" data-bind="click: function(){ ko.dataFor($('.page-content')[0]).currentApp('editor') }" title="${ _('Compose a query') }">${ _('Compose') }</button>
+        <button class="btn" data-bind="click: function(){ ko.dataFor($('.page-content')[0]).currentApp('editor') }" title="${ _('Open editor') }">${ _('Compose') }</button>
         <button class="btn dropdown-toggle" data-toggle="dropdown">
           <span class="caret"></span>
         </button>
