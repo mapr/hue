@@ -20,9 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.cloudera.hue</groupId>
+  <groupId>com.mapr</groupId>
   <artifactId>hue-parent</artifactId>
-  <version>3.12.0-SNAPSHOT</version>
+  <version>3.12.0-mapr</version>
   <packaging>pom</packaging>
 
   <name>Hue Maven Parent POM</name>
@@ -37,8 +37,8 @@
   </licenses>
 
   <properties>
-    <hadoop-mr1.version>2.6.0-mr1-cdh5.5.0</hadoop-mr1.version>
-    <hadoop.version>2.6.0-cdh5.5.0</hadoop.version>
+    <hadoop-mr1.version>2.4.1-mapr-1408</hadoop-mr1.version>
+    <hadoop.version>2.7.0-mapr-1607</hadoop.version>
     <slf4j.version>1.6.1</slf4j.version>
     <commons-logging.version>1.0.4</commons-logging.version>
     <thrift.version>0.9.0</thrift.version>
@@ -49,14 +49,14 @@
   </properties>
 
   <organization>
-    <name>Cloudera</name>
-    <url>http://www.cloudera.com</url>
+    <name>MapR</name>
+    <url>http://www.mapr.com</url>
   </organization>
 
   <scm>
-   <connection>scm:git:git://github.com/cloudera/hue.git</connection>
-   <developerConnection>scm:git:git@github.com:cloudera/hue.git</developerConnection>
-   <url>https://github.com/cloudera/hue</url>
+    <connection>scm:git:git://github.com/mapr/hue.git</connection>
+    <developerConnection>scm:git:git@github.com:mapr/hue.git</developerConnection>
+    <url>https://github.com/mapr/hue</url>
   </scm>
 
   <build>
@@ -129,7 +129,7 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
-        <version>${hadoop-mr1.version}</version>
+        <version>${hadoop.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -191,22 +191,31 @@
 
   <repositories>
     <repository>
-      <id>cdh.releases.repo</id>
-      <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
-      <name>Cloudera Public Repositories</name>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
+      <id>mapr release</id>
+      <url>http://repository.mapr.com/maven/</url>
+      <snapshots><enabled>true</enabled></snapshots>
+      <releases><enabled>true</enabled></releases>
     </repository>
     <repository>
-      <id>cdh.snapshots.repo</id>
-      <url>https://repository.cloudera.com/content/repositories/snapshots</url>
-      <name>Cloudera Snapshots Repository</name>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
+      <id>apache release</id>
+      <url>https://repository.apache.org/content/repositories/releases/</url>
     </repository>
-  </repositories>
-
+      <repository>
+        <id>cloudera.repos</id>
+        <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
+        <name>Cloudera Public Repositories</name>
+        <snapshots>
+          <enabled>false</enabled>
+        </snapshots>
+      </repository>
+      <repository>
+        <id>cloudera.snapshots.repo</id>
+        <url>https://repository.cloudera.com/content/repositories/snapshots</url>
+        <name>Cloudera Snapshots Repository</name>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+      </repository>
+    </repositories>
 
 </project>
