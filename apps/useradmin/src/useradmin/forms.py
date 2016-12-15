@@ -149,7 +149,7 @@ class UserChangeForm(django.contrib.auth.forms.UserChangeForm):
       if 'is_superuser' in self.fields:
         self.fields['is_superuser'].widget.attrs['readonly'] = True
         self.fields['is_superuser'].widget.attrs['onclick'] = 'return false'
-    if 'unlock_account' in self.fields:
+      if 'unlock_account' in self.fields:
         self.fields['unlock_account'].widget.attrs['readonly'] = True
       if 'groups' in self.fields:
         self.fields['groups'].widget.attrs['readonly'] = True

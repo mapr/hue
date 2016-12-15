@@ -1356,7 +1356,11 @@ var EditorViewModel = (function() {
               self.progress(99);
             }
           } else if (data.status == -3) {
-            self.status('expired');
+              // Statement expired
+              self.status('expired');
+          } else if (data.status == -2 && !options.handleExpiredSession) {
+              // Session expired and we don't want to recreate it inside self._ajaxError()
+              self.status('ready');
           } else {
             self._ajaxError(data);
           }
