@@ -68,6 +68,7 @@ case $startStop in
   # Generate secure keys
   nohup $HUE_HOME/bin/secure.sh >> "$secure_sh_log" 2>&1 < /dev/null &
   nohup $HUE_HOME/build/env/bin/hue $command >> "$log" 2>&1 < /dev/null &
+  echo "Hue started, pid `cat $pid`"
   echo $! > $pid
   echo "`date` $command started, pid `cat $pid`" >> "$log" 2>&1 < /dev/null
     ;;
