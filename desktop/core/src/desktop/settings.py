@@ -317,8 +317,11 @@ else:
   test_user = os.environ.get('DESKTOP_DB_TEST_USER', 'hue_test')
   logging.debug("DESKTOP_DB_TEST_USER SET: %s" % test_user)
 
+  test_engine = os.environ.get('DESKTOP_DB_TEST_ENGINE', 'sqlite3')
+  logging.debug("DESKTOP_DB_TEST_ENGINE SET: %s" % test_engine)
+
   default_db = {
-    "ENGINE" : desktop.conf.DATABASE.ENGINE.get(),
+    "ENGINE" : desktop.conf.DATABASE.ENGINE.get() if 'test' not in sys.argv else desktop.conf.coerce_database(test_engine),
     "NAME" : desktop.conf.DATABASE.NAME.get(),
     "USER" : desktop.conf.DATABASE.USER.get(),
     "SCHEMA" : desktop.conf.DATABASE.SCHEMA.get(),
