@@ -210,9 +210,9 @@ class TestMetastoreWithHadoop(BeeswaxSampleProvider):
     partition_spec = "baz='baz_one',boom='boom_two'"
     response = self.client.get("/metastore/table/%s/test_partitions/partitions/%s/browse" % (self.db_name, partition_spec), follow=True)
     if is_live_cluster():
-      path = '/user/hive/warehouse/%s.db/test_partitions/baz=baz_one/boom=boom_two' % self.db_name
+      path = 'maprfs:/user/hive/warehouse/%s.db/test_partitions/baz=baz_one/boom=boom_two' % self.db_name
     else:
-      path = '/user/hive/warehouse/test_partitions/baz=baz_one/boom=boom_two'
+      path = 'maprfs:/user/hive/warehouse/test_partitions/baz=baz_one/boom=boom_two'
     filebrowser_path = urllib.unquote(reverse("filebrowser.views.view", kwargs={'path': path}))
     assert_equal(response.request['PATH_INFO'], filebrowser_path)
 
