@@ -140,7 +140,7 @@ def _massage_uri(uri):
     elif uri.startswith('/'):
       uri = get_defaultfs() + uri
 
-  return uri
+  return uri.replace('maprfs:////', 'maprfs:///')
 
 
 def _get_splitted_path(path):
