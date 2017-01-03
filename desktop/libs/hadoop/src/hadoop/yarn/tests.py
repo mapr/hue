@@ -17,8 +17,10 @@
 
 import logging
 
+from nose.plugins.skip import SkipTest
 from nose.tools import assert_true, assert_equal, assert_not_equal
 
+from hadoop.cluster import is_yarn
 from hadoop.yarn import clients
 from hadoop.yarn import mapreduce_api
 from hadoop.yarn.mapreduce_api import MapreduceApi, get_mapreduce_api
@@ -29,6 +31,8 @@ LOG = logging.getLogger(__name__)
 
 
 def test_get_log_client():
+  if not is_yarn():
+    raise SkipTest("Skipping because cluster in Classic mode")
   old_max_heap_size = clients.MAX_HEAP_SIZE
   clients.MAX_HEAP_SIZE = 2
   try:
