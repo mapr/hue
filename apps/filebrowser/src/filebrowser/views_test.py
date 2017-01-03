@@ -323,7 +323,10 @@ class TestFileBrowserWithHadoop(object):
     assert_false('Change owner' in response.content)
 
     # Only the Hadoop superuser really has carte blanche here
-    c2 = make_logged_in_client(self.cluster.superuser)
+    kwargs = {}
+    if os.environ.get('HDFS_SUPERUSER_PASSWORD'):
+      kwargs['password'] = os.environ.get('HDFS_SUPERUSER_PASSWORD')
+    c2 = make_logged_in_client(self.cluster.superuser, **kwargs)
     self.cluster.fs.setuser(self.cluster.superuser)
 
     PATH = u"%s/test-chown-en-Español" % prefix
