@@ -256,7 +256,7 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
               <div class="control-group">
                 <label class="control-label">${ _('Name') }</label>
                 <div class="controls">
-                  <input type="text" name="link-name" data-bind="value: name">
+                  <input type="text" name="link-name" data-bind="value: persisted() ? new_name : name">
                 </div>
               </div>
               <div class="control-group" data-bind="visible: !persisted()">
@@ -1132,6 +1132,7 @@ var fetch_jobs = function() {
 };
 
 $(document).on('saved.link', fetch_links);
+$(document).on('saved.link', fetch_jobs);
 $(document).on('saved.job', fetch_jobs);
 $(document).on('cloned.link', fetch_links);
 $(document).on('cloned.job', fetch_jobs);

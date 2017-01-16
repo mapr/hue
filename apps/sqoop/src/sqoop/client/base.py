@@ -128,6 +128,8 @@ class SqoopClient(object):
     return link
 
   def update_link(self, link):
+    submit_name = link.name
+    link.name = link.new_name
     if not link.link_config_values:
       link.link_config_values = self.get_connectors()[0].link_config
     link.updated = int( round(time.time() * 1000) )
@@ -135,7 +137,7 @@ class SqoopClient(object):
     request_dict = {
       'links': [link_dict]
     }
-    resp = self._root.put('%s/link/%s/' % (API_VERSION, link.name), data=json.dumps(request_dict), params=self.params, headers=self.headers)
+    resp = self._root.put('%s/link/%s/' % (API_VERSION, submit_name), data=json.dumps(request_dict), params=self.params, headers=self.headers)
     
     # Lame check that iterates to make sure we have an error
     # Server responds with: {'validation-result': [{},{}]} or {'validation-result': [{KEY: ERROR},{KEY: ERROR}]}

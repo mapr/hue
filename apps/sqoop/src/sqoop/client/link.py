@@ -26,7 +26,7 @@ class Link(object):
 
   SKIP = ('id', 'creation_date', 'creation_user', 'update_date', 'update_user')
 
-  def __init__(self, name, connector_id, link_config_values=None, enabled=True, creation_user='hue', creation_date=0, update_user='hue', connector_name='', update_date=0, **kwargs):
+  def __init__(self, name, connector_id, link_config_values=None, enabled=True, creation_user='hue', creation_date=0, update_user='hue', connector_name='', update_date=0, new_name='', **kwargs):
     self.id = kwargs.setdefault('id', -1)
     self.creation_user = creation_user
     self.creation_date = creation_date
@@ -34,6 +34,7 @@ class Link(object):
     self.update_date = update_date
     self.enabled = enabled
     self.name = name
+    self.new_name = new_name
     self.connector_id = connector_id
     self.connector_name = connector_name
     self.link_config_values = link_config_values
@@ -73,6 +74,7 @@ class Link(object):
     d = {
       'id': self.id,
       'name': self.name,
+      'new_name': self.new_name,
       'creation-user': self.creation_user,
       'creation-date': self.creation_date,
       'update-user': self.update_user,
@@ -80,7 +82,8 @@ class Link(object):
       'connector-id': self.connector_id,
       'connector-name': self.connector_name,
       'link-config-values': [ config.to_dict() for config in self.link_config_values ],
-      'enabled': self.enabled
+      'enabled': self.enabled,
+      'persisted': True
     }
     return d
 

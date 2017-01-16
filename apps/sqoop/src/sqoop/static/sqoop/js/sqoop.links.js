@@ -19,6 +19,7 @@ var links = (function($) {
   var LinkModel = koify.Model.extend({
     'id': -1,
     'name': null,
+    'new_name': null,
     'link_config_values': [],
     'connector_id': 0,
     'connector_name': '',
@@ -26,6 +27,7 @@ var links = (function($) {
     'creation_user': null,
     'update_date': null,
     'update_user': null,
+    'persisted': false,
     'initialize': function(attrs) {
       var self = this;
       var _attrs = $.extend(true, {}, attrs);
@@ -49,11 +51,9 @@ var links = (function($) {
     'initialize': function(options) {
       var self = this;
       self.parent.initialize.apply(self, arguments);
+      self.new_name(self.name());
       self.selected = ko.observable();
       self.connectors = ko.observableArray();
-      self.persisted = ko.computed(function() {
-        return self.id() > -1;
-      });
       self.connector = ko.computed(function() {
         var connector = null;
         $.each(self.connectors(), function(index, $connector) {
