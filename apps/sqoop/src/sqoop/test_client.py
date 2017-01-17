@@ -21,45 +21,44 @@ import tempfile
 
 from nose.tools import assert_true, assert_equal, assert_false
 
-from sqoop.conf import SQOOP_CONF_DIR
+from sqoop.conf import SQOOP_CONF_DIR, SECURITY_ENABLED, MECHANISM
 from sqoop.client.base import SqoopClient
 from sqoop.sqoop_properties import reset
 
 
 def test_security_plain():
-  tmpdir = tempfile.mkdtemp()
-  finish = SQOOP_CONF_DIR.set_for_testing(tmpdir)
-
+  finish = []
+  finish.append(SECURITY_ENABLED.set_for_testing(False))
+  finish.append(MECHANISM.set_for_testing('none'))
   try:
-    xml = sqoop_properties(authentication='SIMPLE')
-    with file(os.path.join(tmpdir, 'sqoop.properties'), 'w') as f:
-      f.write(xml)
-    reset()
-
-    client = SqoopClient('test.com', 'test')
+    client = SqoopClient('test.com', 'test', security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
     assert_false(client._security_enabled)
+    assert_equal(client._mechanism, 'none')
   finally:
-    reset()
-    finish()
-    shutil.rmtree(tmpdir)
+    map(lambda f: f(), finish)
 
 
 def test_security_kerberos():
-  tmpdir = tempfile.mkdtemp()
-  finish = SQOOP_CONF_DIR.set_for_testing(tmpdir)
-
+  finish = []
+  finish.append(SECURITY_ENABLED.set_for_testing(True))
+  finish.append(MECHANISM.set_for_testing('GSSAPI'))
   try:
-    xml = sqoop_properties(authentication='KERBEROS')
-    with file(os.path.join(tmpdir, 'sqoop.properties'), 'w') as f:
-      f.write(xml)
-    reset()
-
-    client = SqoopClient('test.com', 'test')
+    client = SqoopClient('test.com', 'test', security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
     assert_true(client._security_enabled)
+    assert_equal(client._mechanism, 'GSSAPI')
   finally:
-    reset()
-    finish()
-    shutil.rmtree(tmpdir)
+    map(lambda f: f(), finish)
+
+def test_security_maprsecurity():
+  finish = []
+  finish.append(SECURITY_ENABLED.set_for_testing(True))
+  finish.append(MECHANISM.set_for_testing('MAPR-SECURITY'))
+  try:
+    client = SqoopClient('test.com', 'test', security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
+    assert_true(client._security_enabled)
+    assert_equal(client._mechanism, 'MAPR-SECURITY')
+  finally:
+    map(lambda f: f(), finish)
 
 
 def sqoop_properties(authentication='SIMPLE'):
