@@ -38,5 +38,5 @@ MECHANISM = Config("mechanism",
 
 SQOOP_CONF_DIR = Config(
   key="sqoop_conf_dir",
-  default='/etc/sqoop2/conf',
+  default='/opt/mapr/sqoop/sqoop-2.0.0/conf',
   help=_t("Path to Sqoop2 configuration directory."))
