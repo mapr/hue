@@ -341,7 +341,7 @@ ${ hueIcons.symbols() }
                <li><a href="${ url('notebook:new') }"><i class="fa fa-fw fa-plus" style="vertical-align: middle"></i>${_('Notebook')}</a></li>
                <li><a href="${ url('notebook:notebooks') }"><i class="fa fa-fw fa-tags" style="vertical-align: middle"></i>${_('Notebooks')}</a></li>
                <li class="divider"></li>
-               % for notebook in notebooks:
+               % for notebook in [i for i in notebooks if not i["path"].startswith("/" + Document2.TRASH_DIR)]:
                  <li>
                    <a href="${ url('notebook:notebook') }?notebook=${ notebook['id'] }">
                      <i class="fa fa-file-text-o" style="vertical-align: middle"></i> ${ notebook['name'] |n }
