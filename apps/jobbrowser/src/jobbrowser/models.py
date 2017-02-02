@@ -460,7 +460,7 @@ class TaskAttempt(object):
       raise ttypes.TaskTrackerNotFoundException(
                           _("Cannot look up TaskTracker %(id)s.") % {'id': self.taskTrackerId})
 
-  def get_task_log(self):
+  def get_task_log(self, offset=0):
     """
     get_task_log(task_id) -> (stdout_text, stderr_text, syslog_text)
 
@@ -474,6 +474,10 @@ class TaskAttempt(object):
 
     log_filters = ('stdout', 'stderr', 'syslog')
     logs = [self.get_specific_log(filter) for filter in log_filters]
+
+    if offset != 0:
+      logs = ['\n'.join(log.split('\n')[offset:]) for log in logs]
+
     return logs
   
   def get_specific_log(self, log_filter):
