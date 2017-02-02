@@ -153,6 +153,12 @@ class ResourceManagerApi(object):
       if token:
         self.cancel_token(token)
 
+  def nodes(self, healthy=None):
+    params = self._get_params()
+    if healthy is not None:
+      params['healthy'] = healthy
+    return self._execute(self._root.get, 'cluster/nodes', params=params, headers={'Accept': _JSON_CONTENT_TYPE})
+
   def delegation_token(self):
     params = self._get_params()
     data = {'renewer': self.username}
