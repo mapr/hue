@@ -122,7 +122,9 @@ ${ commonheader(_('Query'), app_name, user, request) | n,unicode }
 
                   <div class="actions">
                     <button data-bind="click: tryExecuteQuery" type="button" id="executeQuery" class="btn btn-primary disable-feedback" tabindex="2">${_('Execute')}</button>
-                    <button data-bind="click: trySaveQuery, css: {'hide': !$root.query.id() || $root.query.id() == -1}" type="button" class="btn hide">${_('Save')}</button>
+                    % if can_edit_name:
+                      <button data-bind="click: trySaveQuery" type="button" class="btn">${_('Save')}</button>
+                    % endif
                     <button data-bind="click: trySaveAsQuery" type="button" class="btn">${_('Save as...')}</button>
                     <button data-bind="click: tryExplainQuery" type="button" id="explainQuery" class="btn">${_('Explain')}</button>
                     &nbsp; ${_('or create a')} &nbsp;<a type="button" class="btn" href="${ url('rdbms:execute_query') }">${_('New query')}</a>
