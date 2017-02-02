@@ -50,6 +50,8 @@ class ResultEncoder(json.JSONEncoder):
       return obj.strftime('%Y-%m-%d %Z')
     elif isinstance(obj, decimal.Decimal):
       return float(obj)
+    elif isinstance(obj, datetime.timedelta):
+      return str(obj)
     return super(ResultEncoder, self).default(obj)
 
 
