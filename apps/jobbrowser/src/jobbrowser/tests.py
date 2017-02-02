@@ -348,6 +348,9 @@ class TestJobBrowserWithHadoop(unittest.TestCase, OozieServerProvider):
     if not is_live_cluster():
       raise SkipTest
 
+    if not cluster.is_yarn():
+        raise SkipTest('Hue can not display logs of completed jobs in Classic mode')
+
     response = TestJobBrowserWithHadoop.client.get('/jobbrowser/jobs/%s/single_logs?format=json' % (TestJobBrowserWithHadoop.hadoop_job_id))
     json_resp = json.loads(response.content)
 
