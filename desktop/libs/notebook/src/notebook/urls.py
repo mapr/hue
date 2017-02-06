@@ -25,9 +25,6 @@ from django.conf.urls import patterns, url
 # For now though we have to load in the monkey patches here because we know
 # this file has been loaded after `desktop.settings` has been loaded.
 
-# Start DBProxy server
-import notebook.monkey_patches
-
 
 # Views
 urlpatterns = patterns('notebook.views',
