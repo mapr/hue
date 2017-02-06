@@ -24,6 +24,7 @@ LOG = logging.getLogger(__name__)
 
 try:
   from py4j.java_gateway import JavaGateway, JavaObject
+  from py4j.java_collections import JavaList
 except ImportError, e:
   LOG.exception('Failed to import py4j')
 
@@ -103,8 +104,12 @@ class Cursor():
       for c in xrange(self._meta.getColumnCount()):
         cell = self.rs.getObject(c + 1)
 
+        if isinstance(cell, JavaList):
+          cell = [str(i) for i in cell] # LIST
+
         if isinstance(cell, JavaObject):
           cell = str(cell) # DATETIME
+
         row.append(cell)
 
       res.append(row)
