@@ -1166,6 +1166,7 @@ from filebrowser.conf import ENABLE_EXTRACT_UPLOADED_ARCHIVE
       };
 
       self.updateFileList = function (files, page, breadcrumbs, currentDirPath, isSentryManaged) {
+        self.currentPath(currentDirPath);
         $(".tooltip").hide();
 
         self.isCurrentDirSentryManaged(isSentryManaged);
