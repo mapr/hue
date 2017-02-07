@@ -77,8 +77,8 @@ ${ fb_components.menubar() }
               % endif
               <li class="divider" data-bind="visible: !isS3()"></li>
               % if is_fs_superuser:
-              <li data-bind="css: {'disabled': isCurrentDirSentryManaged() || selectedSentryFiles().length > 0 }">
-                <a href="javascript: void(0)" data-bind="visible: ! inTrash(), click: changeOwner, enable: selectedFiles().length > 0">
+              <li data-bind="css: {'disabled': isCurrentDirSentryManaged() || selectedSentryFiles().length > 0 }, visible: !isS3()">
+                <a href="#" data-bind="visible: ! inTrash(), click: changeOwner, enable: selectedFiles().length > 0">
                   <i class="fa fa-fw fa-user"></i> ${_('Change owner / group')}
                 </a>
               </li>
