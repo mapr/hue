@@ -74,7 +74,7 @@ def get_ordered_interpreters(user=None):
     if app not in available_apps:
       interpreter_blacklist += app_interpreters[app]
   # handle case when user have access to impala but beeswax blacklisted
-  if 'beeswax' in appmanager.get_apps_dict():
+  if 'beeswax' not in appmanager.get_apps_dict():
     interpreter_blacklist.append('impala')
 
   return [{
