@@ -114,6 +114,8 @@ class TestImpalaIntegration:
     if not is_live_cluster():
       raise SkipTest
 
+    cls.finish.append(conf.QUERYCACHE_ROWS.set_for_testing(50000))
+
     cls.client = make_logged_in_client()
     cls.user = User.objects.get(username='test')
     add_to_group('test')
@@ -423,7 +425,7 @@ def create_saved_query(app_name, owner):
 
 def test_ssl_cacerts():
   for desktop_kwargs, conf_kwargs, expected in [
-      ({'present': False}, {'present': False}, ''),
+      ({'present': False}, {'present': False}, '/opt/mapr/hue/hue-3.12.0/cert.pem'),
       ({'present': False}, {'data': 'local-cacerts.pem'}, 'local-cacerts.pem'),
 
       ({'data': 'global-cacerts.pem'}, {'present': False}, 'global-cacerts.pem'),
