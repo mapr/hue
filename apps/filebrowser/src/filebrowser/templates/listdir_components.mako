@@ -1190,8 +1190,6 @@ from filebrowser.conf import ENABLE_EXTRACT_UPLOADED_ARCHIVE
           return new Breadcrumb(breadcrumb);
         }));
 
-        self.currentPath(currentDirPath);
-
         $('.uploader').trigger('fb:updatePath', {dest:self.currentPath()});
 
         self.isLoading(false);

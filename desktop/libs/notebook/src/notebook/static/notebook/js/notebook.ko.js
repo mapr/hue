@@ -1311,7 +1311,7 @@ var EditorViewModel = (function() {
       });
     };
 
-    self.checkStatus = function () {
+    self.checkStatus = function (options) {
       options = $.extend({
           handleExpiredSession: true
       }, options);
