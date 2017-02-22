@@ -256,7 +256,7 @@ except ImportError, e:
                   &nbsp;${ _('Table') }
                 </label>
                 <div data-bind="visible: saveTarget() == 'hive-table'" class="inline">
-                  <input data-bind="hivechooser: savePath" type="text" name="target_table" class="input-xlarge margin-left-10"  pattern="^[a-zA-Z0-9_]*$" title="${ _('Only alphanumeric and underscore characters') }" placeholder="${_('Table name or <database>.<table>')}">
+                  <input data-bind="hivechooser: savePath" type="text" name="target_table" class="input-xlarge margin-left-10"  pattern="^([a-zA-Z0-9_]+\.)?[a-zA-Z0-9_]*$" title="${ _('Only alphanumeric and underscore characters') }" placeholder="${_('Table name or <database>.<table>')}">
                 </div>
               </div>
             </div>
@@ -340,7 +340,7 @@ except ImportError, e:
         });
 
         self.isValidDestination = ko.pureComputed(function () {
-          return self.savePath() !== '' && (self.saveTarget() != 'hive-table' || /^[a-zA-Z0-9_]*$/.test(self.savePath()));
+          return self.savePath() !== '' && (self.saveTarget() != 'hive-table' || /^([a-zA-Z0-9_]+\.)?[a-zA-Z0-9_]*$/.test(self.savePath()));
         });
 
         self.trySaveResults = function () {
