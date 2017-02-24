@@ -95,6 +95,18 @@ def rm_ha(funct):
   return wraps(funct)(decorate)
 
 
+def _get_started_time_begin(time_value, time_unit):
+    if time_unit == 'hours':
+      start_date = datetime.utcnow() - timedelta(hours=time_value)
+    elif time_unit == 'minutes':
+      start_date = datetime.utcnow() - timedelta(minutes=time_value)
+    else:
+      start_date = datetime.utcnow() - timedelta(days=time_value)
+
+    elapsed_time = start_date - datetime.utcfromtimestamp(0)
+    return int(elapsed_time.days * 86400 + elapsed_time.seconds) * 1000
+
+
 class JobBrowserApi(object):
 
   def paginate_task(self, task_list, pagenum):
@@ -158,7 +170,7 @@ class JtApi(JobBrowserApi):
             for j in self._filter_jobs(jobs, **kwargs)
             if not check_permission or user.is_superuser or j.profile.user == user.username][:limit]
 
-  def _filter_jobs(self, jobs, username=None, text=None):
+  def _filter_jobs(self, jobs, username=None, text=None, **kwargs):
     def predicate(job):
       """
       Return True if a ThriftJobInProgress structure matches the supplied filters.
@@ -183,6 +195,11 @@ class JtApi(JobBrowserApi):
             break
 
         if not saw_text:
+          return False
+
+      if kwargs.get('time_value'):
+        startedTimeBegin = _get_started_time_begin(kwargs.get('time_value'), kwargs.get('time_unit'))
+        if job.launchTime < startedTimeBegin:
           return False
 
       return True
@@ -239,7 +256,7 @@ class YarnApi(JobBrowserApi):
     if kwargs.get('limit'):
       filters['limit'] = kwargs['limit']
     if kwargs.get('time_value'):
-      filters['startedTimeBegin'] = self._get_started_time_begin(kwargs.get('time_value'), kwargs.get('time_unit'))
+      filters['startedTimeBegin'] = _get_started_time_begin(kwargs.get('time_value'), kwargs.get('time_unit'))
 
     json = self.resource_manager_api.apps(**filters)
     if type(json) == str and 'This is standby RM' in json:
@@ -259,17 +276,6 @@ class YarnApi(JobBrowserApi):
                     text in job.queue.lower(), jobs)
 
     return self.filter_jobs(user, jobs)
-
-  def _get_started_time_begin(self, time_value, time_unit):
-    if time_unit == 'hours':
-      start_date = datetime.utcnow() - timedelta(hours=time_value)
-    elif time_unit == 'minutes':
-      start_date = datetime.utcnow() - timedelta(minutes=time_value)
-    else:
-      start_date = datetime.utcnow() - timedelta(days=time_value)
-
-    elapsed_time = start_date - datetime.utcfromtimestamp(0)
-    return int(elapsed_time.days * 86400 + elapsed_time.seconds) * 1000
 
   def filter_jobs(self, user, jobs, **kwargs):
     check_permission = not SHARE_JOBS.get() and not user.is_superuser
