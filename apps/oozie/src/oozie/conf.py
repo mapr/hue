@@ -89,7 +89,7 @@ ENABLE_CRON_SCHEDULING = Config( # Until Hue 3.8
 
 ENABLE_OOZIE_BACKEND_FILTERING = Config(
   key='enable_oozie_backend_filtering',
-  default=True,
+  default=False,
   type=coerce_bool,
   help=_t('Flag to enable Oozie backend filtering instead of doing it at the page level in Javascript. Requires Oozie 4.3+.')
 )
