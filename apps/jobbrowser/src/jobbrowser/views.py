@@ -88,7 +88,7 @@ def get_job(request, job_id):
   try:
     job = get_api(request.user, request.jt).get_job(jobid=job_id)
   except ApplicationNotRunning, e:
-    if e.job.get('state', '').lower() == 'accepted':
+    if e.job.get('state', '').lower() == 'accepted' and 'kill' in request.path:
       rm_api = resource_manager_api.get_resource_manager(request.user)
       job = Application(e.job, rm_api)
     else:
