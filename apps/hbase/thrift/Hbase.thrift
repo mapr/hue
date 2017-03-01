@@ -51,9 +51,9 @@ typedef binary Bytes
 typedef i32    ScannerID
 
 /**
- * TCell - Used to transport a cell value (byte[]) and the timestamp it was 
+ * TCell - Used to transport a cell value (byte[]) and the timestamp it was
  * stored with together as a result for get and getRow methods. This promotes
- * the timestamp of a cell to a first-class value, making it easy to take 
+ * the timestamp of a cell to a first-class value, making it easy to take
  * note of temporal data. Cell is used all the way from HStore up to HTable.
  */
 struct TCell{
@@ -75,7 +75,7 @@ struct ColumnDescriptor {
   6:i32 bloomFilterVectorSize = 0,
   7:i32 bloomFilterNbHashes = 0,
   8:bool blockCacheEnabled = 0,
-  9:i32 timeToLive = -1
+  9:i32 timeToLive = 0x7fffffff
 }
 
 /**
@@ -122,11 +122,20 @@ struct TIncrement {
 }
 
 /**
+ * Holds column name and the cell.
+ */
+struct TColumn {
+  1:Text columnName,
+  2:TCell cell
+ }
+
+/**
  * Holds row name and then a map of columns to cells.
  */
 struct TRowResult {
   1:Text row,
-  2:map<Text, TCell> columns
+  2:optional map<Text, TCell> columns,
+  3:optional list<TColumn> sortedColumns
 }
 
 /**
@@ -139,7 +148,19 @@ struct TScan {
   4:optional list<Text> columns,
   5:optional i32 caching,
   6:optional Text filterString,
-  7:optional i32 batchSize
+  7:optional i32 batchSize,
+  8:optional bool sortColumns,
+  9:optional bool reversed
+}
+
+/**
+ * An Append object is used to specify the parameters for performing the append operation.
+ */
+struct TAppend {
+  1:Text table,
+  2:Text row,
+  3:list<Text> columns,
+  4:list<Text> values
 }
 
 //
@@ -171,7 +192,7 @@ exception AlreadyExists {
 }
 
 //
-// Service 
+// Service
 //
 
 service Hbase {
@@ -182,7 +203,7 @@ service Hbase {
     /** name of the table */
     1:Bytes tableName
   ) throws (1:IOError io)
-    
+
   /**
    * Disables a table (takes it off-line) If it is being served, the master
    * will tell the servers to stop serving it.
@@ -199,19 +220,27 @@ service Hbase {
     /** name of the table to check */
     1:Bytes tableName
   ) throws (1:IOError io)
-    
+
   void compact(1:Bytes tableNameOrRegionName)
     throws (1:IOError io)
-  
+
   void majorCompact(1:Bytes tableNameOrRegionName)
     throws (1:IOError io)
-    
+
   /**
    * List all the userspace tables.
    *
    * @return returns a list of names
    */
   list<Text> getTableNames()
+    throws (1:IOError io)
+
+    /**
+     * mapping enabled.
+     *
+     * @return true if mappping enabled
+     */
+  bool isMappingEnable()
     throws (1:IOError io)
 
   /**
@@ -221,7 +250,6 @@ service Hbase {
    */
   list<string> getTableNamesByPath(1:string path)
     throws (1:IOError io)
-
 
   /**
    * List all the column families assoicated with a table.
@@ -272,7 +300,7 @@ service Hbase {
     1:Text tableName
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get a single TCell for the specified table, row, and column at the
    * latest timestamp. Returns an empty list if no such value exists.
    *
@@ -292,7 +320,7 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get the specified number of versions for the specified table,
    * row, and column.
    *
@@ -315,7 +343,7 @@ service Hbase {
     5:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get the specified number of versions for the specified table,
    * row, and column.  Only versions less than or equal to the specified
    * timestamp will be returned.
@@ -342,10 +370,10 @@ service Hbase {
     6:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get all the data for the specified table and row at the latest
    * timestamp. Returns an empty list if the row does not exist.
-   * 
+   *
    * @return TRowResult containing the row and map of columns to TCells
    */
   list<TRowResult> getRow(
@@ -359,10 +387,10 @@ service Hbase {
     3:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get the specified columns for the specified table and row at the latest
    * timestamp. Returns an empty list if the row does not exist.
-   * 
+   *
    * @return TRowResult containing the row and map of columns to TCells
    */
   list<TRowResult> getRowWithColumns(
@@ -379,10 +407,10 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get all the data for the specified table and row at the specified
    * timestamp. Returns an empty list if the row does not exist.
-   * 
+   *
    * @return TRowResult containing the row and map of columns to TCells
    */
   list<TRowResult> getRowTs(
@@ -398,11 +426,11 @@ service Hbase {
     /** Get attributes */
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
-    
-  /** 
+
+  /**
    * Get the specified columns for the specified table and row at the specified
    * timestamp. Returns an empty list if the row does not exist.
-   * 
+   *
    * @return TRowResult containing the row and map of columns to TCells
    */
   list<TRowResult> getRowWithColumnsTs(
@@ -498,7 +526,7 @@ service Hbase {
     5:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Apply a series of mutations (updates/deletes) to a row in a
    * single transaction.  If an exception is thrown, then the
    * transaction is aborted.  Default current timestamp is used, and
@@ -518,7 +546,7 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io, 2:IllegalArgument ia)
 
-  /** 
+  /**
    * Apply a series of mutations (updates/deletes) to a row in a
    * single transaction.  If an exception is thrown, then the
    * transaction is aborted.  The specified timestamp is used, and
@@ -541,7 +569,7 @@ service Hbase {
     5:map<Text, Text> attributes
   ) throws (1:IOError io, 2:IllegalArgument ia)
 
-  /** 
+  /**
    * Apply a series of batches (each a series of mutations on a single row)
    * in a single transaction.  If an exception is thrown, then the
    * transaction is aborted.  Default current timestamp is used, and
@@ -558,7 +586,7 @@ service Hbase {
     3:map<Text, Text> attributes
   ) throws (1:IOError io, 2:IllegalArgument ia)
 
-  /** 
+  /**
    * Apply a series of batches (each a series of mutations on a single row)
    * in a single transaction.  If an exception is thrown, then the
    * transaction is aborted.  The specified timestamp is used, and
@@ -594,8 +622,8 @@ service Hbase {
     /** amount to increment by */
     4:i64 value
   ) throws (1:IOError io, 2:IllegalArgument ia)
-    
-  /** 
+
+  /**
    * Delete all cells that match the passed row and column.
    */
   void deleteAll(
@@ -612,7 +640,7 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Delete all cells that match the passed row and column and whose
    * timestamp is equal-to or older than the passed timestamp.
    */
@@ -697,7 +725,7 @@ service Hbase {
     3:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get a scanner on the current table starting at the specified row and
    * ending at the last row in the table.  Return the specified columns.
    *
@@ -724,7 +752,7 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get a scanner on the current table starting and stopping at the
    * specified rows.  ending at the last row in the table.  Return the
    * specified columns.
@@ -778,7 +806,7 @@ service Hbase {
     4:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get a scanner on the current table starting at the specified row and
    * ending at the last row in the table.  Return the specified columns.
    * Only values with the specified timestamp are returned.
@@ -809,7 +837,7 @@ service Hbase {
     5:map<Text, Text> attributes
   ) throws (1:IOError io)
 
-  /** 
+  /**
    * Get a scanner on the current table starting and stopping at the
    * specified rows.  ending at the last row in the table.  Return the
    * specified columns.  Only values with the specified timestamp are
@@ -866,8 +894,8 @@ service Hbase {
 
   /**
    * Returns, starting at the scanner's current row value nbRows worth of
-   * rows and advances to the next row in the table.  When there are no more 
-   * rows in the table, or a key greater-than-or-equal-to the scanner's 
+   * rows and advances to the next row in the table.  When there are no more
+   * rows in the table, or a key greater-than-or-equal-to the scanner's
    * specified stopRow is reached,  an empty list is returned.
    *
    * @return a TRowResult containing the current row and a map of the columns to TCells.
@@ -921,4 +949,43 @@ service Hbase {
     1:Text row,
 
   ) throws (1:IOError io)
+
+  /**
+   * Appends values to one or more columns within a single row.
+   *
+   * @return values of columns after the append operation.
+   */
+  list<TCell> append(
+    /** The single append operation to apply */
+    1:TAppend append,
+
+  ) throws (1:IOError io)
+
+  /**
+   * Atomically checks if a row/family/qualifier value matches the expected
+   * value. If it does, it adds the corresponding mutation operation for put.
+   *
+   * @return true if the new put was executed, false otherwise
+   */
+  bool checkAndPut(
+    /** name of table */
+    1:Text tableName,
+
+    /** row key */
+    2:Text row,
+
+    /** column name */
+    3:Text column,
+
+    /** the expected value for the column parameter, if not
+        provided the check is for the non-existence of the
+        column in question */
+    5:Text value
+
+    /** mutation for the put */
+    6:Mutation mput,
+
+    /** Mutation attributes */
+    7:map<Text, Text> attributes
+  ) throws (1:IOError io, 2:IllegalArgument ia)
 }
