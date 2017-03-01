@@ -159,7 +159,10 @@ var viewModel = new (function() {
     var filter = self.filter().toLowerCase();
     return ko.utils.arrayFilter(self.persistedLinks(), function (link) {
       if (link.name()) {
-        return link.name().toLowerCase().indexOf(filter) > -1 || link.type().toLowerCase().indexOf(filter) > -1;
+        return link.name().toLowerCase().indexOf(filter) > -1
+            || link.type().toLowerCase().indexOf(filter) > -1
+            || String(link.hostAndPort()).toLowerCase().indexOf(filter) > -1
+            || link.connector_name().toLowerCase().indexOf(filter) > -1;
       } else {
         return false;
       }
