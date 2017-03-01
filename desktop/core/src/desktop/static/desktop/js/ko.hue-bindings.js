@@ -4172,7 +4172,7 @@
    *
    * Example:
    *
-   * <div class=".container" style="overflow-y: scroll; height: 100px">
+   * <div class="container" style="overflow-y: scroll; height: 100px">
    *  <ul data-bind="foreachVisible: { data: items, minHeight: 20, container: '.container' }">
    *    <li>...</li>
    *  </ul>
@@ -4180,7 +4180,7 @@
    *
    * For tables the binding has to be attached to the tbody element:
    *
-   * <div class=".container" style="overflow-y: scroll; height: 100px">
+   * <div class="container" style="overflow-y: scroll; height: 100px">
    *  <table>
    *    <thead>...</thead>
    *    <tbody data-bind="foreachVisible: { data: items, minHeight: 20, container: '.container' }>
@@ -4192,7 +4192,7 @@
    * Currently the binding only supports one element inside the bound element otherwise the height
    * calculations will be off. In other words this will make it go bonkers:
    *
-   * <div class=".container" style="overflow-y: scroll; height: 100px">
+   * <div class="container" style="overflow-y: scroll; height: 100px">
    *  <ul data-bind="foreachVisible: { data: items, minHeight: 20, container: '.container' }">
    *    <li>...</li>
    *    <li style="display: none;">...</li>

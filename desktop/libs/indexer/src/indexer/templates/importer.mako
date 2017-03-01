@@ -668,7 +668,7 @@ ${ assist.assistPanel() }
           <div class="card step">
             <h3 class="card-heading simple show-edit-on-hover">${_('Fields')} <a class="inactive-action pointer" data-bind="visible: columns().length > 0" href="#fieldsBulkEditor" data-toggle="modal"><i class="fa fa-edit"></i></a></h3>
             <div class="card-body no-margin-top">
-              <form class="form-inline inline-table" data-bind="foreach: columns">
+              <form class="form-inline inline-table" data-bind="foreachVisible: { data: columns, minHeight: 44, container: '.content-panel' }">
                 <!-- ko if: $parent.outputFormat() == 'table' -->
                   <!-- ko if: $root.createWizard.source.inputFormat() == 'manual' -->
                   <a class="pointer pull-right margin-top-20" data-bind="click: function() { $parent.columns.remove($data); }"><i class="fa fa-minus"></i></a>
