@@ -1325,7 +1325,6 @@ var EditorViewModel = (function() {
           if (vm.editorMode()) {
             self.getLogs();
           }
-
           if (data.status == 0) {
             self.status(data.query_status.status);
 
@@ -1583,7 +1582,9 @@ var EditorViewModel = (function() {
 
     self.init = function () {
       if (self.status() == 'running' || self.status() == 'available') {
-        self.checkStatus();
+        self.checkStatus({
+          handleExpiredSession: false // Not create sessions on notebook initialisation
+        });
       }
       else if (self.status() == 'loading') {
         self.status('failed');
