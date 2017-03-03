@@ -2978,60 +2978,52 @@ def test_hiveserver2_get_security():
   # Bad but easy mocking
   hive_site.get_conf()
 
-  prev = hive_site._HIVE_SITE_DICT.get(hive_site._CNF_HIVESERVER2_AUTHENTICATION)
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'hive/hive@test.com'
+
+  principal = get_query_server_config('beeswax')['principal']
+  assert_true(principal.startswith('hive/'), principal)
+
+  principal = get_query_server_config('impala')['principal']
+  assert_true(principal.startswith('impala/'), principal)
+
+  default_query_server = {'server_host': 'my_host', 'server_port': 12345}
+
+  # Beeswax
+  beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
+  beeswax_query_server.update(default_query_server)
+  assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+
+  # HiveServer2 LDAP passthrough
+  beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
+  assert_equal((True, 'PLAIN', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
+  beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
+
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'NOSASL'
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
+  assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'KERBEROS'
+  assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+
+  # Impala
+  cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+
+  finish = cluster_conf.SECURITY_ENABLED.set_for_testing(False)
   try:
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'hive/hive@test.com'
+    impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': False, 'auth_username': 'hue', 'auth_password': None}
+    impala_query_server.update(default_query_server)
+    assert_equal((False, 'GSSAPI', 'impala', False, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
 
-    principal = get_query_server_config('beeswax')['principal']
-    assert_true(principal.startswith('hive/'), principal)
-
-    principal = get_query_server_config('impala')['principal']
-    assert_true(principal.startswith('impala/'), principal)
-
-    default_query_server = {'server_host': 'my_host', 'server_port': 12345}
-
-    # Beeswax
-    beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
-    beeswax_query_server.update(default_query_server)
-    assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-
-    # HiveServer2 LDAP passthrough
-    beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
-    assert_equal((True, 'PLAIN', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
-    beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
-
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'NOSASL'
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
-    assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'KERBEROS'
-    assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-
-    # Impala
-    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-
-    finish = cluster_conf.SECURITY_ENABLED.set_for_testing(False)
-    try:
-      impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': False, 'auth_username': 'hue', 'auth_password': None}
-      impala_query_server.update(default_query_server)
-      assert_equal((False, 'GSSAPI', 'impala', False, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-
-      impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': True, 'auth_username': 'hue', 'auth_password': None}
-      impala_query_server.update(default_query_server)
-      assert_equal((False, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-    finally:
-      finish()
-
-    finish = cluster_conf.SECURITY_ENABLED.set_for_testing(True)
-    try:
-      assert_equal((True, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-    finally:
-      finish()
+    impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': True, 'auth_username': 'hue', 'auth_password': None}
+    impala_query_server.update(default_query_server)
+    assert_equal((False, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
   finally:
-    if prev is not None:
-      hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = prev
-    else:
-      hive_site._HIVE_SITE_DICT.pop(hive_site._CNF_HIVESERVER2_AUTHENTICATION, None)
+    finish()
 
+  finish = cluster_conf.SECURITY_ENABLED.set_for_testing(True)
+  try:
+    assert_equal((True, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
+  finally:
+    finish()
 
 class MockClient():
 
