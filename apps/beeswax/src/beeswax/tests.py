@@ -2989,6 +2989,8 @@ def test_hiveserver2_get_security():
   default_query_server = {'server_host': 'my_host', 'server_port': 12345}
 
   # Beeswax
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'true'
+
   beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
   beeswax_query_server.update(default_query_server)
   assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
