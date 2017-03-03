@@ -2152,7 +2152,7 @@ def test_history_page():
   assert_equal(0, len(response.context['page'].object_list))
 
   client = make_logged_in_client(username='test_who')
-  grant_access('test_who', 'test_who', 'test_who')
+  grant_access('test_who', 'test_who', 'beeswax')
   do_view('q-user=test_who', 0)
   do_view('q-user=:all')
 
