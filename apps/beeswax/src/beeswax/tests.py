@@ -3017,11 +3017,17 @@ def test_hiveserver2_get_security():
   finally:
     finish()
 
-  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'NOSASL'
   hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
-  assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'KERBEROS'
-  assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finish = conf.MECHANISM.set_for_testing('NOSASL')
+  try:
+    assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finally:
+    finish()
+  finish = conf.MECHANISM.set_for_testing('GSSAPI')
+  try:
+    assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finally:
+    finish()
 
   # Impala
   cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
