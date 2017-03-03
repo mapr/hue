@@ -124,7 +124,7 @@ class DesktopModuleInfo(object):
     if hasattr(self.settings, "MENU_INDEX"):
         self.menu_index = self.settings.MENU_INDEX
     else:
-        self.menu_index = 999
+        self.menu_index = -1
 
     self.is_url_namespaced = hasattr(self.settings, 'IS_URL_NAMESPACED')
 

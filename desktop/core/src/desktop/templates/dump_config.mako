@@ -65,7 +65,7 @@ ${ layout.menubar(section='dump_config') }
       <h2 class="card-heading simple">${_('Installed Applications')}</h2>
       <div class="card-body">
       % for app in apps:
-        % if app.menu_index != 999:
+        % if app.menu_index != -1:
           <a href="/${app.display_name}"><span class="badge badge-info">${app.name}</span></a>
         % else:
           <span class="badge" title="${ _('This app does not have a UI') }">${app.name}</span>
