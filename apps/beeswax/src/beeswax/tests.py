@@ -3434,6 +3434,7 @@ def test_hiveserver2_jdbc_url():
     beeswax.conf.HIVE_SERVER_PORT.set_for_testing('10000')
   ]
   try:
+    beeswax.hive_site.get_conf()[hive_site._CNF_HIVESERVER2_USE_SSL] = 'FALSE'
     url = hiveserver2_jdbc_url()
     assert_equal(url, 'jdbc:hive2://' + hostname + ':10000/default')
 
