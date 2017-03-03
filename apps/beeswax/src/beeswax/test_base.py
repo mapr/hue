@@ -516,6 +516,10 @@ class BeeswaxSampleProvider(object):
       f.write("%d\t0x%x\n" % (x, x))
     f.close()
 
+    # Escalate privileges, so user test can use this files in 'LOAD DATA ...' query
+    dir = cls.cluster.fs.dirname(filename)
+    cls.cluster.fs.chmod(dir, mode=0777, recursive=True)
+
   @classmethod
   def _make_i18n_data_file(cls, filename, encoding):
     """
