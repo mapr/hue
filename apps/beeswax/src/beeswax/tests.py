@@ -3019,11 +3019,14 @@ def test_hiveserver2_get_security():
   finally:
     finish()
 
-  finish = cluster_conf.SECURITY_ENABLED.set_for_testing(True)
+  finish = []
+  finish.append(cluster_conf.SECURITY_ENABLED.set_for_testing(True))
+  finish.append(conf.MECHANISM.set_for_testing('GSSAPI'))
   try:
     assert_equal((True, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
   finally:
-    finish()
+    for f in finish:
+      f()
 
 class MockClient():
 
