@@ -2991,14 +2991,18 @@ def test_hiveserver2_get_security():
   # Beeswax
   hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'true'
 
-  beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
-  beeswax_query_server.update(default_query_server)
-  assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finish = conf.MECHANISM.set_for_testing('none')
+  try:
+    beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
+    beeswax_query_server.update(default_query_server)
+    assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
 
-  # HiveServer2 LDAP passthrough
-  beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
-  assert_equal((True, 'PLAIN', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
-  beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
+    # HiveServer2 LDAP passthrough
+    beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
+    assert_equal((True, 'PLAIN', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
+    beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
+  finally:
+    finish()
 
   hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'NOSASL'
   hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
