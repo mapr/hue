@@ -179,7 +179,7 @@ for x in sys.stdin:
     table = self.db.get_table(database=self.db_name, table_name=table_name)
     hdfs_loc = Hdfs.urlsplit(table.path_location)
 
-    files = self.cluster.fs.listdir(hdfs_loc[2])
+    files = _list_dir_without_temp_files(self.cluster.fs, hdfs_loc[2])
     assert_true(len(files) >= 1, files)
     assert_true(files[0].endswith(".deflate"), files[0])
 
