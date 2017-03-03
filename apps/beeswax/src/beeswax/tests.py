@@ -1708,7 +1708,9 @@ for x in sys.stdin:
       assert_equal(get_localhost_name(), query_server['server_host'])
 
     assert_equal('hiveserver2', query_server['server_type'])
-    assert_true(query_server['principal'] is None, query_server['principal']) # No default hive/HOST_@TEST.COM so far
+
+    if conf.MECHANISM.get() != 'GSSAPI':
+      assert_true(query_server['principal'] is None, query_server['principal']) # No default hive/HOST_@TEST.COM so far
 
 
   def test_select_multi_db(self):
