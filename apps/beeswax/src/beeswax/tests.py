@@ -179,7 +179,7 @@ for x in sys.stdin:
     table = self.db.get_table(database=self.db_name, table_name=table_name)
     hdfs_loc = Hdfs.urlsplit(table.path_location)
 
-    files = self.cluster.fs.listdir(hdfs_loc[2])
+    files = _list_dir_without_temp_files(self.cluster.fs, hdfs_loc[2])
     assert_true(len(files) >= 1, files)
     assert_true(files[0].endswith(".deflate"), files[0])
 
@@ -1708,7 +1708,9 @@ for x in sys.stdin:
       assert_equal(get_localhost_name(), query_server['server_host'])
 
     assert_equal('hiveserver2', query_server['server_type'])
-    assert_true(query_server['principal'] is None, query_server['principal']) # No default hive/HOST_@TEST.COM so far
+
+    if conf.MECHANISM.get() != 'GSSAPI':
+      assert_true(query_server['principal'] is None, query_server['principal']) # No default hive/HOST_@TEST.COM so far
 
 
   def test_select_multi_db(self):
@@ -2152,7 +2154,7 @@ def test_history_page():
   assert_equal(0, len(response.context['page'].object_list))
 
   client = make_logged_in_client(username='test_who')
-  grant_access('test_who', 'test_who', 'test_who')
+  grant_access('test_who', 'test_who', 'beeswax')
   do_view('q-user=test_who', 0)
   do_view('q-user=:all')
 
@@ -2964,8 +2966,8 @@ class TestDesign():
     ]
 
     statements = design.get_configuration_statements()
-    assert_true(re.match('ADD FILE hdfs://([^:]+):(\d+)my_file', statements[0]), statements[0])
-    assert_true(re.match('ADD FILE hdfs://([^:]+):(\d+)/my_path/my_file', statements[1]), statements[1])
+    assert_true(re.match('ADD FILE maprfs://(([^:]+):(\d+))?/my_file', statements[0]), statements[0])
+    assert_true(re.match('ADD FILE maprfs://(([^:]+):(\d+))?//my_path/my_file', statements[1]), statements[1])
     assert_equal('ADD FILE s3://host/my_s3_file', statements[2])
 
 
@@ -2978,19 +2980,21 @@ def test_hiveserver2_get_security():
   # Bad but easy mocking
   hive_site.get_conf()
 
-  prev = hive_site._HIVE_SITE_DICT.get(hive_site._CNF_HIVESERVER2_AUTHENTICATION)
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'hive/hive@test.com'
+
+  principal = get_query_server_config('beeswax')['principal']
+  assert_true(principal.startswith('hive/'), principal)
+
+  principal = get_query_server_config('impala')['principal']
+  assert_true(principal.startswith('impala/'), principal)
+
+  default_query_server = {'server_host': 'my_host', 'server_port': 12345}
+
+  # Beeswax
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'true'
+
+  finish = conf.MECHANISM.set_for_testing('none')
   try:
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'hive/hive@test.com'
-
-    principal = get_query_server_config('beeswax')['principal']
-    assert_true(principal.startswith('hive/'), principal)
-
-    principal = get_query_server_config('impala')['principal']
-    assert_true(principal.startswith('impala/'), principal)
-
-    default_query_server = {'server_host': 'my_host', 'server_port': 12345}
-
-    # Beeswax
     beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
     beeswax_query_server.update(default_query_server)
     assert_equal((True, 'PLAIN', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
@@ -2999,39 +3003,57 @@ def test_hiveserver2_get_security():
     beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
     assert_equal((True, 'PLAIN', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
     beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
-
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'NOSASL'
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
-    assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-    hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = 'KERBEROS'
-    assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
-
-    # Impala
-    cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
-
-    finish = cluster_conf.SECURITY_ENABLED.set_for_testing(False)
-    try:
-      impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': False, 'auth_username': 'hue', 'auth_password': None}
-      impala_query_server.update(default_query_server)
-      assert_equal((False, 'GSSAPI', 'impala', False, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-
-      impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': True, 'auth_username': 'hue', 'auth_password': None}
-      impala_query_server.update(default_query_server)
-      assert_equal((False, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-    finally:
-      finish()
-
-    finish = cluster_conf.SECURITY_ENABLED.set_for_testing(True)
-    try:
-      assert_equal((True, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
-    finally:
-      finish()
   finally:
-    if prev is not None:
-      hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_AUTHENTICATION] = prev
-    else:
-      hive_site._HIVE_SITE_DICT.pop(hive_site._CNF_HIVESERVER2_AUTHENTICATION, None)
+    finish()
 
+  finish = conf.MECHANISM.set_for_testing('MAPR-SECURITY')
+  try:
+    beeswax_query_server = {'server_name': 'beeswax', 'principal': 'hive', 'auth_username': 'hue', 'auth_password': None}
+    beeswax_query_server.update(default_query_server)
+    assert_equal((True, 'MAPR-SECURITY', 'hive', True, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+
+    # HiveServer2 LDAP passthrough
+    beeswax_query_server.update({'auth_username': 'hueabcd', 'auth_password': 'abcd'})
+    assert_equal((True, 'MAPR-SECURITY', 'hive', True, 'hueabcd', 'abcd'), HiveServerClient(beeswax_query_server, user).get_security())
+    beeswax_query_server.update({'auth_username': 'hue', 'auth_password': None})
+  finally:
+    finish()
+
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_IMPERSONATION] = 'false'
+  finish = conf.MECHANISM.set_for_testing('NOSASL')
+  try:
+    assert_equal((False, 'NOSASL', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finally:
+    finish()
+  finish = conf.MECHANISM.set_for_testing('GSSAPI')
+  try:
+    assert_equal((True, 'GSSAPI', 'hive', False, 'hue', None), HiveServerClient(beeswax_query_server, user).get_security())
+  finally:
+    finish()
+
+  # Impala
+  cluster_conf = hadoop.cluster.get_cluster_conf_for_job_submission()
+
+  finish = cluster_conf.SECURITY_ENABLED.set_for_testing(False)
+  try:
+    impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': False, 'auth_username': 'hue', 'auth_password': None}
+    impala_query_server.update(default_query_server)
+    assert_equal((False, 'GSSAPI', 'impala', False, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
+
+    impala_query_server = {'server_name': 'impala', 'principal': 'impala', 'impersonation_enabled': True, 'auth_username': 'hue', 'auth_password': None}
+    impala_query_server.update(default_query_server)
+    assert_equal((False, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
+  finally:
+    finish()
+
+  finish = []
+  finish.append(cluster_conf.SECURITY_ENABLED.set_for_testing(True))
+  finish.append(conf.MECHANISM.set_for_testing('GSSAPI'))
+  try:
+    assert_equal((True, 'GSSAPI', 'impala', True, 'hue', None), HiveServerClient(impala_query_server, user).get_security())
+  finally:
+    for f in finish:
+      f()
 
 class MockClient():
 
@@ -3336,7 +3358,7 @@ def hive_site_xml(is_local=False, use_sasl=False, thrift_uris='thrift://darkside
 
 def test_ssl_cacerts():
   for desktop_kwargs, conf_kwargs, expected in [
-      ({'present': False}, {'present': False}, ''),
+      ({'present': False}, {'present': False}, '/opt/mapr/hue/hue-3.12.0/cert.pem'),
       ({'present': False}, {'data': 'local-cacerts.pem'}, 'local-cacerts.pem'),
 
       ({'data': 'global-cacerts.pem'}, {'present': False}, 'global-cacerts.pem'),
@@ -3412,6 +3434,7 @@ def test_hiveserver2_jdbc_url():
     beeswax.conf.HIVE_SERVER_PORT.set_for_testing('10000')
   ]
   try:
+    beeswax.hive_site.get_conf()[hive_site._CNF_HIVESERVER2_USE_SSL] = 'FALSE'
     url = hiveserver2_jdbc_url()
     assert_equal(url, 'jdbc:hive2://' + hostname + ':10000/default')
 
