@@ -2042,6 +2042,16 @@ deactivate () {
     # Self destruct!
         unset -f deactivate
     fi
+
+    ########################################################################
+    ########################## Added by MapR team ##########################
+    ########################################################################
+    LD_LIBRARY_PATH="$_OLD_LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH
+    unset _OLD_LD_LIBRARY_PATH
+    ########################################################################
+    ########################## Added by MapR team ##########################
+    ########################################################################
 }
 
 # unset irrelevant variables
@@ -2079,6 +2089,16 @@ if [ -z "$VIRTUAL_ENV_DISABLE_PROMPT" ] ; then
 fi
 
 alias pydoc="python -m pydoc"
+
+############################################################################
+############################ Added by MapR team ############################
+############################################################################
+_OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="/opt/mapr/lib:$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH
+############################################################################
+############################ Added by MapR team ############################
+############################################################################
 
 # This should detect bash and zsh, which have a hash command that must
 # be called to get it to forget past commands.  Without forgetting
