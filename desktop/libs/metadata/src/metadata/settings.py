@@ -18,7 +18,7 @@
 DJANGO_APPS = ["metadata"]
 NICE_NAME = "Metadata"
 REQUIRES_HADOOP = False
-MENU_INDEX = 999
+MENU_INDEX = -1
 IS_URL_NAMESPACED = True
 
 
