@@ -447,7 +447,9 @@
           }
         }, 300);
 
-        var _actions = $("<div>").addClass("jHueFilechooserActions");
+        var _actions = $("<div>")
+            .addClass("jHueFilechooserActions")
+            .css({"position": "relative"});
         var _showActions = false;
         var _uploadFileBtn;
         var _createFolderBtn;
@@ -477,7 +479,7 @@
           }
           _createFolderBtn.appendTo(_actions);
           _showActions = true;
-          var _createFolderDetails = $("<form>").css({"margin-top": "10px", "position": "fixed"}).addClass("form-inline");
+          var _createFolderDetails = $("<form>").css({"margin-top": "10px", "position": "absolute", "width": "100%", "background": "#fff", "bottom": "0"}).addClass("form-inline");
           _createFolderDetails.hide();
           var _folderName = $("<input>").attr("type", "text").attr("placeholder", _parent.options.labels.FOLDER_NAME).appendTo(_createFolderDetails);
           $("<span> </span>").appendTo(_createFolderDetails);

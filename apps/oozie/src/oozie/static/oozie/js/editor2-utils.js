@@ -18,9 +18,5 @@ $(document).ready(function () {
   $(document).on("showSubmitPopup", function (event, data) {
     $('.submit-modal').html(data);
     $('.submit-modal').modal('show');
-    var _sel = $('.submit-form .control-group[rel!="popover"]:visible');
-    if (_sel.length > 0) {
-      $('.submit-modal .modal-body').height($('.submit-modal .modal-body').height() + 60);
-    }
   });
 });
