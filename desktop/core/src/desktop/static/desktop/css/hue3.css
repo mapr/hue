@@ -3502,3 +3502,10 @@ input:invalid:focus,textarea:invalid:focus,select:invalid:focus {
   -moz-box-shadow: 0 0 6px #f8b9b7;
   box-shadow: 0 0 6px #f8b9b7
 }
+
+.navigator .nav-pills li.dropdown {
+  cursor: pointer;
+}
+.navigator .nav-pills a.dropdown-toggle {
+  pointer-events: none;
+}

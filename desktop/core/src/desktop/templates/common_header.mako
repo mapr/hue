@@ -190,7 +190,7 @@ ${ hueIcons.symbols() }
       </li>
       % else:
         <li class="dropdown hide1380">
-          <a title="${_('File Browsers')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle">
+          <a title="${_('File Browsers')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">
             <i class="fa fa-file"></i>&nbsp;${_('File Browsers')} <b class="caret"></b>
           </a>
           <ul role="menu" class="dropdown-menu">
@@ -232,7 +232,7 @@ ${ hueIcons.symbols() }
     %>
     % if view_profile:
       <li class="dropdown">
-        <a title="${ _('Administration') }" href="javascript:void(0)" rel="navigator-tooltip" data-toggle="dropdown" class="dropdown-toggle">
+        <a title="${ _('Administration') }" href="#" rel="navigator-tooltip" data-toggle="dropdown" class="dropdown-toggle">
           <i class="fa fa-cogs"></i>&nbsp;${user.username}&nbsp;
           <b class="caret"></b>
         </a>
@@ -280,7 +280,7 @@ ${ hueIcons.symbols() }
        %>
        % if query_apps[1] > 1:
        <li class="dropdown oozie">
-         <a title="${_('Query data')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-terminal inline-block hideMoreThan950"></i><span class="hide950">Query Editors</span> <b class="caret"></b></a>
+         <a title="${_('Query data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-terminal inline-block hideMoreThan950"></i><span class="hide950">Query Editors</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
            <%
                  from desktop.conf import USE_NEW_EDITOR
@@ -334,7 +334,7 @@ ${ hueIcons.symbols() }
            </li>
          % else:
            <li class="dropdown">
-             <a title="${_('Notebook')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle">
+             <a title="${_('Notebook')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">
                <i class="fa fa-files-o inline-block hideMoreThan950"></i><span class="hide950">${_('Notebooks')}</span> <b class="caret"></b>
              </a>
              <ul role="menu" class="dropdown-menu">
@@ -358,7 +358,7 @@ ${ hueIcons.symbols() }
        %>
        % if data_apps[1] > 1:
        <li class="dropdown">
-         <a title="${_('Manage data')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-database inline-block hideMoreThan950"></i><span class="hide950">Data Browsers</span> <b class="caret"></b></a>
+         <a title="${_('Manage data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-database inline-block hideMoreThan950"></i><span class="hide950">Data Browsers</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
            % if 'metastore' in apps and 'beeswax' not in app_blacklist:
              <li><a href="/${apps['metastore'].display_name}"><img src="${ static(apps['metastore'].icon_path) }" class="app-icon"/> ${_('Metastore Tables')}</a></li>
@@ -379,7 +379,7 @@ ${ hueIcons.symbols() }
        % endif
        % if 'oozie' in apps:
        <li class="dropdown oozie">
-         <a title="${_('Schedule with Oozie')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-random inline-block hideMoreThan950"></i><span class="hide950">Workflows</span> <b class="caret"></b></a>
+         <a title="${_('Schedule with Oozie')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-random inline-block hideMoreThan950"></i><span class="hide950">Workflows</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
            <li class="dropdown-submenu">
              <a href="${ url('oozie:index') }"><img src="${ static('oozie/art/icon_oozie_dashboard_48.png') }" class="app-icon" /> ${_('Dashboards')}</a>
@@ -424,7 +424,7 @@ ${ hueIcons.symbols() }
            </li>
          % else:
            <li class="dropdown">
-             <a title="${_('Solr Search')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle">
+             <a title="${_('Solr Search')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle">
                <i class="fa fa-search inline-block hideMoreThan950"></i><span class="hide950">${_('Search')}</span> <b class="caret"></b>
              </a>
              <ul role="menu" class="dropdown-menu">
@@ -458,7 +458,7 @@ ${ hueIcons.symbols() }
        % if 'security' in apps:
          <% from security.conf import HIVE_V1, HIVE_V2, SOLR_V2 %>
          <li class="dropdown">
-           <a title="${_('Hadoop Security')}" rel="navigator-tooltip" href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-unlock inline-block hideMoreThan950"></i><span class="hide950">Security</span> <b class="caret"></b></a>
+           <a title="${_('Hadoop Security')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-unlock inline-block hideMoreThan950"></i><span class="hide950">Security</span> <b class="caret"></b></a>
            <ul role="menu" class="dropdown-menu">
              % if HIVE_V1.get() and 'beeswax' not in app_blacklist:
              <li><a href="${ url('security:hive') }">&nbsp;<img src="/static/metastore/art/icon_metastore_48.png" class="app-icon"></img>&nbsp;&nbsp;${_('Sentry Tables')}</a></li>
@@ -475,7 +475,7 @@ ${ hueIcons.symbols() }
        % endif
        % if other_apps:
        <li class="dropdown">
-         <a href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-tasks inline-block hideMoreThan950"></i><span class="hide950">${_('Other apps')}</span> <b class="caret"></b></a>
+         <a href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-tasks inline-block hideMoreThan950"></i><span class="hide950">${_('Other apps')}</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
            % for other in other_apps:
              <li><a href="/${ other.display_name }"><img src="${ static(other.icon_path) }" class="app-icon"/> ${ other.nice_name }</a></li>
