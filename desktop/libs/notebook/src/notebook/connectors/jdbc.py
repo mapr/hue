@@ -184,14 +184,18 @@ class Assist():
 
   def get_databases(self):
     databases, description = query_and_fetch(self.db, 'SHOW DATABASES')
+    # convert databases name from row list to single string
+    databases = [d[0] for d in databases]
     return databases
 
   def get_tables(self, database, table_names=[]):
-    tables, description = query_and_fetch(self.db, 'SHOW TABLES')
+    tables, description = query_and_fetch(self.db, 'SHOW TABLES IN %s' % database)
+    tables = [t[0] for t in tables]
     return tables
 
   def get_columns(self, database, table):
     columns, description = query_and_fetch(self.db, 'SHOW COLUMNS FROM %s.%s' % (database, table))
+    columns = [c[0] for c in columns]
     return columns
 
   def get_sample_data(self, database, table, column=None):

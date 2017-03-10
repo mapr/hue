@@ -856,7 +856,8 @@ var SqlAutocompleter2 = (function () {
         databaseName: databaseName,
         successCallback: function (data) {
           var tables = [];
-          data.tables_meta.forEach(function (tablesMeta) {
+          if( data.tables_meta != undefined) {
+           data.tables_meta.forEach(function (tablesMeta) {
             if (parseResult.suggestTables.onlyTables && tablesMeta.type.toLowerCase() !== 'table' ||
                 parseResult.suggestTables.onlyViews && tablesMeta.type.toLowerCase() !== 'view') {
               return;
@@ -870,6 +871,19 @@ var SqlAutocompleter2 = (function () {
             completions.push(table);
             tables.push(table);
           });
+          }
+          else {
+            data.tables.forEach(function (t) {
+            var table = {
+              value: prefix + self.backTickIfNeeded(t),
+              meta: 'table',
+              weight: DEFAULT_WEIGHTS.TABLE,
+              name: t
+            };
+            completions.push(table);
+            tables.push(table);
+          });
+          }
           tableDeferred.resolve(tables);
         },
         silenceErrors: true,
