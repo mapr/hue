@@ -671,7 +671,7 @@ ${ dashboard.import_layout() }
           }));
           % if layout_json != '':
           ko.utils.arrayForEach(actionsViewModel.actions(), function(action) {
-            var _w, actionId = action.id.substr(action.id.length - 4);
+            var _w, actionId = action.id.split("@")[1].substr(-4);
             if (actionId === '@End'){
               _w = viewModel.getWidgetById('33430f0f-ebfa-c3ec-f237-3e77efa03d0a');
             }
