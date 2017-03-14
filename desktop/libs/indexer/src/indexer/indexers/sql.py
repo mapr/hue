@@ -107,7 +107,7 @@ class SQLIndexer(object):
     ''' % source['format']
 
 
-    if table_format in ('parquet', 'kudu'):
+    if table_format in ('parquet', 'kudu', 'orc'):
       if load_data:
         table_name, final_table_name = 'hue__tmp_%s' % table_name, table_name
 
@@ -126,7 +126,7 @@ class SQLIndexer(object):
       collection_delimiter = None
       map_delimiter = None
 
-    if external or (load_data and table_format in ('parquet', 'kudu')):
+    if external or (load_data and table_format in ('parquet', 'kudu', 'orc')):
       if not self.fs.isdir(external_path): # File selected
         external_path, external_file_name = self.fs.split(external_path)
 
@@ -146,7 +146,7 @@ class SQLIndexer(object):
             'serde_name': serde_name,
             'serde_properties': serde_properties,
             'file_format': file_format,
-            'external': external or load_data and table_format in ('parquet', 'kudu'),
+            'external': external or load_data and table_format in ('parquet', 'kudu', 'orc'),
             'path': external_path,
             'skip_header': skip_header,
             'primary_keys': primary_keys if table_format == 'kudu' and not load_data else [],
@@ -167,7 +167,7 @@ class SQLIndexer(object):
       db = dbms.get(self.user)
       sql += "\n\n%s;" % db.load_data(database, table_name, form_data, None, generate_ddl_only=True)
 
-    if load_data and table_format in ('parquet', 'kudu'):
+    if load_data and table_format in ('parquet', 'kudu', 'orc'):
       file_format = table_format
       if table_format == 'kudu':
         columns_list = ['`%s`' % col for col in primary_keys + [col['name'] for col in destination['columns'] if col['name'] not in primary_keys and col['keep']]]
