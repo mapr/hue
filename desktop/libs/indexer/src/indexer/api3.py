@@ -266,7 +266,7 @@ def _create_table_from_a_file(request, source, destination):
   ''' % source['format']
 
 
-  if table_format in ('parquet', 'kudu'):
+  if table_format in ('parquet', 'kudu', 'orc'):
     if load_data:
       table_name, final_table_name = 'hue__tmp_%s' % table_name, table_name
 
@@ -285,7 +285,7 @@ def _create_table_from_a_file(request, source, destination):
     collection_delimiter = None
     map_delimiter = None
 
-  if external or (load_data and table_format in ('parquet', 'kudu')):
+  if external or (load_data and table_format in ('parquet', 'kudu', 'orc')):
     if not request.fs.isdir(external_path): # File selected
       external_path, external_file_name = request.fs.split(external_path)
 
@@ -305,7 +305,7 @@ def _create_table_from_a_file(request, source, destination):
           'serde_name': serde_name,
           'serde_properties': serde_properties,
           'file_format': file_format,
-          'external': external or load_data and table_format in ('parquet', 'kudu'),
+          'external': external or load_data and table_format in ('parquet', 'kudu', 'orc'),
           'path': external_path,
           'skip_header': skip_header,
           'primary_keys': primary_keys if table_format == 'kudu' and not load_data else [],
@@ -320,7 +320,7 @@ def _create_table_from_a_file(request, source, destination):
   if table_format in ('text', 'json', 'csv', 'regexp') and not external and load_data:
     sql += "\n\nLOAD DATA INPATH '%s' INTO TABLE `%s`.`%s`;" % (source_path, database, table_name)
 
-  if load_data and table_format in ('parquet', 'kudu'):
+  if load_data and table_format in ('parquet', 'kudu', 'orc'):
     file_format = table_format
     if table_format == 'kudu':
       columns_list = ['`%s`' % col for col in primary_keys + [col['name'] for col in destination['columns'] if col['name'] not in primary_keys]]
@@ -333,8 +333,12 @@ def _create_table_from_a_file(request, source, destination):
         'file_format': file_format,
         'primary_keys': ', '.join(primary_keys)
       }
-    else:
+    if table_format == 'parquet':
       columns_list = ['*']
+      extra_create_properties = "STORED AS PARQUET"
+    if table_format == 'orc':
+      columns_list = ['*']
+      extra_create_properties = "STORED AS ORC"
     sql += '''\n\nCREATE TABLE `%(database)s`.`%(final_table_name)s`
       %(extra_create_properties)s
       AS SELECT %(columns_list)s
@@ -351,7 +355,7 @@ def _create_table_from_a_file(request, source, destination):
     }
 
   editor_type = 'impala' if table_format == 'kudu' else 'hive'
-  on_success_url = reverse('metastore:describe_table', kwargs={'database': database, 'table': table_name})
+  on_success_url = reverse('metastore:describe_table', kwargs={'database': database, 'table': final_table_name})
 
   return make_notebook(name='Execute and watch', editor_type=editor_type, statement=sql.strip(), status='ready', database=database, on_success_url=on_success_url)
 
