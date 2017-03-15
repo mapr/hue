@@ -2980,13 +2980,13 @@ def test_hiveserver2_get_security():
   # Bad but easy mocking
   hive_site.get_conf()
 
-  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'hive/hive@test.com'
+  hive_site._HIVE_SITE_DICT[hive_site._CNF_HIVESERVER2_KERBEROS_PRINCIPAL] = 'mapr/hive@test.com'
 
   principal = get_query_server_config('beeswax')['principal']
-  assert_true(principal.startswith('hive/'), principal)
+  assert_true(principal.startswith('mapr/'), principal)
 
   principal = get_query_server_config('impala')['principal']
-  assert_true(principal.startswith('impala/'), principal)
+  assert_true(principal.startswith('mapr/'), principal)
 
   default_query_server = {'server_host': 'my_host', 'server_port': 12345}
 

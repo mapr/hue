@@ -48,7 +48,7 @@ IMPALA_PRINCIPAL=Config(
   key='impala_principal',
   help=_t("Kerberos principal name for Impala. Typically 'impala/hostname.foo.com'."),
   type=str,
-  default="impala/%s" % socket.getfqdn())
+  default="mapr/%s" % socket.getfqdn())
 
 IMPERSONATION_ENABLED=Config(
   key='impersonation_enabled',
