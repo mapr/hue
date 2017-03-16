@@ -2094,7 +2094,21 @@ alias pydoc="python -m pydoc"
 ############################ Added by MapR team ############################
 ############################################################################
 _OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-LD_LIBRARY_PATH="/opt/mapr/lib:$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH"
+
+if [ -z "$JAVA_HOME" ]; then
+    sys_java="/usr/bin/java"
+    if [ -e $sys_java ]; then
+       jcmd=`readlink -f $sys_java`
+       if [ -x ${jcmd%/jre/bin/java}/bin/javac ]; then
+           JAVA_HOME=${jcmd%/jre/bin/java}
+       elif [ -x ${jcmd%/java}/javac ]; then
+           JAVA_HOME=${jcmd%/bin/java}
+       fi
+       [ -n "${JAVA_HOME}" ] && export JAVA_HOME
+    fi
+fi
+
+LD_LIBRARY_PATH="/opt/mapr/lib:$JAVA_HOME/jre/lib/amd64/server:$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH"
 export LD_LIBRARY_PATH
 ############################################################################
 ############################ Added by MapR team ############################
