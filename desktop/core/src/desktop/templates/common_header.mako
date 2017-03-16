@@ -278,7 +278,7 @@ ${ hueIcons.symbols() }
        <%
          query_apps = count_apps(apps, ['beeswax', 'impala', 'rdbms', 'pig', 'jobsub', 'spark']);
        %>
-       % if query_apps[1] > 1:
+       % if query_apps[1] >= 1:
        <li class="dropdown oozie">
          <a title="${_('Query data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-terminal inline-block hideMoreThan950"></i><span class="hide950">Query Editors</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
@@ -318,8 +318,6 @@ ${ hueIcons.symbols() }
            % endif
          </ul>
        </li>
-       % elif query_apps[1] == 1:
-          <li><a href="/${apps[query_apps[0]].display_name}"><i class="fa fa-terminal hideMoreThan950"></i><span class="hide950">${apps[query_apps[0]].nice_name}</span></a></li>
        % endif
        % if 'notebook' in apps:
         <%
@@ -356,7 +354,7 @@ ${ hueIcons.symbols() }
        <%
          data_apps = count_apps(apps, ['metastore', 'hbase', 'sqoop', 'zookeeper']);
        %>
-       % if data_apps[1] > 1:
+       % if data_apps[1] >= 1:
        <li class="dropdown">
          <a title="${_('Manage data')}" rel="navigator-tooltip" href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-database inline-block hideMoreThan950"></i><span class="hide950">Data Browsers</span> <b class="caret"></b></a>
          <ul role="menu" class="dropdown-menu">
@@ -374,8 +372,6 @@ ${ hueIcons.symbols() }
            % endif
          </ul>
        </li>
-       % elif data_apps[1] == 1:
-         <li><a href="/${apps[data_apps[0]].display_name}">${apps[data_apps[0]].nice_name}</a></li>
        % endif
        % if 'oozie' in apps:
        <li class="dropdown oozie">

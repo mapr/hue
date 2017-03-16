@@ -15,17 +15,21 @@
 ## limitations under the License.
 
 <%!
+import logging
 from django.utils.translation import ugettext as _
 
 from desktop import conf
 from desktop.lib.i18n import smart_unicode
 from desktop.views import _ko
 
+LOG = logging.getLogger(__name__)
+
 try:
   from beeswax.conf import DOWNLOAD_ROW_LIMIT
-except ImportError, e:
+  download_row_limit = DOWNLOAD_ROW_LIMIT.get()
+except (ImportError, AttributeError) as e:
   LOG.warn("Hive app is not enabled")
-  DOWNLOAD_ROW_LIMIT = None
+  download_row_limit = None
 
 try:
   from indexer.conf import ENABLE_NEW_INDEXER
@@ -181,12 +185,12 @@ except ImportError, e:
       </a>
       <ul class="dropdown-menu less-padding">
         <li>
-          <a class="inactive-action download" href="javascript:void(0)" data-bind="click: downloadCsv, event: { mouseover: function(){ window.onbeforeunload = null; }, mouseout: function() { window.onbeforeunload = $(window).data('beforeunload'); } }" title="${ _('Download first %s rows as CSV') % DOWNLOAD_ROW_LIMIT.get() }">
+          <a class="inactive-action download" href="javascript:void(0)" data-bind="click: downloadCsv, event: { mouseover: function(){ window.onbeforeunload = null; }, mouseout: function() { window.onbeforeunload = $(window).data('beforeunload'); } }" title="${ _('Download first %s rows as CSV') % download_row_limit }">
             <i class="fa fa-fw fa-file-o"></i> ${ _('CSV') }
           </a>
         </li>
         <li>
-          <a class="inactive-action download" href="javascript:void(0)" data-bind="click: downloadXls, event: { mouseover: function(){ window.onbeforeunload = null; }, mouseout: function() { window.onbeforeunload = $(window).data('beforeunload'); } }" title="${ _('Download first %s rows as XLS') % DOWNLOAD_ROW_LIMIT.get() }">
+          <a class="inactive-action download" href="javascript:void(0)" data-bind="click: downloadXls, event: { mouseover: function(){ window.onbeforeunload = null; }, mouseout: function() { window.onbeforeunload = $(window).data('beforeunload'); } }" title="${ _('Download first %s rows as XLS') % download_row_limit }">
             <i class="fa fa-fw fa-file-excel-o"></i> ${ _('Excel') }
           </a>
         </li>
@@ -224,7 +228,7 @@ except ImportError, e:
               <div class="controls">
                  <label class="radio">
                   <input data-bind="checked: saveTarget" type="radio" name="save-results-type" value="hdfs-file">
-                  &nbsp;${ _('File (first %s rows)') % DOWNLOAD_ROW_LIMIT.get() }
+                  &nbsp;${ _('File (first %s rows)') % download_row_limit }
                 </label>
                 <div data-bind="visible: saveTarget() == 'hdfs-file'" class="inline">
                   <input data-bind="value: savePath, valueUpdate:'afterkeydown', filechooser: { value: savePath, isNestedModal: true }, filechooserOptions: { uploadFile: false, skipInitialPathIfEmpty: true, linkMarkup: true }, hdfsAutocomplete: savePath" type="text" name="target_file" placeholder="${_('Path to CSV file')}" class="pathChooser margin-left-10">

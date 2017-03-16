@@ -25,6 +25,7 @@ from operator import itemgetter
 
 from django.utils.translation import ugettext as _
 
+from desktop.lib.conf import BoundConfig
 from desktop.lib import thrift_util
 from desktop.conf import DEFAULT_USER
 from desktop.models import Document2
@@ -52,6 +53,8 @@ LOG = logging.getLogger(__name__)
 IMPALA_RESULTSET_CACHE_SIZE = 'impala.resultset.cache.size'
 DEFAULT_USER = DEFAULT_USER.get()
 
+def thrift_version():
+  return beeswax_conf.THRIFT_VERSION.get() if type(beeswax_conf.THRIFT_VERSION) == BoundConfig else beeswax_conf.THRIFT_VERSION.default
 
 class HiveServerTable(Table):
   """
@@ -59,7 +62,7 @@ class HiveServerTable(Table):
   """
 
   def __init__(self, table_results, table_schema, desc_results, desc_schema):
-    if beeswax_conf.THRIFT_VERSION.get() >= 7:
+    if thrift_version() >= 7:
       if not table_results.columns:
         raise NoSuchObjectException()
       self.table = table_results.columns
@@ -357,8 +360,7 @@ class HiveServerTTableSchema:
   def _get_col_position(self, column_name):
     return filter(lambda (i, col): col.columnName == column_name, enumerate(self.schema.columns))[0][0]
 
-
-if beeswax_conf.THRIFT_VERSION.get() >= 7:
+if thrift_version() >= 7:
   HiveServerTRow = HiveServerTRow2
   HiveServerTRowSet = HiveServerTRowSet2
 else:
@@ -571,7 +573,7 @@ class HiveServerClient:
 
   def open_session(self, user):
     kwargs = {
-        'client_protocol': beeswax_conf.THRIFT_VERSION.get() - 1,
+        'client_protocol': thrift_version() - 1,
         'username': user.username, # If SASL or LDAP, it gets the username from the authentication mechanism" since it dependents on it.
         'configuration': {},
     }
@@ -925,7 +927,7 @@ class HiveServerClient:
     req = TFetchResultsReq(operationHandle=operation_handle, orientation=orientation, maxRows=max_rows, fetchType=1)
     res = self.call(self._client.FetchResults, req)
 
-    if beeswax_conf.THRIFT_VERSION.get() >= 7:
+    if thrift_version() >= 7:
       lines = res.results.columns[0].stringVal.values
     else:
       lines = imap(lambda r: r.colVals[0].stringVal.value, res.results.rows)
