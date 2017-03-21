@@ -3235,7 +3235,9 @@ class TestDashboardWithOozie(OozieBase):
     super(TestDashboardWithOozie, self).setUp()
 
     self.c = make_logged_in_client()
-    self.wf = create_workflow(self.c, self.user)
+    workflow_dict = WORKFLOW_DICT.copy()
+    workflow_dict['job_xml'] = []
+    self.wf = create_workflow(self.c, self.user, workflow_dict=workflow_dict)
     self.setup_simple_workflow()
 
   def tearDown(self):
@@ -3260,10 +3262,10 @@ class TestDashboardWithOozie(OozieBase):
 #
 # Licensed to the Hue
 #
-nameNode=hdfs://%s:8020
-jobTracker=%s:8021
+nameNode=hdfs://localhost:8020
+jobTracker=localhost:8021
 my_prop_not_filtered=10
-    """ % ('node1', 'node1') # TODO
+    """
     self.cluster.fs.create(deployment_dir + '/job.properties', data=oozie_properties)
 
     response = self.c.get(reverse('oozie:submit_external_job', kwargs={'application_path': application_path}))
