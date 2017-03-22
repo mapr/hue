@@ -48,12 +48,12 @@ HIVE_SERVER_PORT = Config(
 HIVE_CONF_DIR = Config(
   key='hive_conf_dir',
   help=_t('Hive configuration directory, where hive-site.xml is located.'),
-  default=os.environ.get("HIVE_CONF_DIR", "/opt/mapr/hive/hive-2.1/conf"))
+  default=os.environ.get("HIVE_CONF_DIR", "/opt/mapr/hive/hive-2.1.1/conf"))
 
 HIVE_SERVER_BIN = Config(
   key="hive_server_bin",
   help=_t("Path to HiveServer2 start script"),
-  default='/opt/mapr/hive/hive-2.1/bin/hiveserver2',
+  default='/opt/mapr/hive/hive-2.1.1/bin/hiveserver2',
   private=True)
 
 LOCAL_EXAMPLES_DATA_DIR = Config(
