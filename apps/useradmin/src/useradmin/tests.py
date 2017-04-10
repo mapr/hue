@@ -18,6 +18,7 @@
 
 import json
 import ldap
+import os
 import re
 import sys
 import time
@@ -157,7 +158,7 @@ class LdapTestConnection(object):
   class Data:
     def __init__(self):
       self.users = {'moe': {'dn': 'uid=moe,ou=People,dc=example,dc=com', 'username':'moe', 'first':'Moe', 'email':'moe@stooges.com', 'groups': ['cn=TestUsers,ou=Groups,dc=example,dc=com']},
-                    'lårry': {'dn': 'uid=lårry,ou=People,dc=example,dc=com', 'username':'lårry', 'first':'Larry', 'last':'Stooge', 'email':'larry@stooges.com', 'groups': ['cn=TestUsers,ou=Groups,dc=example,dc=com', 'cn=Test Administrators,cn=TestUsers,ou=Groups,dc=example,dc=com']},
+                    'larry': {'dn': 'uid=larry,ou=People,dc=example,dc=com', 'username':'larry', 'first':'Larry', 'last':'Stooge', 'email':'larry@stooges.com', 'groups': ['cn=TestUsers,ou=Groups,dc=example,dc=com', 'cn=Test Administrators,cn=TestUsers,ou=Groups,dc=example,dc=com']},
                     'curly': {'dn': 'uid=curly,ou=People,dc=example,dc=com', 'username':'curly', 'first':'Curly', 'last':'Stooge', 'email':'curly@stooges.com', 'groups': ['cn=TestUsers,ou=Groups,dc=example,dc=com', 'cn=Test Administrators,cn=TestUsers,ou=Groups,dc=example,dc=com']},
                     'Rock': {'dn': 'uid=Rock,ou=People,dc=example,dc=com', 'username':'Rock', 'first':'rock', 'last':'man', 'email':'rockman@stooges.com', 'groups': ['cn=Test Administrators,cn=TestUsers,ou=Groups,dc=example,dc=com']},
                     'nestedguy': {'dn': 'uid=nestedguy,ou=People,dc=example,dc=com', 'username':'nestedguy', 'first':'nested', 'last':'guy', 'email':'nestedguy@stooges.com', 'groups': ['cn=NestedGroup,ou=Groups,dc=example,dc=com']},
@@ -172,12 +173,12 @@ class LdapTestConnection(object):
       self.groups = {'TestUsers': {
                         'dn': 'cn=TestUsers,ou=Groups,dc=example,dc=com',
                         'name':'TestUsers',
-                        'members':['uid=moe,ou=People,dc=example,dc=com','uid=lårry,ou=People,dc=example,dc=com','uid=curly,ou=People,dc=example,dc=com','uid=test_toolongusernametoolongusername,ou=People,dc=example,dc=com'],
+                        'members':['uid=moe,ou=People,dc=example,dc=com','uid=larry,ou=People,dc=example,dc=com','uid=curly,ou=People,dc=example,dc=com','uid=test_toolongusernametoolongusername,ou=People,dc=example,dc=com'],
                         'posix_members':[]},
                       'Test Administrators': {
                         'dn': 'cn=Test Administrators,cn=TestUsers,ou=Groups,dc=example,dc=com',
                         'name':'Test Administrators',
-                        'members':['uid=Rock,ou=People,dc=example,dc=com','uid=lårry,ou=People,dc=example,dc=com','uid=curly,ou=People,dc=example,dc=com','uid=test_toolongusernametoolongusername,ou=People,dc=example,dc=com'],
+                        'members':['uid=Rock,ou=People,dc=example,dc=com','uid=larry,ou=People,dc=example,dc=com','uid=curly,ou=People,dc=example,dc=com','uid=test_toolongusernametoolongusername,ou=People,dc=example,dc=com'],
                         'posix_members':[]},
                       'OtherGroup': {
                         'dn': 'cn=OtherGroup,cn=TestUsers,ou=Groups,dc=example,dc=com',
@@ -206,7 +207,7 @@ class LdapTestConnection(object):
                         'dn': 'cn=PosixGroup,ou=Groups,dc=example,dc=com',
                         'name':'PosixGroup',
                         'members':[],
-                        'posix_members':['posix_person','lårry']},
+                        'posix_members':['posix_person','larry']},
                       'PosixGroup1': {
                         'dn': 'cn=PosixGroup1,cn=PosixGroup,ou=Groups,dc=example,dc=com',
                         'name':'PosixGroup1',
@@ -778,7 +779,12 @@ class TestUserAdminWithHadoop(BaseUserAdminTests):
 
       # Cluster and client for home directory creation
       cluster = pseudo_hdfs4.shared_cluster()
-      c = make_logged_in_client(cluster.superuser, is_superuser=True, groupname='test1')
+      kwargs = {}
+      kwargs['is_superuser'] = True
+      kwargs['groupname'] = 'test1'
+      if os.environ.get('HDFS_SUPERUSER_PASSWORD'):
+          kwargs['password'] = os.environ.get('HDFS_SUPERUSER_PASSWORD')
+      c = make_logged_in_client(cluster.superuser, **kwargs)
       cluster.fs.setuser(cluster.superuser)
 
       # Create a user with a home directory

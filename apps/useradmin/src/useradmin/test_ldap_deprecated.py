@@ -115,7 +115,7 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
       assert_equal(Group.objects.all().count(), 2)
       test_admins = Group.objects.get(name='Test Administrators')
       assert_equal(test_admins.user_set.all().count(), 2)
-      larry = User.objects.get(username='lårry')
+      larry = User.objects.get(username='larry')
       assert_equal(test_admins.user_set.all().order_by('username')[1].username, larry.username)
 
       # Only sync already imported
@@ -177,7 +177,7 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
       assert_equal(Group.objects.all().count(), 2)
       test_admins = Group.objects.get(name='Test Administrators')
       assert_equal(test_admins.user_set.all().count(), 2)
-      larry = User.objects.get(username='lårry')
+      larry = User.objects.get(username='larry')
       assert_equal(test_admins.user_set.all().order_by('username')[1].username, larry.username)
 
       # Only sync already imported
@@ -258,7 +258,7 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
       assert_equal(Group.objects.all().count(), 2, Group.objects.all())
       test_admins = Group.objects.get(name='Test Administrators')
       assert_equal(test_admins.user_set.all().count(), 1)
-      larry = User.objects.get(username='lårry')
+      larry = User.objects.get(username='larry')
       assert_equal(test_admins.user_set.all().order_by('username')[0].username, larry.username)
 
       # Only sync already imported
@@ -320,7 +320,7 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
       assert_equal(Group.objects.all().count(), 2, Group.objects.all())
       test_admins = Group.objects.get(name='Test Administrators')
       assert_equal(test_admins.user_set.all().count(), 1)
-      larry = User.objects.get(username='lårry')
+      larry = User.objects.get(username='larry')
       assert_equal(test_admins.user_set.all().order_by('username')[0].username, larry.username)
 
       # Only sync already imported
@@ -372,8 +372,8 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
       ldap_access.CACHED_LDAP_CONN = LdapTestConnection()
 
       # Try importing a user
-      import_ldap_users(ldap_access.CACHED_LDAP_CONN, 'lårry', sync_groups=False, import_by_dn=False)
-      larry = User.objects.get(username='lårry')
+      import_ldap_users(ldap_access.CACHED_LDAP_CONN, 'larry', sync_groups=False, import_by_dn=False)
+      larry = User.objects.get(username='larry')
       assert_true(larry.first_name == 'Larry')
       assert_true(larry.last_name == 'Stooge')
       assert_true(larry.email == 'larry@stooges.com')
@@ -423,9 +423,9 @@ class TestUserAdminLdapDeprecated(BaseUserAdminTests):
 
       # Test import case sensitivity
       done.append(desktop.conf.LDAP.IGNORE_USERNAME_CASE.set_for_testing(True))
-      import_ldap_users(ldap_access.CACHED_LDAP_CONN, 'Lårry', sync_groups=False, import_by_dn=False)
-      assert_false(User.objects.filter(username='Lårry').exists())
-      assert_true(User.objects.filter(username='lårry').exists())
+      import_ldap_users(ldap_access.CACHED_LDAP_CONN, 'Larry', sync_groups=False, import_by_dn=False)
+      assert_false(User.objects.filter(username='Larry').exists())
+      assert_true(User.objects.filter(username='larry').exists())
 
       # Test lower case
       User.objects.filter(username__iexact='Rock').delete()
@@ -621,14 +621,14 @@ class TestUserAdminLdapDeprecatedWithHadoop(BaseUserAdminTests):
       response = c.post(URL, dict(username_pattern='*rr*', password1='test', password2='test', ensure_home_directory=True))
       assert_true('/useradmin/users' in response['Location'])
       assert_true(cluster.fs.exists('/user/curly'))
-      assert_true(cluster.fs.exists(u'/user/lårry'))
+      assert_true(cluster.fs.exists(u'/user/larry'))
       assert_false(cluster.fs.exists('/user/otherguy'))
     finally:
       # Clean up
       if cluster.fs.exists('/user/curly'):
         cluster.fs.rmtree('/user/curly')
-      if cluster.fs.exists(u'/user/lårry'):
-        cluster.fs.rmtree(u'/user/lårry')
+      if cluster.fs.exists(u'/user/larry'):
+        cluster.fs.rmtree(u'/user/larry')
       if cluster.fs.exists('/user/otherguy'):
         cluster.fs.rmtree('/user/otherguy')
 
