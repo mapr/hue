@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# encoding: utf-8
 # Licensed to Cloudera, Inc. under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,15 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 
 import desktop.management.commands.convert_documents
 
-LOG = logging.getLogger(__name__)
-
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
         # Earlier we did the document conversions from Doc1 to Doc2 upon loading
@@ -34,7 +30,7 @@ class Migration(SchemaMigration):
         # This migration handles the document conversion of all users at
         # the same time preventing such flaws.
 
-        desktop.management.commands.convert_documents.Command().execute()
+        desktop.management.commands.convert_documents.Command().handle_noargs()
 
     def backwards(self, orm):
         pass
@@ -114,7 +110,7 @@ class Migration(SchemaMigration):
             'parent_directory': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': u"orm['desktop.Document2']"}),
             'search': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '32', 'db_index': 'True'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'default': "'34efd754-13bb-46c1-b8da-f29627658d11'", 'max_length': '36', 'db_index': 'True'}),
+            'uuid': ('django.db.models.fields.CharField', [], {'default': "'7127eba0-4091-4235-9321-f692d22a965b'", 'max_length': '36', 'db_index': 'True'}),
             'version': ('django.db.models.fields.SmallIntegerField', [], {'default': '1', 'db_index': 'True'})
         },
         u'desktop.document2permission': {
@@ -155,3 +151,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['desktop']
+    symmetrical = True

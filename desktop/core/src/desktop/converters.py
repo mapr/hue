@@ -17,6 +17,7 @@
 
 import json
 import logging
+import sys
 import time
 
 from django.db import transaction
@@ -175,7 +176,9 @@ class DocumentConverter(object):
 
     # Log docs that failed to import
     if self.failed_docs:
-      LOG.error('Failed to import %d document(s) for user: %s - %s' % (len(self.failed_docs), self.user.username, ([doc.id for doc in self.failed_docs])))
+      error_msg = 'Failed to import %d document(s) for user: %s - %s' % (len(self.failed_docs), self.user.username, ([doc.id for doc in self.failed_docs]))
+      LOG.error(error_msg)
+      print >> sys.stderr, error_msg
 
     # Set is_trashed field for old documents with is_trashed=None
     docs = Document2.objects.filter(owner=self.user, is_trashed=None).exclude(is_history=True)

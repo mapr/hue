@@ -21,13 +21,14 @@ import time
 from django.contrib.auth.models import User
 from django.core.management.base import NoArgsCommand
 from django.db import transaction
+from django.utils.translation import ugettext as _
 
 from desktop.converters import DocumentConverter
 
 class Command(NoArgsCommand):
 
   def handle_noargs(self, **options):
-    self.stdout.write('Starting document conversions...\n')
+    print _('Starting document conversions...\n')
     try:
       with transaction.atomic():
         users = User.objects.all()
@@ -42,4 +43,4 @@ class Command(NoArgsCommand):
     except Exception, e:
       logging.exception("Failed to execute the document conversions.")
 
-    self.stdout.write('Finished running document conversions.\n')
+    print _('Finished running document conversions.\n')
