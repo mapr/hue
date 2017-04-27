@@ -27,16 +27,6 @@ from desktop.conf import is_hue4
 from desktop.lib.conf import Config, UnspecifiedConfigSection, ConfigSection,\
   coerce_json_dict, coerce_string, coerce_bool, coerce_csv
 
-app_interpreters = {
-  'impala': ['impala'],
-  'beeswax': ['hive'],
-  'spark': ['sparksql', 'spark', 'pyspark', 'r', 'jar', 'py'],
-  'pig': ['pig'],
-  'rdbms': ['mysql', 'sqlite', 'postgresql', 'oracle'],
-  'solr': ['solr'],
-  'notebook': ['text', 'markdown'],
-  'oozie' : ['java']
-}
 
 def is_oozie_enabled():
   """Oozie needs to be available as it is the backend."""
@@ -68,14 +58,12 @@ def get_ordered_interpreters(user=None):
   reordered_interpreters = interpreters_shown_on_wheel + \
                            [i for i in interpreters if i not in interpreters_shown_on_wheel]
 
-  available_apps = appmanager.get_apps_dict(user)
+  app_blacklist = appmanager.get_apps_dict(user)
   interpreter_blacklist = []
-  for app in app_interpreters:
-    if app not in available_apps:
-      interpreter_blacklist += app_interpreters[app]
-  # handle case when user have access to impala but beeswax blacklisted
-  if 'beeswax' in appmanager.get_apps_dict():
+  if 'impala' in app_blacklist or 'beeswax' in app_blacklist:
     interpreter_blacklist.append('impala')
+  if 'beeswax' in app_blacklist:
+    interpreter_blacklist.append('hive')
 
   return [{
       "name": interpreters[i].NAME.get(),
