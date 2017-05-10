@@ -37,6 +37,7 @@ mkdir -p "$HUE_PID_DIR"
 
 log=$HUE_LOG_DIR/hue-$HUE_IDENT_STRING-$command-$HOSTNAME.out
 pid=$HUE_PID_DIR/hue-$HUE_IDENT_STRING-$command.pid
+# TODO: Remove it on after migration to usage of configure.sh will be completed.
 secure_sh_log=$HUE_LOG_DIR/secure-sh-log.out
 
 
@@ -49,6 +50,7 @@ case $startStop in
     fi
   fi
   cd $HUE_HOME
+  # TODO: Remove it on after migration to usage of configure.sh will be completed.
   # Generate secure keys
   nohup $HUE_HOME/bin/secure.sh >> "$secure_sh_log" 2>&1 < /dev/null &
   nohup $HUE_HOME/build/env/bin/hue $command >> "$log" 2>&1 < /dev/null &
