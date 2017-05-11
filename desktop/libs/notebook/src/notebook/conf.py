@@ -27,15 +27,23 @@ from desktop.conf import is_hue4
 from desktop.lib.conf import Config, UnspecifiedConfigSection, ConfigSection,\
   coerce_json_dict, coerce_string, coerce_bool, coerce_csv
 
+# Mapping app to interpreters.
+# It should not works with custom interpreter like above:
+# ...
+# [notebook]
+#   [[interpreters]]
+#     [[[my_custom_interpreter]]]
+#       interface=hiveserver2
+
 app_interpreters = {
-  'impala': ['impala'],
   'beeswax': ['hive'],
-  'spark': ['sparksql', 'spark', 'pyspark', 'r', 'jar', 'py'],
+  'impala': ['impala'],
+  'notebook': ['markdown', 'text'],
+  'oozie' : ['distcp', 'java', 'mapreduce', 'pig', 'shell', 'spark2', 'sqoop1'],
   'pig': ['pig'],
-  'rdbms': ['mysql', 'sqlite', 'postgresql', 'oracle'],
-  'solr': ['solr'],
-  'notebook': ['text', 'markdown'],
-  'oozie' : ['java']
+  'rdbms': ['mysql', 'oracle', 'postgresql', 'sqlite'],
+  'search': ['solr'],
+  'spark': ['jar', 'py', 'pyspark', 'r', 'spark', 'sparksql'],
 }
 
 def is_oozie_enabled():
@@ -72,7 +80,7 @@ def get_ordered_interpreters(user=None):
   interpreter_blacklist = []
   for app in app_interpreters:
     if app not in available_apps:
-      interpreter_blacklist += app_interpreters[app]
+      interpreter_blacklist += app_interpreters.get(app, [])
   # handle case when user have access to impala but beeswax blacklisted
   if 'beeswax' not in appmanager.get_apps_dict():
     interpreter_blacklist.append('impala')
