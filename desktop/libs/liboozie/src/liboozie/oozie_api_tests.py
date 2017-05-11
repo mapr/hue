@@ -251,6 +251,6 @@ class TestMiniOozie(OozieServerProvider):
     assert_equal(get_oozie(user).get_oozie_status()['systemMode'], 'NORMAL')
 
     if is_live_cluster():
-      assert_true(self.cluster.fs.exists('/user/oozie/share/lib'))
+      assert_true(self.cluster.fs.exists('/oozie/share/lib'))
     else:
       assert_true(self.cluster.fs.exists('/user/%(user)s/share/lib' % {'user': user}))
