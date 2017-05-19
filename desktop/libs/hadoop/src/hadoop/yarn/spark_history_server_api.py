@@ -17,8 +17,10 @@
 
 import logging
 import posixpath
+import requests
 import threading
 
+from desktop import conf as desktop_conf
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
@@ -29,6 +31,25 @@ LOG = logging.getLogger(__name__)
 
 _API_VERSION = 'v1'
 _JSON_CONTENT_TYPE = 'application/json'
+
+
+# copied from desktop.lib.res.http_client.get_request_session
+CACHE_SESSION_SPARK_HS = None
+CACHE_SESSION_LOCK_SPARK_HS = threading.Lock()
+
+def get_request_session_for_spark_hs():
+  global CACHE_SESSION_SPARK_HS
+  if CACHE_SESSION_SPARK_HS is None:
+    CACHE_SESSION_LOCK_SPARK_HS.acquire()
+    try:
+      if CACHE_SESSION_SPARK_HS is None:
+        CACHE_SESSION_SPARK_HS = requests.Session()
+        CACHE_SESSION_SPARK_HS.mount('http://', requests.adapters.HTTPAdapter(pool_connections=desktop_conf.CHERRYPY_SERVER_THREADS.get(), pool_maxsize=desktop_conf.CHERRYPY_SERVER_THREADS.get()))
+        CACHE_SESSION_SPARK_HS.mount('https://', requests.adapters.HTTPAdapter(pool_connections=desktop_conf.CHERRYPY_SERVER_THREADS.get(), pool_maxsize=desktop_conf.CHERRYPY_SERVER_THREADS.get()))
+    finally:
+      CACHE_SESSION_LOCK_SPARK_HS.release()
+  return CACHE_SESSION_SPARK_HS
+
 
 API_CACHE = None
 API_CACHE_LOCK = threading.Lock()
@@ -45,7 +66,7 @@ def get_history_server_api():
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('No Spark History Server is available.'))
-        API_CACHE = SparkHistoryServerApi(yarn_cluster.SPARK_HISTORY_SERVER_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get())
+        API_CACHE = SparkHistoryServerApi(yarn_cluster.SPARK_HISTORY_SERVER_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -54,14 +75,15 @@ def get_history_server_api():
 
 class SparkHistoryServerApi(object):
 
-  def __init__(self, spark_hs_url, security_enabled=False, ssl_cert_ca_verify=False):
+  def __init__(self, spark_hs_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism=None):
     self._ui_url = spark_hs_url
     self._url = posixpath.join(spark_hs_url, 'api/%s/' % _API_VERSION)
     self._client = HttpClient(self._url, logger=LOG)
+    self._client._session = get_request_session_for_spark_hs()
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
 
-    if self._security_enabled:
+    if self._security_enabled and mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
