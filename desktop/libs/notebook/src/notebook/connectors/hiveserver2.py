@@ -852,7 +852,7 @@ DROP TABLE IF EXISTS `%(table)s`;
         )
       if fs_counters:
         total_size = next(
-          (counter.get('totalCounterValue') for counter in fs_counters['counter'] if counter['name'] == 'HDFS_BYTES_WRITTEN'),
+          (counter.get('totalCounterValue') for counter in fs_counters['counter'] if counter['name'] in ('HDFS_BYTES_WRITTEN', 'MAPRFS_BYTES_WRITTEN')),
           None
         )
       else:
