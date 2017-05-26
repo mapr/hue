@@ -17,6 +17,8 @@
 
 import os
 import logging
+import subprocess
+import threading
 
 from django.utils.functional import wraps
 
@@ -24,14 +26,9 @@ from hadoop import conf
 from hadoop.fs import webhdfs, LocalSubFileSystem
 from hadoop.job_tracker import LiveJobTracker
 
-from desktop.conf import DEFAULT_USER
+from desktop.conf import DEFAULT_USER, DEFAULT_JOBTRACKER_HOST
 from desktop.lib.paths import get_build_dir
 from urlparse import urlparse
-from desktop.conf import DEFAULT_JOBTRACKER_HOST
-
-import os
-import logging
-import subprocess
 
 
 LOG = logging.getLogger(__name__)
@@ -247,57 +244,89 @@ def get_yarn():
       return yarn
 
 
-def get_next_ha_yarncluster():
-  config_and_rm = get_yarncluster_from_maprcli()
+def get_next_ha_yarncluster(current_user=None):
+  config_and_rm = get_yarncluster_from_maprcli(current_user)
   if (config_and_rm == None):
-    config_and_rm = get_yarncluster_from_config()
+    config_and_rm = get_yarncluster_from_config(current_user)
 
   return config_and_rm
 
-def get_yarncluster_from_maprcli():
+
+def call_maprcli_urls(servicename):
+  try:
+    maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", servicename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    maprcli_stdout, maprcli_stderr = maprcli_popen.communicate()
+
+    if maprcli_stdout.startswith("ERROR"):
+      raise Exception(maprcli_stdout)
+
+    url = maprcli_stdout.split("\n")[1]
+    url = urlparse(url).scheme + "://" + urlparse(url).netloc.strip()
+    LOG.info('%s found: %s.' % (servicename, url))
+
+    return url
+  except Exception, ex:
+    LOG.info('Error when execute "maprcli urls -name %s": %s' % (servicename, ex))
+    return None
+
+YARNCLUSTER_MAPRCLI_CACHED = None
+YARNCLUSTER_MAPRCLI_LOCK = threading.Lock()
+
+def get_yarncluster_from_maprcli(current_user=None):
+  from hadoop.yarn import mapreduce_api
+  from hadoop.yarn import resource_manager_api
   from hadoop.yarn.resource_manager_api import ResourceManagerApi
   global MR_NAME_CACHE
 
-  default_jt_host=DEFAULT_JOBTRACKER_HOST.get()
+  global YARNCLUSTER_MAPRCLI_CACHED
+  global YARNCLUSTER_MAPRCLI_LOCK
 
-  for name in conf.YARN_CLUSTERS.keys():
-    config = conf.YARN_CLUSTERS[name]
-    if config.SUBMIT_TO.get():
+  YARNCLUSTER_MAPRCLI_LOCK.acquire()
+  try:
+    if YARNCLUSTER_MAPRCLI_CACHED:
+      LOG.info('get_yarncluster_from_maprcli(): Trying to use cached RM')
       try:
-        maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "resourcemanager"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        maprcli_stdout_rm, maprcli_stderr = maprcli_popen.communicate()
+        (config, rm) = YARNCLUSTER_MAPRCLI_CACHED
+        cluster_info = rm.cluster()
+        if cluster_info['clusterInfo']['haState'] != 'ACTIVE':
+          raise Exception('Cached RM from maprcli is not RUNNING')
       except Exception, ex:
-        LOG.info('Error when execute "marcli urls -name resourcemanager": %s' %  ex)
+        LOG.info('get_yarncluster_from_maprcli(): Cached RM from maprcli is in bad state, skipping it: %s' % (ex,))
+        YARNCLUSTER_MAPRCLI_CACHED = None
+
+    if not YARNCLUSTER_MAPRCLI_CACHED:
+      LOG.info('get_yarncluster_from_maprcli(): Run maprcli to update config with right RM and HS')
+      name = next((name for name in conf.YARN_CLUSTERS.keys() if conf.YARN_CLUSTERS[name].SUBMIT_TO.get()), None)
+      if not name:
         return None
 
-      try:
-        maprcli_popen = subprocess.Popen(["maprcli", "urls", "-name", "historyserver"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        maprcli_stdout_hs, maprcli_stderr = maprcli_popen.communicate()
-      except Exception, ex:
-        LOG.info('Error when execute "marcli urls -name historyserver": %s' %  ex)
+      config = conf.YARN_CLUSTERS[name]
+      MR_NAME_CACHE = name
+
+      resourcemanager_url = call_maprcli_urls('resourcemanager')
+      historyserver_url = call_maprcli_urls('historyserver')
+
+      if not resourcemanager_url or not historyserver_url:
         return None
 
-      if not maprcli_stdout_hs.startswith("ERROR"):
-        historyserver_url = maprcli_stdout_hs.split("\n")[1]
-        historyserver_url = urlparse(historyserver_url).scheme + "://" + urlparse(historyserver_url).netloc.strip()
-        config.HISTORY_SERVER_API_URL.config.default_value = historyserver_url
-        LOG.info('HistoryServer found: %s.' % historyserver_url)
+      config.HISTORY_SERVER_API_URL.config.default_value = historyserver_url
+      config.RESOURCE_MANAGER_API_URL.config.default_value = resourcemanager_url
+      config.PROXY_API_URL.config.default_value = resourcemanager_url
 
-      if not maprcli_stdout_rm.startswith("ERROR"):
-        resourcemanager_url = maprcli_stdout_rm.split("\n")[1]
-        resourcemanager_url = urlparse(resourcemanager_url).scheme + "://" + urlparse(resourcemanager_url).netloc.strip()
-        LOG.info('ResourceManager found: %s.' % resourcemanager_url)
+    rm = ResourceManagerApi(config.RESOURCE_MANAGER_API_URL.get(), config.SECURITY_ENABLED.get(), config.SSL_CERT_CA_VERIFY.get(), config.MECHANISM.get())
+    if current_user is None:
+      rm.setuser(DEFAULT_USER)
+    else:
+      rm.setuser(current_user)
 
-        config.RESOURCE_MANAGER_API_URL.config.default_value = resourcemanager_url
-        config.PROXY_API_URL.config.default_value = resourcemanager_url
+    YARNCLUSTER_MAPRCLI_CACHED = (config, rm)
+    resource_manager_api.API_CACHE = None  # Reset cache
+    mapreduce_api.API_CACHE = None
 
-        rm = ResourceManagerApi(config.RESOURCE_MANAGER_API_URL.get(), config.SECURITY_ENABLED.get(), config.SSL_CERT_CA_VERIFY.get(), config.MECHANISM.get())
-        MR_NAME_CACHE = name
-        from hadoop.yarn import resource_manager_api
-        resource_manager_api._api_cache = None # Reset cache
-        return (config, rm)
+    return YARNCLUSTER_MAPRCLI_CACHED
+  finally:
+    YARNCLUSTER_MAPRCLI_LOCK.release()
 
-  return None
 
 def get_yarncluster_from_config(current_user=None):
   """
