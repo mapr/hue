@@ -31,8 +31,9 @@ class TSocketBase(TTransportBase):
       return [(socket.AF_UNIX, socket.SOCK_STREAM, None, None,
                self._unix_socket)]
     else:
+      # http://bugs.python.org/issue8853
       return socket.getaddrinfo(self.host,
-                                self.port,
+                                int(self.port),
                                 self._socket_family,
                                 socket.SOCK_STREAM,
                                 0,
