@@ -195,8 +195,6 @@ def get_document(request):
   return JsonResponse(response)
 
 def massage_doc_for_json(document, user, url=''):
-  read_perms = document.list_permissions(perm='read')
-  write_perms = document.list_permissions(perm='write')
   massaged_doc = {
     'id': document.id,
     'contentType': html.conditional_escape(document.content_type.name),
@@ -214,6 +212,12 @@ def massage_doc_for_json(document, user, url=''):
 
   permissions = massage_permissions(document)
   massaged_doc.update(permissions)
+
+  massaged_doc['user_perms'] = {
+    'can_read': document.can_read(user),
+    'can_write': document.can_write(user)
+  }
+
   return massaged_doc
 
 
