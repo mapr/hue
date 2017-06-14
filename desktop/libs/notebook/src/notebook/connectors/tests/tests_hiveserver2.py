@@ -155,7 +155,7 @@ class TestHiveserver2Api(object):
 
     config_statements = ', '.join(hql_query.get_configuration_statements())
 
-    pattern = re.compile("ADD JAR hdfs://[A-Za-z0-9.:_-]+/user/test/myudfs.jar")
+    pattern = re.compile("ADD JAR maprfs://([A-Za-z0-9.:_-]+)?/*/user/test/myudfs.jar")
     assert_true(pattern.search(config_statements), config_statements)
     assert_true("CREATE TEMPORARY FUNCTION myUpper AS 'org.hue.udf.MyUpper'" in config_statements, config_statements)
 
@@ -786,6 +786,8 @@ class TestHiveserver2ApiWithHadoop(BeeswaxSampleProvider):
     session = self.api.create_session(lang='impala')
 
     try:
+      self.client.post(reverse('impala:invalidate'))
+
       # Assert that a query that runs a job will return rows
       statement = "SELECT app, COUNT(1) AS count FROM web_logs GROUP BY app ORDER BY count DESC;"
       doc = self.create_query_document(owner=self.user, query_type='impala', statement=statement)
@@ -835,6 +837,7 @@ class TestHiveserver2ApiWithHadoop(BeeswaxSampleProvider):
     session = self.api.create_session(lang='impala')
 
     try:
+      self.client.post(reverse('impala:invalidate'))
 
       # Assert that abbreviated rows returned (e.g. - 1.00K) still returns actual rows
       statement = "SELECT * FROM web_logs;"
