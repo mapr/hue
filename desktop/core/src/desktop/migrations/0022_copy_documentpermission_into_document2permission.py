@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+from django.core.exceptions import ObjectDoesNotExist
+import logging
 from south.db import db
 from south.v2 import DataMigration
+
+LOG = logging.getLogger(__name__)
 
 class Migration(DataMigration):
 
@@ -8,7 +12,11 @@ class Migration(DataMigration):
         if db.dry_run:
             return
 
-        document2_contenttype = orm['contenttypes.ContentType'].objects.get(name='document2')
+        try:
+            document2_contenttype = orm['contenttypes.ContentType'].objects.get(name='document2')
+        except ObjectDoesNotExist:
+            LOG.debug('No Document2 ContentType. Skipping data migration.')
+            return
 
         for permission in orm['desktop.DocumentPermission'].objects.filter(doc__content_type=document2_contenttype):
             doc2 = orm['desktop.Document2'].objects.get(id=permission.doc.object_id)
@@ -18,7 +26,7 @@ class Migration(DataMigration):
             perm.save()
 
     def backwards(self, orm):
-        # This migration will be reverted as a part of previous migrations which creates/deletes desktop_document2permission table
+        LOG.debug('This migration will be reverted as a part of previous migrations which creates/deletes desktop_document2permission table.')
         pass
 
     models = {
