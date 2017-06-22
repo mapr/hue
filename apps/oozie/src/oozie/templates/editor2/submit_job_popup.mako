@@ -125,8 +125,11 @@
   .datepicker {
     z-index: 4999;
   }
+  .modal-body {
+    padding-bottom: 20px;
+  }
   #param-container input[type="text"].filechooser-input.input-xlarge {
-    width: 450px;
+    width: 430px;
   }
   #param-container .control-group {
     float: left;
