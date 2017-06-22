@@ -276,7 +276,7 @@ ${ hueIcons.symbols() }
      <ul class="nav nav-pills pull-left">
        <li><a title="${_('My documents')}" rel="navigator-tooltip" href="${ home_url }" style="padding-bottom:2px!important"><i class="fa fa-home" style="font-size: 19px"></i></a></li>
        <%
-         query_apps = count_apps(apps, ['beeswax', 'impala', 'rdbms', 'pig', 'jobsub', 'spark']);
+         query_apps = count_apps(apps, ['beeswax', 'impala', 'rdbms', 'pig', 'jobsub']);
        %>
        % if query_apps[1] >= 1:
        <li class="dropdown oozie">
