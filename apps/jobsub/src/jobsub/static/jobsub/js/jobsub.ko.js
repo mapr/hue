@@ -17,7 +17,6 @@
 /**
  * Design representation
  */
-var jobsubAjaxQueue = 0;
 var Design = (function($, ko, NodeFields) {
   var module = function(options) {
     var self = this;
@@ -155,16 +154,7 @@ var Design = (function($, ko, NodeFields) {
         dataType: 'json',
         type: 'GET',
         success: $.noop,
-        error: $.noop,
-        beforeSend: function () {
-          jobsubAjaxQueue = jobsubAjaxQueue + 1;
-        },
-        complete: function () {
-          jobsubAjaxQueue = Math.max(jobsubAjaxQueue - 1, 0);
-          if (jobsubAjaxQueue == 0) {
-            $(document).trigger('reload.designs');
-          }
-        }
+        error: $.noop
       }, options || {});
 
       $.ajax(request);
@@ -216,6 +206,7 @@ var Design = (function($, ko, NodeFields) {
         },
         success: function(data) {
           $(document).trigger('saved.design', [options, data]);
+          $(document).trigger('reload.designs');
         }
       }, options);
       self.request((self['new']()) ? '/jobsub/designs/'+self.node_type()+'/new' : '/jobsub/designs/'+self.id()+'/save', options);
@@ -227,6 +218,7 @@ var Design = (function($, ko, NodeFields) {
         type: 'POST',
         success: function(data) {
           $(document).trigger('cloned.design', [options, data]);
+          $(document).trigger('reload.designs');
         }
       }, options);
       this.request('/jobsub/designs/' + self.id() + '/clone', options);
@@ -238,6 +230,7 @@ var Design = (function($, ko, NodeFields) {
         type: 'POST',
         success: function(data) {
           $(document).trigger('deleted.design', [options, data]);
+          $(document).trigger('reload.designs');
         }
       }, options);
       if (skip_trash) {
@@ -253,6 +246,7 @@ var Design = (function($, ko, NodeFields) {
         type: 'POST',
         success: function(data) {
           $(document).trigger('restored.design', [options, data]);
+          $(document).trigger('reload.designs');
         }
       }, options);
       this.request('/jobsub/designs/' + self.id() + '/restore', options);
