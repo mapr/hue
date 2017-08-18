@@ -26,13 +26,14 @@ import time
 from django.conf import settings
 from nose.plugins.skip import SkipTest
 
+from desktop.conf import DEFAULT_USER
 from desktop.lib.paths import get_run_root
 from desktop.lib.rest.http_client import RestException
 from hadoop import pseudo_hdfs4
 from hadoop.pseudo_hdfs4 import is_live_cluster
 
 from sqoop.client import SqoopClient
-from sqoop.conf import SERVER_URL
+from sqoop.conf import SERVER_URL, SECURITY_ENABLED, MECHANISM
 
 
 service_lock = threading.Lock()
@@ -120,7 +121,7 @@ class SqoopServerProvider(object):
     return process
 
   @classmethod
-  def get_shared_server(cls, username='sqoop', language=settings.LANGUAGE_CODE):
+  def get_shared_server(cls, username=DEFAULT_USER.get(), language=settings.LANGUAGE_CODE):
     callback = lambda: None
 
     with service_lock:
@@ -151,7 +152,7 @@ class SqoopServerProvider(object):
         started = False
         sleep = 0.01
 
-        client = SqoopClient(SERVER_URL.get(), username, language)
+        client = SqoopClient(SERVER_URL.get(), username, language=language, security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
 
         while not started and time.time() - start < 60.0:
           LOG.info('Check Sqoop status...')
@@ -184,6 +185,6 @@ class SqoopServerProvider(object):
 
         SqoopServerProvider.is_running = True
       else:
-        client = SqoopClient(SERVER_URL.get(), username, language)
+        client = SqoopClient(SERVER_URL.get(), username, language=language, security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
 
       return client, callback
