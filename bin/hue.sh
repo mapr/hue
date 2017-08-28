@@ -19,7 +19,7 @@ shift
 MAPR_IMPERSONATION_ENABLED=" "
 export MAPR_IMPERSONATION_ENABLED
 
-HUE_PID_DIR=$HUE_HOME/pids
+HUE_PID_DIR=/opt/mapr/pid
 if [ "$HUE_IDENT_STRING" = "" ]; then
   export HUE_IDENT_STRING=`id -nu`
 fi
@@ -64,6 +64,7 @@ case $startStop in
     if kill -0 `cat $pid` > /dev/null 2>&1; then
       echo stopping $command
       kill `cat $pid`
+      rm -rf $pid
       echo "`date` $command stopped, pid `cat $pid`" >> "$log" 2>&1 < /dev/null
     else
       echo no $command to stop

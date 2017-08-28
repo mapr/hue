@@ -22,14 +22,16 @@ RETURN_ERR_OTHER=4
 
 MAPR_HOME=${MAPR_HOME:-/opt/mapr}
 
-. ${MAPR_HOME}/server/common-ecosystem.sh
+. ${MAPR_HOME}/server/common-ecosystem.sh  2> /dev/null 
 
 if [ $? -ne 0 ] ; then
   echo '[ERROR] MAPR_HOME seems to not be set correctly or mapr-core not installed.'
   exit $RETURN_ERR_MAPR_HOME
 fi
 
-initEnv
+{ set +x; } 2>/dev/null
+
+initCfgEnv
 
 # Get MAPR_USER and MAPR_GROUP
 DAEMON_CONF="${MAPR_HOME}/conf/daemon.conf"
@@ -50,8 +52,8 @@ if [ -z "$MAPR_GROUP" ] ; then
 fi
 
 # Initialize HUE_HOME
-HUE_HOME=${HUE_HOME:-__INSTALL__}
-HUE_NAME=${HUE_NAME:-hue}
+HUE_VERSION=$(cat "${MAPR_HOME}/hue/hueversion")
+HUE_HOME=${HUE_HOME:-"${MAPR_HOME}/hue/hue-${HUE_VERSION}"}
 MAPR_CONF_DIR=${MAPR_CONF_DIR:-"$MAPR_HOME/conf"}
 
 # Initialize arguments
@@ -74,11 +76,6 @@ HUE_OPENSSL_PRIVATE_KEYSTORE="${HUE_CERTIFICATES_DIR}/hue_private_keystore.pem"
 USAGE="usage: $0 [-h] [-R] [-secure] [-unsecure]"
 
 OPTS=`getopt -n "$0" -a -o h -l R -l EC: -l secure -l unsecure -- "$@"`
-
-if [ $? != 0 ] || [ ${#} -lt 1 ] ; then
-  echo "${USAGE}"
-  exit $RETURN_ERR_ARGS
-fi
 
 eval set -- "$OPTS"
 
@@ -115,10 +112,10 @@ done
 # Functions
 
 gen_certs() {
-  if ! safeToRunMaprCli ; then
-    logErr 'Can not create security keys, because cluster is not configured.'
-    return $RETURN_ERR_MAPRCLUSTER
-  fi
+  #if ! safeToRunMaprCLI ; then
+  #  logErr 'Can not create security keys, because cluster is not configured.'
+  #  return $RETURN_ERR_MAPRCLUSTER
+  #fi
 
 
   CERTIFICATEKEY="$(getClusterName)"
@@ -193,7 +190,8 @@ gen_certs() {
 
 # Configure security
 if [ "$isSecure" == 1 ] ; then
-  GEN_CERTS_RET=$(gen_certs)
+  gen_certs
+  GEN_CERTS_RET=$?
   if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
     logErr 'Can not configure Hue with -secure.'
     exit $GEN_CERTS_RET
@@ -216,31 +214,13 @@ chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
 
 # Ask Warden to restart Hue if needed
 if [ "$doRestart" == 1 ] && [ "$isOnlyRoles" != 1 ] ; then
-    source "${HUE_HOME}/VERSION"
-    echo "maprcli node services -action restart -name hue -nodes $(hostname)" > "${MAPR_CONF_DIR}/restart/${HUE_NAME}-${VERSION}.restart"
+  mkdir -p ${MAPR_CONF_DIR}/restart
+  echo "maprcli node services -action restart -name hue -nodes $(hostname)" > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
+  chown $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
 fi
 
-
-
-# Install Warden conf file
-if [ "$isOnlyRoles" == 1 ] ; then
-  # Configure network
-  if checkNetworkPortAvailability 8888 && checkNetworkPortAvailability 25333 ; then
-    # Register port for Hue
-    registerNetworkPort hue 8888
-
-    # Register port for Hue internal DBProxy service
-    registerNetworkPort hue_dbpoxy 25333
-
-    # Copy Hue Warden conf into Warden conf directory
-    cp "${HUE_HOME}/desktop/conf.new/warden.${HUE_NAME}.conf" "${MAPR_CONF_DIR}/conf.d/"
-    logInfo 'Warden conf for Hue copied.'
-  else
-    logErr 'Hue cannot start because its ports already has been taken.'
-    exit $RETURN_ERR_MAPRCLUSTER
-  fi
-fi
-
-
+cp "${HUE_HOME}/desktop/conf.new/warden.hue.conf" "${MAPR_CONF_DIR}/conf.d/"
+chown $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/conf.d/warden.hue.conf"
+logInfo 'Warden conf for Hue copied.'
 
 exit $RETURN_SUCCESS
