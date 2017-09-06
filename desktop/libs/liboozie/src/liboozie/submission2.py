@@ -431,8 +431,10 @@ STORED AS TEXTFILE %s""" % (self.properties.get('send_result_path'), '\n\n\n'.jo
         self.job.HUE_ID: self.job.id
       })
 
+    self.properties['_mechanism'] = self.api.mechanism
+
     # Generate credentials when using security
-    if self.api.security_enabled:
+    if self.api.security_enabled and self.api.mechanism == 'GSSAPI':
       credentials = Credentials()
       credentials.fetch(self.api)
       self.properties['credentials'] = credentials.get_properties()

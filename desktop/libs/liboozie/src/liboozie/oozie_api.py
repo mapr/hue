@@ -58,6 +58,7 @@ class OozieApi(object):
 
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
+    self._mechanism = mechanism
     # To store username info
     if hasattr(user, 'username'):
       self.user = user.username
@@ -75,6 +76,10 @@ class OozieApi(object):
   @property
   def security_enabled(self):
     return self._security_enabled
+
+  @property
+  def mechanism(self):
+    return self._mechanism
 
   def _get_params(self):
     if self.security_enabled:
