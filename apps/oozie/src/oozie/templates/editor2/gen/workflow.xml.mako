@@ -29,7 +29,8 @@
     % endif
   </global>
   % endif
-  % if wf.credentials and mapping.get('security_enabled'):
+  % if wf.credentials and mapping.get('security_enabled') and mapping.get('_mechanism') == 'GSSAPI':
+  ## Credentials section is needed only for Workflows that are running in Kerberised environment
   <credentials>
     % for cred_type in wf.credentials:
     <%
