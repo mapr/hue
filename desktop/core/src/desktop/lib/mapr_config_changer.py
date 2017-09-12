@@ -1,16 +1,25 @@
 import re
 import os
 
+from desktop.lib.paths import get_run_root
+
 MAPR_SECURITY = "MAPR-SECURITY"
 SECURE = "secure"
 SECURITY_ENABLED = 'security_enabled'
 MECHANISM = 'mechanism'
+SSL_CERTIFICATE = 'ssl_certificate'
+SSL_PRIVATE_KEY = 'ssl_private_key'
 
 MAPR_CLUSTERS_CONF_PATH = "/opt/mapr/conf/mapr-clusters.conf"
 
+SSL_CERTIFICATE_PATH = os.path.join(get_run_root(), 'keys', 'cert.pem')
+SSL_PRIVATE_KEY_PATH = os.path.join(get_run_root(), 'keys', 'hue_private_keystore.pem')
+
 templates = {
   MECHANISM: 'none',
-  SECURITY_ENABLED: 'false'
+  SECURITY_ENABLED: 'false',
+  SSL_CERTIFICATE: None,
+  SSL_PRIVATE_KEY: None,
 }
 
 def read_values_from_mapr_clusters_conf():
@@ -24,6 +33,8 @@ def read_values_from_mapr_clusters_conf():
 
   if templates[SECURITY_ENABLED] == "true":
     templates[MECHANISM] = MAPR_SECURITY
+    templates[SSL_CERTIFICATE] = SSL_CERTIFICATE_PATH
+    templates[SSL_PRIVATE_KEY] = SSL_PRIVATE_KEY_PATH
 
 
 templateRegEx = re.compile(r'^\${(.+?)}')
