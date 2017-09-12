@@ -2047,8 +2047,11 @@ deactivate () {
     ########################## Added by MapR team ##########################
     ########################################################################
     LD_LIBRARY_PATH="$_OLD_LD_LIBRARY_PATH"
+    PYTHONPATH="$_OLD_PYTHONPATH"
     export LD_LIBRARY_PATH
+    export PYTHONPATH
     unset _OLD_LD_LIBRARY_PATH
+    unset _OLD_PYTHONPATH
     ########################################################################
     ########################## Added by MapR team ##########################
     ########################################################################
@@ -2094,22 +2097,30 @@ alias pydoc="python -m pydoc"
 ############################ Added by MapR team ############################
 ############################################################################
 _OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+_OLD_PYTHONPATH="$PYTHONPATH"
 
-if [ -z "$JAVA_HOME" ]; then
-    sys_java="/usr/bin/java"
-    if [ -e $sys_java ]; then
-       jcmd=`readlink -f $sys_java`
-       if [ -x ${jcmd%/jre/bin/java}/bin/javac ]; then
-           JAVA_HOME=${jcmd%/jre/bin/java}
-       elif [ -x ${jcmd%/java}/javac ]; then
-           JAVA_HOME=${jcmd%/bin/java}
-       fi
-       [ -n "${JAVA_HOME}" ] && export JAVA_HOME
-    fi
+
+MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
+
+# Add path to libjvm.so into LD_LIBRARY_PATH
+# Find JRE directory using MapR env.sh script
+java_directory=$(source "${MAPR_HOME}/conf/env.sh" ; echo $JAVA_HOME)
+if [ -e "${java_directory}/jre/lib/amd64/server" ] ; then
+    # java_directory points to JDK
+    libjvm_path="${java_directory}/jre/lib/amd64/server"
+elif [ -e "${java_directory}/lib/amd64/server" ] ; then
+    # java_directory points to JRE
+    libjvm_path="${java_directory}/lib/amd64/server"
 fi
 
-LD_LIBRARY_PATH="/opt/mapr/lib:$JAVA_HOME/jre/lib/amd64/server:$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="${MAPR_HOME}/lib:${VIRTUAL_ENV}/lib:${libjvm_path}:${LD_LIBRARY_PATH}"
+
+# Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
+PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
+
+
 export LD_LIBRARY_PATH
+export PYTHONPATH
 ############################################################################
 ############################ Added by MapR team ############################
 ############################################################################
