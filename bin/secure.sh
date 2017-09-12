@@ -1,14 +1,21 @@
 #!/bin/bash
 
-MAPR_CLUSTERS_CONF=/opt/mapr/conf/mapr-clusters.conf
-MAPR_SSL_KEYSTORE_PATH=/opt/mapr/conf/ssl_keystore
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+HUE_DIR=$(cd "${SCRIPT_DIR}/../" && pwd)
+HUE_HOME=${HUE_HOME:-"${HUE_DIR}"}
+
+MAPR_HOME=${MAPR_HOME:-/opt/mapr}
+MAPR_CLUSTERS_CONF="${MAPR_HOME}/conf/mapr-clusters.conf"
+MAPR_SSL_KEYSTORE_PATH="${MAPR_HOME}/conf/ssl_keystore"
 SECURE='false'
-DEST_KEYSTORE=keystore.p12
-CERTIFCATE_PEM_FILE=cert.pem
+
+HUE_CERTIFICATES_DIR="${HUE_HOME}/keys"
+DEST_KEYSTORE="${HUE_CERTIFICATES_DIR}/keystore.p12"
+CERTIFCATE_PEM_FILE="${HUE_CERTIFICATES_DIR}/cert.pem"
 SRC_STORE_PASSWD=mapr123
 DEST_STORE_PASSWD=m@prt3ch777!!!S
-OPENSSL_PKCS12_OUT=keystore.pem
-OPENSSL_RSA_OUT=hue_private_keystore.pem
+OPENSSL_PKCS12_OUT="${HUE_CERTIFICATES_DIR}/keystore.pem"
+OPENSSL_RSA_OUT="${HUE_CERTIFICATES_DIR}/hue_private_keystore.pem"
 CERTIFICATEKEY=certificate
 
 function log {
@@ -40,6 +47,11 @@ function find_certificate_key(){
 SECURE=$(find_is_secure_enabled)
 
 log '[INFO] secure = '$SECURE
+
+if [[ $SECURE == 'true' ]]; then
+    log '[INFO] Ensure that ./keys/ directory exists'
+    mkdir -p "$HUE_CERTIFICATES_DIR"
+fi
 
 if [[ $SECURE == 'true' ]]; then
     log '[INFO] Using existing ssl_keystore: '$MAPR_SSL_KEYSTORE_PATH
