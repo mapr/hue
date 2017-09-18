@@ -9,22 +9,6 @@ export HUE_HOME=${bin}/..
 #
 source $HUE_HOME/build/env/bin/activate
 
-# Look for installed JDK
-if [ -z "$JAVA_HOME" ]; then
-    sys_java="/usr/bin/java"
-    if [ -e $sys_java ]; then
-       jcmd=`readlink -f $sys_java`
-       if [ -x ${jcmd%/jre/bin/java}/bin/javac ]; then
-           JAVA_HOME=${jcmd%/jre/bin/java}
-       elif [ -x ${jcmd%/java}/javac ]; then
-           JAVA_HOME=${jcmd%/bin/java}
-       fi
-       [ -n "${JAVA_HOME}" ] && export JAVA_HOME
-    fi
-fi
-
-export LD_LIBRARY_PATH=$HUE_HOME/build/env/lib:$LD_LIBRARY_PATH
-
 # get arguments
 command=$1
 shift

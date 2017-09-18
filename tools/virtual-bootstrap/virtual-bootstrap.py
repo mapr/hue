@@ -2104,7 +2104,7 @@ MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
 
 # Add path to libjvm.so into LD_LIBRARY_PATH
 # Find JRE directory using MapR env.sh script
-java_directory=$(source "${MAPR_HOME}/conf/env.sh" ; echo $JAVA_HOME)
+java_directory=$(. "${MAPR_HOME}/conf/env.sh" ; echo $JAVA_HOME)
 if [ -e "${java_directory}/jre/lib/amd64/server" ] ; then
     # java_directory points to JDK
     libjvm_path="${java_directory}/jre/lib/amd64/server"
