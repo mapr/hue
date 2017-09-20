@@ -73,33 +73,34 @@ HUE_OPENSSL_PRIVATE_KEYSTORE="${HUE_CERTIFICATES_DIR}/hue_private_keystore.pem"
 
 # Parse options
 
-USAGE="usage: $0 [-h] [-R] [-secure] [-unsecure]"
+USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--custom]"
 
-OPTS=`getopt -n "$0" -a -o h -l R -l EC: -l secure -l unsecure -- "$@"`
-
-eval set -- "$OPTS"
-
-for i ; do
-  case "$i" in
+while [ ${#} -gt 0 ] ; do
+  case "$1" in
     --secure)
       isSecure=1;
       shift 1;;
     --unsecure)
       isSecure=0;
       shift 1;;
-    --R)
+    --custom)
+      isSecure=1;
+      shift 1;;
+    -R)
       isOnlyRoles=1;
       shift 1;;
-    --EC)
-      # Unused in Hue
-      ecosystemParams="$2"
+    -EC)
+      for i in $2 ; do
+        case $i in
+          -R) isOnlyRoles=1 ;;
+          *) : ;; # unused in Hue
+        esac
+      done
       shift 2;;
-    --h)
+    -h)
       echo "${USAGE}"
       exit $RETURN_SUCCESS
       ;;
-    --)
-      shift;;
     *)
       # Invalid arguments passed
       echo "${USAGE}"
@@ -111,7 +112,7 @@ done
 
 # Functions
 
-gen_certs() {
+function genCerts() {
   #if ! safeToRunMaprCLI ; then
   #  logErr 'Can not create security keys, because cluster is not configured.'
   #  return $RETURN_ERR_MAPRCLUSTER
@@ -185,12 +186,24 @@ gen_certs() {
 }
 
 
+function installWardenConfFile() {
+  if  ! [ -d ${MAPR_CONF_DIR}/conf.d ]; then
+    mkdir -p ${MAPR_CONF_DIR}/conf.d > /dev/null 2>&1
+  fi
+
+  cp ${HUE_HOME}/desktop/conf/warden.hue.conf ${MAPR_CONF_DIR}/conf.d/
+  chown $MAPR_USER:$MAPR_GROUP ${MAPR_CONF_DIR}/conf.d/warden.hue.conf
+
+  logInfo 'Warden conf for Hue copied.'
+}
+
+
 
 # Main part
 
 # Configure security
 if [ "$isSecure" == 1 ] ; then
-  gen_certs
+  genCerts
   GEN_CERTS_RET=$?
   if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
     logErr 'Can not configure Hue with -secure.'
@@ -219,8 +232,15 @@ if [ "$doRestart" == 1 ] && [ "$isOnlyRoles" != 1 ] ; then
   chown $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
 fi
 
-cp "${HUE_HOME}/desktop/conf.new/warden.hue.conf" "${MAPR_CONF_DIR}/conf.d/"
-chown $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/conf.d/warden.hue.conf"
-logInfo 'Warden conf for Hue copied.'
+
+installWardenConfFile
+
+
+# remove state file
+if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ]; then
+  rm -f "$HUE_HOME/desktop/conf/.not_configured_yet"
+fi
+
+
 
 exit $RETURN_SUCCESS
