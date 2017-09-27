@@ -60,6 +60,9 @@ LOG = logging.getLogger(__name__)
 
 try:
   from beeswax.hive_site import hiveserver2_impersonation_enabled
+  # On DataFabric setup import of beeswax.hive_site does not fail even when beeswax is blacklisted.
+  # But an invocation of the function below should fail.
+  hiveserver2_impersonation_enabled()
 except:
   LOG.warning('Hive is not enabled')
   def hiveserver2_impersonation_enabled(): return True
