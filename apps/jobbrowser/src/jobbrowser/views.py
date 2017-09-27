@@ -50,6 +50,9 @@ LOG = logging.getLogger(__name__)
 
 try:
   from beeswax.hive_site import hiveserver2_impersonation_enabled
+  # On our setup import of beeswax.hive_site does not fails when beeswax is blacklisted,
+  # so doublecheck if below function works.
+  hiveserver2_impersonation_enabled()
 except:
   LOG.warn('Hive is not enabled')
   def hiveserver2_impersonation_enabled(): return True
