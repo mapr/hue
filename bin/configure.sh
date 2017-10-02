@@ -214,13 +214,6 @@ if [ "$isSecure" == 1 ] ; then
 fi
 
 
-# Back up hue.ini if it exists
-HUE_INI_FILE="${HUE_HOME}/desktop/conf/hue.ini"
-if [ -f "${HUE_INI_FILE}" ] ; then
-  cp "${HUE_INI_FILE}" "${HUE_INI_FILE}.bak-$(date '+%Y%m%d-%H%M%S')"
-fi
-
-
 # Change permissions
 chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
 
