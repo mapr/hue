@@ -641,7 +641,7 @@ from notebook.conf import ENABLE_QUERY_BUILDER
       </ul>
       <!-- /ko -->
       <a class="inactive-action" href="javascript:void(0)" data-bind="click: toggleSearch, css: { 'blue' : isSearchVisible }"><i class="pointer fa fa-filter" title="${_('Filter')}"></i></a>
-      % if ENABLE_NEW_CREATE_TABLE.get():
+      % if hasattr(ENABLE_NEW_CREATE_TABLE, 'get') and ENABLE_NEW_CREATE_TABLE.get():
         <a class="inactive-action" href="javascript:void(0)" data-bind="attr: { 'href': '${ url('indexer:importer_prefill', source_type='all', target_type='table') }' + 'default' }"><i class="pointer fa fa-plus" title="${_('Create table')}"></i></a>
         ## For DB --> '${ url('indexer:importer_prefill', source_type='manual', target_type='database') }'
       % endif
