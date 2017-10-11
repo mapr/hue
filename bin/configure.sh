@@ -59,6 +59,8 @@ MAPR_CONF_DIR=${MAPR_CONF_DIR:-"$MAPR_HOME/conf"}
 # Initialize arguments
 isOnlyRoles=${isOnlyRoles:-0}
 doRestart=${doRestart:-0}
+isSecure=0
+customSecure=0
 
 # Initialize security-related variables
 HUE_CERTIFICATES_DIR="${HUE_HOME}/keys"
@@ -73,7 +75,7 @@ HUE_OPENSSL_PRIVATE_KEYSTORE="${HUE_CERTIFICATES_DIR}/hue_private_keystore.pem"
 
 # Parse options
 
-USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--custom]"
+USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--customSecure] [-EC <options>]"
 
 while [ ${#} -gt 0 ] ; do
   case "$1" in
@@ -83,8 +85,9 @@ while [ ${#} -gt 0 ] ; do
     --unsecure)
       isSecure=0;
       shift 1;;
-    --custom)
-      isSecure=1;
+    --customSecure)
+      isSecure=0;
+      customSecure=1;
       shift 1;;
     -R)
       isOnlyRoles=1;
