@@ -189,7 +189,7 @@ function genCerts() {
 }
 
 
-function installWardenConfFile() {
+install_warden_file() {
   if  ! [ -d ${MAPR_CONF_DIR}/conf.d ]; then
     mkdir -p ${MAPR_CONF_DIR}/conf.d > /dev/null 2>&1
   fi
@@ -198,6 +198,17 @@ function installWardenConfFile() {
   chown $MAPR_USER:$MAPR_GROUP ${MAPR_CONF_DIR}/conf.d/warden.hue.conf
 
   logInfo 'Warden conf for Hue copied.'
+}
+
+create_restart_file(){
+  mkdir -p ${MAPR_CONF_DIR}/restart
+  echo > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart" <<'EOF'
+#!/bin/bash
+MAPR_USER=${MAPR_USER:-mapr}
+sudo -u ${MAPR_USER} maprcli node services -action restart -name hue -nodes $(hostname)
+EOF
+  chmod +x "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
+  chown -R $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
 }
 
 
@@ -221,15 +232,8 @@ fi
 chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
 
 
-# Ask Warden to restart Hue if needed
-if [ "$doRestart" == 1 ] && [ "$isOnlyRoles" != 1 ] ; then
-  mkdir -p ${MAPR_CONF_DIR}/restart
-  echo "maprcli node services -action restart -name hue -nodes $(hostname)" > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
-  chown $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
-fi
-
-
-installWardenConfFile
+install_warden_file
+create_restart_file
 
 
 # remove state file
