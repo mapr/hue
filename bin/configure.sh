@@ -202,7 +202,7 @@ install_warden_file() {
 
 create_restart_file(){
   mkdir -p ${MAPR_CONF_DIR}/restart
-  echo > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart" <<'EOF'
+  cat > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart" <<'EOF'
 #!/bin/bash
 MAPR_USER=${MAPR_USER:-mapr}
 sudo -u ${MAPR_USER} maprcli node services -action restart -name hue -nodes $(hostname)
