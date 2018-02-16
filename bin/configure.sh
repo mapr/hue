@@ -204,8 +204,11 @@ create_restart_file(){
   mkdir -p ${MAPR_CONF_DIR}/restart
   cat > "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart" <<'EOF'
 #!/bin/bash
-MAPR_USER=${MAPR_USER:-mapr}
-sudo -u ${MAPR_USER} maprcli node services -action restart -name hue -nodes $(hostname)
+MAPR_HOME="${MAPR_HOME:-/opt/mapr}"
+if [ -z "${MAPR_TICKETFILE_LOCATION}" ] && [ -e "${MAPR_HOME}/conf/mapruserticket" ]; then
+    export MAPR_TICKETFILE_LOCATION="${MAPR_HOME}/conf/mapruserticket"
+fi
+maprcli node services -action restart -name hue -nodes $(hostname)
 EOF
   chmod +x "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
   chown -R $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
