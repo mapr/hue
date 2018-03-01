@@ -19,10 +19,9 @@ RETURN_ERR_OTHER=4
 
 
 # Initialize API and globals
-
 MAPR_HOME=${MAPR_HOME:-/opt/mapr}
 
-. ${MAPR_HOME}/server/common-ecosystem.sh  2> /dev/null 
+. ${MAPR_HOME}/server/common-ecosystem.sh  2> /dev/null
 
 if [ $? -ne 0 ] ; then
   echo '[ERROR] MAPR_HOME seems to not be set correctly or mapr-core not installed.'
@@ -63,13 +62,12 @@ isSecure=0
 customSecure=0
 
 # Initialize security-related variables
-HUE_CERTIFICATES_DIR="${HUE_HOME}/keys"
-HUE_CERTIFICATE_PEM_FILE="${HUE_CERTIFICATES_DIR}/cert.pem"
+HUE_KEYS_DIR="${HUE_HOME}/keys"
+HUE_PEM_CERT_FILE="${HUE_KEYS_DIR}/cert.pem"
 HUE_SRC_STORE_PASSWD='mapr123'
-HUE_DEST_KEYSTORE="${HUE_CERTIFICATES_DIR}/keystore.p12"
-HUE_DEST_STORE_PASSWD='m@prt3ch777!!!S'
-HUE_OPENSSL_KEYSTORE="${HUE_CERTIFICATES_DIR}/keystore.pem"
-HUE_OPENSSL_PRIVATE_KEYSTORE="${HUE_CERTIFICATES_DIR}/hue_private_keystore.pem"
+HUE_TMP_STORE="${HUE_KEYS_DIR}/keystore.p12"
+HUE_TMP_STORE_PASSWD='m@prt3ch777!!!S'
+HUE_PEM_KEY_FILE="${HUE_KEYS_DIR}/hue_private_keystore.pem"
 
 
 
@@ -115,23 +113,17 @@ done
 
 # Functions
 
-function genCerts() {
-  #if ! safeToRunMaprCLI ; then
-  #  logErr 'Can not create security keys, because cluster is not configured.'
-  #  return $RETURN_ERR_MAPRCLUSTER
-  #fi
-
-
+gen_keys() {
   CERTIFICATEKEY="$(getClusterName)"
 
-  mkdir -p "${HUE_CERTIFICATES_DIR}"
+  mkdir -p "${HUE_KEYS_DIR}"
 
 
   logInfo 'Generating certificate from keystore...'
-  if [ -e "$HUE_CERTIFICATE_PEM_FILE" ] ; then
-    logWarn "$HUE_CERTIFICATE_PEM_FILE already exists. Skipping it."
+  if [ -e "$HUE_PEM_CERT_FILE" ] ; then
+    logWarn "$HUE_PEM_CERT_FILE already exists. Skipping it."
   else
-    keytool -export -alias "${CERTIFICATEKEY}" -keystore "${MAPR_CLDB_SSL_KEYSTORE}" -rfc -file "${HUE_CERTIFICATE_PEM_FILE}" -storepass "${HUE_SRC_STORE_PASSWD}"
+    keytool -export -alias "${CERTIFICATEKEY}" -keystore "${MAPR_CLDB_SSL_KEYSTORE}" -rfc -file "${HUE_PEM_CERT_FILE}" -storepass "${HUE_SRC_STORE_PASSWD}"
 
     if [ $? -ne 0 ] ; then
       logErr 'No certificate has been generated.'
@@ -141,15 +133,15 @@ function genCerts() {
 
 
   logInfo 'Importing the keystore from JKS to PKCS12...'
-  if [ -e "$HUE_DEST_KEYSTORE" ] ; then
-    logWarn "$HUE_DEST_KEYSTORE already exists. Skipping it."
+  if [ -e "$HUE_TMP_STORE" ] ; then
+    logWarn "$HUE_TMP_STORE already exists. Skipping it."
   else
     keytool -importkeystore -noprompt \
-      -srckeystore "${MAPR_CLDB_SSL_KEYSTORE}" -destkeystore "${HUE_DEST_KEYSTORE}" \
+      -srckeystore "${MAPR_CLDB_SSL_KEYSTORE}" -destkeystore "${HUE_TMP_STORE}" \
       -srcstoretype JKS -deststoretype PKCS12 \
-      -srcstorepass "${HUE_SRC_STORE_PASSWD}" -deststorepass "${HUE_DEST_STORE_PASSWD}" \
+      -srcstorepass "${HUE_SRC_STORE_PASSWD}" -deststorepass "${HUE_TMP_STORE_PASSWD}" \
       -srcalias "${CERTIFICATEKEY}" -destalias "${CERTIFICATEKEY}" \
-      -srckeypass "${HUE_SRC_STORE_PASSWD}" -destkeypass "${HUE_DEST_STORE_PASSWD}"
+      -srckeypass "${HUE_SRC_STORE_PASSWD}" -destkeypass "${HUE_TMP_STORE_PASSWD}"
 
     if [ $? -ne 0 ] ; then
       logErr 'No keystore has been imported.'
@@ -158,11 +150,18 @@ function genCerts() {
   fi
 
 
+  # Remove obsolete keystore.pem file with passphrase
+  if [ -e "${HUE_KEYS_DIR}/keystore.pem" ]; then
+    rm -f "${HUE_KEYS_DIR}/keystore.pem"
+  fi
+
+
   logInfo 'Converting PKCS12 to pem using OpenSSL...'
-  if [ -e "$HUE_OPENSSL_KEYSTORE" ] ; then
-    logWarn "$HUE_OPENSSL_KEYSTORE already exists. Skipping it."
+  if [ -e "$HUE_PEM_KEY_FILE" ] ; then
+    logWarn "$HUE_PEM_KEY_FILE already exists. Skipping it."
   else
-    openssl pkcs12 -in "${HUE_DEST_KEYSTORE}" -out "${HUE_OPENSSL_KEYSTORE}" -passin "pass:${HUE_DEST_STORE_PASSWD}" -passout "pass:${HUE_DEST_STORE_PASSWD}"
+    openssl pkcs12 -in ${HUE_TMP_STORE} -passin "pass:${HUE_TMP_STORE_PASSWD}" -passout "pass:${HUE_TMP_STORE_PASSWD}" |
+      openssl rsa -passin "pass:${HUE_TMP_STORE_PASSWD}" -out ${HUE_PEM_KEY_FILE}
 
     if [ $? -ne 0 ] ; then
       logErr 'No PKCS12 has been converted.'
@@ -170,22 +169,40 @@ function genCerts() {
     fi
   fi
 
-  logInfo 'Hiding the pass phrase so Python doesnt prompt for password while connecting to Hive...'
-  if [ -e "$HUE_OPENSSL_PRIVATE_KEYSTORE" ] ; then
-    logWarn "$HUE_OPENSSL_PRIVATE_KEYSTORE already exists. Skipping it."
-  else
-    openssl rsa -in ${HUE_OPENSSL_KEYSTORE} -out ${HUE_OPENSSL_PRIVATE_KEYSTORE} -passin "pass:${HUE_DEST_STORE_PASSWD}"
 
-    if [ $? -ne 0 ] ; then
-      logErr 'No RSA is used.'
-      return $RETURN_ERR_OTHER
-    fi
+  logInfo "Remove temporary PKCS12 keystore file..."
+  if [ -e "${HUE_TMP_STORE}" ]; then
+    rm -f "${HUE_TMP_STORE}"
   fi
 
 
   logInfo 'Keys generated successfully.'
 
   return $RETURN_SUCCESS
+}
+
+
+perm_keys() {
+  if [ -e "${HUE_PEM_CERT_FILE}" ]; then
+    chmod 0600 "${HUE_PEM_CERT_FILE}"
+  fi
+  if [ -e "${HUE_PEM_KEY_FILE}" ]; then
+    chmod 0400 "${HUE_PEM_KEY_FILE}"
+  fi
+}
+
+perm_scripts() {
+  chmod 0700 "${HUE_HOME}/bin/configure.sh"
+
+  # TODO: remove this after removing of bin/secure.sh
+  chmod 0700 "${HUE_HOME}/bin/secure.sh"
+}
+
+perm_confs() {
+  if [ -e "${HUE_HOME}/desktop/conf/hue.ini" ]; then
+    logInfo "Setting permissions of Hue confs to 0600, since there are can be database/LDAP/etc. passwords."
+    chmod 0600 "${HUE_HOME}/desktop/conf/hue.ini"
+  fi
 }
 
 
@@ -199,6 +216,7 @@ install_warden_file() {
 
   logInfo 'Warden conf for Hue copied.'
 }
+
 
 create_restart_file(){
   mkdir -p ${MAPR_CONF_DIR}/restart
@@ -215,33 +233,40 @@ EOF
 }
 
 
+chown_component() {
+  chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
+}
+
+
 
 # Main part
 
-# Configure security
-if [ "$isSecure" == 1 ] ; then
-  genCerts
-  GEN_CERTS_RET=$?
-  if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
-    logErr 'Can not configure Hue with -secure.'
-    exit $GEN_CERTS_RET
-  else
-    doRestart=1
+if [ "$isOnlyRoles" == 1 ]; then
+  # Configure security
+  if [ "$isSecure" == 1 ] ; then
+    gen_keys
+    GEN_CERTS_RET=$?
+    if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
+      logErr 'Can not configure Hue with -secure.'
+      exit $GEN_CERTS_RET
+    else
+      doRestart=1
+    fi
   fi
-fi
 
+  perm_keys
+  perm_scripts
+  perm_confs
 
-# Change permissions
-chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
+  chown_component
 
+  install_warden_file
+  create_restart_file
 
-install_warden_file
-create_restart_file
-
-
-# remove state file
-if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ]; then
-  rm -f "$HUE_HOME/desktop/conf/.not_configured_yet"
+  # remove state file
+  if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ]; then
+    rm -f "$HUE_HOME/desktop/conf/.not_configured_yet"
+  fi
 fi
 
 
