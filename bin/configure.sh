@@ -57,11 +57,11 @@ MAPR_CONF_DIR=${MAPR_CONF_DIR:-"$MAPR_HOME/conf"}
 
 # Initialize arguments
 isOnlyRoles=${isOnlyRoles:-0}
-doRestart=${doRestart:-0}
-isSecure=0
-customSecure=0
+isSecure=${isSecure:-"false"}
 
 # Initialize security-related variables
+HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
+
 HUE_KEYS_DIR="${HUE_HOME}/keys"
 HUE_PEM_CERT_FILE="${HUE_KEYS_DIR}/cert.pem"
 HUE_SRC_STORE_PASSWD='mapr123'
@@ -78,14 +78,13 @@ USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--customSecure] [-EC <options>]"
 while [ ${#} -gt 0 ] ; do
   case "$1" in
     --secure)
-      isSecure=1;
+      isSecure="true";
       shift 1;;
     --unsecure)
-      isSecure=0;
+      isSecure="false";
       shift 1;;
     --customSecure)
-      isSecure=0;
-      customSecure=1;
+      isSecure="custom";
       shift 1;;
     -R)
       isOnlyRoles=1;
@@ -238,19 +237,26 @@ chown_component() {
 }
 
 
+read_secure() {
+  [ -e "${HUE_SECURE_FILE}" ] && cat "${HUE_SECURE_FILE}"
+}
+
+write_secure() {
+  echo "$1" > "${HUE_SECURE_FILE}"
+}
+
+
 
 # Main part
 
 if [ "$isOnlyRoles" == 1 ]; then
   # Configure security
-  if [ "$isSecure" == 1 ] ; then
+  if [ "$isSecure" = "true" ] ; then
     gen_keys
     GEN_CERTS_RET=$?
     if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
-      logErr 'Can not configure Hue with -secure.'
+      logErr 'Can not configure Hue with --secure.'
       exit $GEN_CERTS_RET
-    else
-      doRestart=1
     fi
   fi
 
@@ -261,7 +267,11 @@ if [ "$isOnlyRoles" == 1 ]; then
   chown_component
 
   install_warden_file
-  create_restart_file
+
+  if [ "$(read_secure)" != "$isSecure" ]; then
+    write_secure "$isSecure"
+    create_restart_file
+  fi
 
   # remove state file
   if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ]; then
