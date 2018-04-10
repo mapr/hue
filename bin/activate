@@ -1,0 +1,29 @@
+#!/bin/sh
+
+export MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
+export HUE_VERSION=${HUE_VERSION:-$(cat "${MAPR_HOME}/hue/hueversion")}
+export HUE_HOME=${HUE_HOME:-"${MAPR_HOME}/hue/hue-${HUE_VERSION}"}
+
+
+# Add path to libjvm.so into LD_LIBRARY_PATH
+# Find JRE directory using MapR env.sh script
+if [ -n "$JAVA_HOME" ]; then
+    java_directory="$JAVA_HOME"
+else
+    java_directory=$(. "${MAPR_HOME}/conf/env.sh" ; echo $JAVA_HOME)
+fi
+if [ -e "${java_directory}/jre/lib/amd64/server" ]; then
+    # java_directory points to JDK
+    libjvm_path="${java_directory}/jre/lib/amd64/server"
+elif [ -e "${java_directory}/lib/amd64/server" ]; then
+    # java_directory points to JRE (MapR env.sh can return JAVA_HOME pointing to JRE_HOME)
+    libjvm_path="${java_directory}/lib/amd64/server"
+fi
+export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path}:${LD_LIBRARY_PATH}"
+
+# Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
+export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
+
+
+# Activate virtualenv
+. "${HUE_HOME}/build/env/bin/activate"
