@@ -164,7 +164,8 @@ INSTALL_CORE_FILES = \
 	tools/app_reg \
 	tools/virtual-bootstrap \
 	tools/relocatable.sh \
-	VERS* LICENSE* README*
+	VERS* LICENSE* README* \
+	tools/ops
 
 .PHONY: install
 install: virtual-env install-check install-core-structure install-desktop install-apps install-env
