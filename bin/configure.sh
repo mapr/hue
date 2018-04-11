@@ -244,6 +244,36 @@ write_secure() {
 }
 
 
+init_db_user() {
+  "${HUE_HOME}/bin/hue" syncdb --noinput || return $?
+  "${HUE_HOME}/bin/hue" migrate --merge || return $?
+  "${HUE_HOME}/bin/hue" shell <<EOF
+from django.contrib.auth.models import User
+from useradmin.models import get_default_user_group
+def create_user_mapr():
+  try:
+    user = User.objects.get(username='$MAPR_USER')
+  except Exception as e:
+    User.objects.create(id=1, username='$MAPR_USER')
+    user = User.objects.get(username='$MAPR_USER')
+    user.set_password('mapr')
+    user.is_superuser = True
+    
+    default_group = get_default_user_group()
+    if default_group is not None:
+      user.groups.add(default_group)
+    user.save()
+
+create_user_mapr()
+EOF
+  if [ $? -ne $RETURN_SUCCESS ] ; then
+    return $?
+  fi
+
+  return 0
+}
+
+
 
 # Main part
 
@@ -267,6 +297,13 @@ if [ "$isOnlyRoles" == 1 ] ; then
   perm_keys
   perm_scripts
   perm_confs
+
+  logInfo "Syncing database."
+  INITDB_OUT=$(init_db_user 2>&1)
+  INITDB_RES=$?
+  if [ $INITDB_RES -ne $RETURN_SUCCESS ] ; then
+    logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
+  fi
 
   if [ "$updSecure" = "true" ] ; then
     write_secure "$isSecure"

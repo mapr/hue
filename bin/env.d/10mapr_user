@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Get MAPR_USER and MAPR_GROUP
+DAEMON_CONF="${MAPR_HOME}/conf/daemon.conf"
+if [ -z "$MAPR_USER" ] ; then
+  if [ -f "$DAEMON_CONF" ]; then
+    MAPR_USER=$( awk -F = '$1 == "mapr.daemon.user" { print $2 }' "$DAEMON_CONF" )
+  else
+    # Hue installation on edge node (not on cluster)
+    MAPR_USER=`logname`
+  fi
+fi
+export MAPR_USER
+
+if [ -z "$MAPR_GROUP" ] ; then
+  if [ -f "$DAEMON_CONF" ]; then
+    MAPR_GROUP=$( awk -F = '$1 == "mapr.daemon.group" { print $2 }' "$DAEMON_CONF" )
+  else
+    MAPR_GROUP="$MAPR_USER"
+  fi
+fi
+export MAPR_GROUP

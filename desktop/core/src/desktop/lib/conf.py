@@ -266,6 +266,14 @@ class Config(object):
     else:
       raw_val = self.default
 
+    # Substitute environment variables in values like ${env_var_name}
+    if isinstance(raw_val, basestring):
+      try:
+        raw_val = re.sub(r'\$\{(\w+?)\}', lambda m: os.environ[m.group(1)], raw_val)
+      except KeyError:
+        LOG.debug("Failed to set value of '{}' from environment variable. Falling back to default value.".format(self.key))
+        raw_val = self.default
+
     if coerce_type:
       return self._coerce_type(raw_val, prefix)
     else:
