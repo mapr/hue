@@ -59,6 +59,9 @@ class THttpClient(TTransportBase):
   def set_verify(self, verify=True):
     self._client.set_verify(verify)
 
+  def set_mapr_auth(self):
+    self._client.set_mapr_auth()
+
   def close(self):
     self._headers = None
     # Close session too?
