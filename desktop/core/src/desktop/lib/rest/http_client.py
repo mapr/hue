@@ -31,6 +31,8 @@ from requests.auth import HTTPBasicAuth
 from requests_kerberos import HTTPKerberosAuth, REQUIRED, OPTIONAL, DISABLED
 from requests.packages.urllib3.contrib import pyopenssl
 
+from desktop.lib.maprsasl import HttpMaprAuth
+
 pyopenssl.DEFAULT_SSL_CIPHER_LIST = conf.SSL_CIPHER_LIST.get()
 
 __docformat__ = "epytext"
@@ -127,6 +129,10 @@ class HttpClient(object):
 
   def set_basic_auth(self, username, password):
     self._session.auth = HTTPBasicAuth(username, password)
+    return self
+
+  def set_mapr_auth(self):
+    self._session.auth = HttpMaprAuth()
     return self
 
   def set_headers(self, headers):
