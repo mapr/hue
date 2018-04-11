@@ -61,19 +61,21 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
     help="Information about a single HDFS cluster",
     members=dict(
       FS_DEFAULTFS=Config("fs_defaultfs", help="The equivalent of fs.defaultFS (aka fs.default.name)",
-                          default="hdfs://localhost:8020"),
+                          default="maprfs:///"),
       LOGICAL_NAME = Config("logical_name", default="",
                             type=str, help=_t('NameNode logical name.')),
       WEBHDFS_URL=Config("webhdfs_url",
                          help="The URL to WebHDFS/HttpFS service. Defaults to " +
                          "the WebHDFS URL on the NameNode.",
-                         type=str, default="http://localhost:50070/webhdfs/v1"),
+                         type=str, default="http://localhost:14000/webhdfs/v1"),
       NN_KERBEROS_PRINCIPAL=Config("nn_kerberos_principal", help="Kerberos principal for NameNode", # Unused
                                    default="hdfs", type=str),
       DN_KERBEROS_PRINCIPAL=Config("dn_kerberos_principal", help="Kerberos principal for DataNode", # Unused
                                    default="hdfs", type=str),
-      SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos authentication",
+      SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos or MapR-Securtity authentication",
                               default=False, type=coerce_bool),
+      MECHANISM=Config("mechanism", help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+                       default='none', type=str),
       SSL_CERT_CA_VERIFY=Config("ssl_cert_ca_verify",
                   help="In secure mode (HTTPS), if SSL certificates from YARN Rest APIs have to be verified against certificate authority",
                   dynamic_default=default_ssl_validate,
@@ -85,7 +87,13 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
         default=os.environ.get("HADOOP_CONF_DIR", "/etc/hadoop/conf"),
         help=("Directory of the Hadoop configuration) Defaults to the environment variable " +
               "HADOOP_CONF_DIR when set, or '/etc/hadoop/conf'.")
-      )
+      ),
+      MUTUAL_SSL_AUTH=Config("mutual_ssl_auth", help="Enable mutual SSL authentication",
+                              default=False, type=coerce_bool),
+      SSL_CERT=Config("ssl_cert", help="Certificate for SSL connection",
+                         type=str, default="keys/cert.pem"),
+      SSL_KEY=Config("ssl_key", help="Private key for SSL connection",
+                         type=str, default="keys/hue_private_keystore.pem")
     )
   )
 )
