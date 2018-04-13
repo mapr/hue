@@ -806,7 +806,7 @@ DROP TABLE IF EXISTS `%(table)s`;
       # Extract totalCounterValue from FileSystemCounter counter group
       fs_counters = next((group for group in counter_groups if group.get('counterGroupName') == 'org.apache.hadoop.mapreduce.FileSystemCounter'), None)
       if fs_counters:
-        total_size = next((counter.get('totalCounterValue') for counter in fs_counters['counter'] if counter['name'] == 'HDFS_BYTES_WRITTEN'), None)
+        total_size = next((counter.get('totalCounterValue') for counter in fs_counters['counter'] if counter['name'] == 'MAPRFS_BYTES_WRITTEN'), None)
       else:
         LOG.info("No FileSystemCounter counter group found for job: %s" % job_id)
 
