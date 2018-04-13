@@ -87,11 +87,11 @@ def get_metastore():
   """
   global _METASTORE_LOC_CACHE
   if not _METASTORE_LOC_CACHE:
-    thrift_uris = get_conf().get(_CNF_METASTORE_URIS)
+    thrift_uris = get_conf().get(_CNF_METASTORE_URIS, "thrift://localhost:9083")
     is_local = thrift_uris is None or thrift_uris == ''
 
     if not is_local:
-      use_sasl = str(get_conf().get(_CNF_METASTORE_SASL, 'false')).lower() == 'true'
+      use_sasl = beeswax.conf.HIVE_MECHANISM.get() in ('KERBEROS', 'NONE', 'LDAP', 'PAM', 'MAPRSASL')
       thrift_uri = thrift_uris.split(",")[0] # First URI
       host = socket.getfqdn()
       match = _THRIFT_URI_RE.match(thrift_uri)

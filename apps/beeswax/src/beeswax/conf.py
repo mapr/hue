@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import logging
-import os.path
+import os
 import sys
 import beeswax.hive_site
 
@@ -48,7 +48,7 @@ HIVE_SERVER_PORT = Config(
 HIVE_CONF_DIR = Config(
   key='hive_conf_dir',
   help=_t('Hive configuration directory, where hive-site.xml is located.'),
-  default=os.environ.get("HIVE_CONF_DIR", '/etc/hive/conf'))
+  default=os.environ.get("HIVE_CONF_DIR", os.path.join(os.environ.get("MAPR_HOME", "/opt/mapr"), 'hive/hive-2.3/conf')))
 
 HIVE_SERVER_BIN = Config(
   key="hive_server_bin",
@@ -66,6 +66,31 @@ SERVER_CONN_TIMEOUT = Config(
   default=120,
   type=int,
   help=_t('Timeout in seconds for Thrift calls.'))
+
+MECHANISM=Config('mechanism',
+  default='none',
+  help='Security mechanism of authentication none/GSSAPI/MAPR-SECURITY',
+  type=str)
+
+def get_hive_mechanism():
+  """
+  Point of this method is to convert `mechanism` property that used in `hue.ini` (none/GSSAPI/MAPR-SECURITY/LDAP)
+  to `hive.server2.authentication` that used in `hive-site.xml` (KERBEROS/NONE/NOSASL/MAPRSASL/LDAP/PAM/CUSTOM)
+  """
+
+  mechanism = str(MECHANISM.get()).upper()
+
+  HUE_INI_TO_HS2_MECHANIMS = {
+    'GSSAPI': 'KERBEROS',
+    'MAPR-SECURITY': 'MAPRSASL',
+  }
+
+  return HUE_INI_TO_HS2_MECHANIMS.get(mechanism, mechanism)
+
+HIVE_MECHANISM=Config("hive_mechanism",
+  dynamic_default=get_hive_mechanism,
+  help='Security mechanism of HS2 authentication: KERBEROS/NONE/NOSASL/MAPRSASL/LDAP/PAM/CUSTOM',
+  type=str)
 
 USE_GET_LOG_API = Config( # To remove in Hue 4
   key='use_get_log_api',
