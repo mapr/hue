@@ -53,8 +53,11 @@ def get_log_client(log_link):
     if client_tuple is None:
       client = HttpClient(base_url, logger=LOG)
       yarn_cluster = cluster.get_cluster_conf_for_job_submission()
-      if yarn_cluster.SECURITY_ENABLED.get():
+      client.set_verify(yarn_cluster.SSL_CERT_CA_VERIFY.get())
+      if yarn_cluster.SECURITY_ENABLED.get() and yarn_cluster.MECHANISM.get() == 'GSSAPI':
         client.set_kerberos_auth()
+      if yarn_cluster.SECURITY_ENABLED.get() and yarn_cluster.MECHANISM.get() == 'MAPR-SECURITY':
+        client.set_mapr_auth()
     else:
       _log_client_heap.remove(client_tuple)
       client = client_tuple[1]
