@@ -35,7 +35,7 @@ from hadoop.fs.hadoopfs import Hdfs
 from oozie.utils import convert_to_server_timezone
 
 from liboozie.oozie_api import get_oozie
-from liboozie.conf import REMOTE_DEPLOYMENT_DIR, USE_LIBPATH_FOR_JARS
+from liboozie.conf import REMOTE_DEPLOYMENT_DIR, REMOTE_DEPLOYMENT_ROOT, USE_LIBPATH_FOR_JARS
 from liboozie.credentials import Credentials
 
 
@@ -516,7 +516,7 @@ STORED AS TEXTFILE %s""" % (self.properties.get('send_result_path'), '\n\n\n'.jo
 
 def create_directories(fs, directory_list=[]):
   # If needed, create the remote home, deployment and data directories
-  directories = [REMOTE_DEPLOYMENT_DIR.get()] + directory_list
+  directories = [REMOTE_DEPLOYMENT_ROOT.get()] + directory_list
 
   for directory in directories:
     if not fs.do_as_user(fs.DEFAULT_USER, fs.exists, directory):
