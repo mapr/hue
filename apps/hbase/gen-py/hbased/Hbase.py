@@ -3,8 +3,6 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-# Warning: module edited below.
-#
 #  options string: py
 #
 
@@ -17,43 +15,6 @@ try:
   from thrift.protocol import fastbinary
 except:
   fastbinary = None
-
-from django.utils.functional import wraps
-
-
-### Do as / Impersonation support.
-### This should be put back if rerenerating the Thrift.
-### As well as all the @do_as in Client.
-
-import logging
-
-from django.utils.encoding import smart_str
-from hbase.hbase_site import is_impersonation_enabled
-
-LOG = logging.getLogger(__name__)
-
-
-def do_as(func):
-  def decorate(*args, **kwargs):
-    self = args[0]
-    username = kwargs.pop('doas')
-
-    try:
-      if is_impersonation_enabled():
-        if hasattr(self._oprot.trans, 'TFramedTransport'):
-          trans_client = self._oprot.trans._TFramedTransport__trans
-        else:
-          trans_client = self._oprot.trans._TBufferedTransport__trans
-
-        trans_client.setCustomHeaders({'doAs': username})
-
-    except AttributeError, e:
-      LOG.error('Could not set doAs parameter: %s' % smart_str(e))
-
-    return func(*args, **kwargs)
-  return wraps(func)(decorate)
-
-###
 
 
 class Iface:
@@ -107,6 +68,25 @@ class Iface:
     """
     pass
 
+  def isMappingEnable(self, ):
+    """
+    mapping enabled.
+
+    @return true if mappping enabled
+    """
+    pass
+
+  def getTableNamesByPath(self, path):
+    """
+    List all the mapr tables.
+
+    @return returns a list of names
+
+    Parameters:
+     - path
+    """
+    pass
+
   def getColumnDescriptors(self, tableName):
     """
     List all the column families assoicated with a table.
@@ -650,6 +630,36 @@ class Iface:
     """
     pass
 
+  def append(self, append):
+    """
+    Appends values to one or more columns within a single row.
+
+    @return values of columns after the append operation.
+
+    Parameters:
+     - append: The single append operation to apply
+    """
+    pass
+
+  def checkAndPut(self, tableName, row, column, value, mput, attributes):
+    """
+    Atomically checks if a row/family/qualifier value matches the expected
+    value. If it does, it adds the corresponding mutation operation for put.
+
+    @return true if the new put was executed, false otherwise
+
+    Parameters:
+     - tableName: name of table
+     - row: row key
+     - column: column name
+     - value: the expected value for the column parameter, if not
+    provided the check is for the non-existence of the
+    column in question
+     - mput: mutation for the put
+     - attributes: Mutation attributes
+    """
+    pass
+
 
 class Client(Iface):
   def __init__(self, iprot, oprot=None):
@@ -658,7 +668,6 @@ class Client(Iface):
       self._oprot = oprot
     self._seqid = 0
 
-  @do_as
   def enableTable(self, tableName):
     """
     Brings a table on-line (enables it)
@@ -691,7 +700,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def disableTable(self, tableName):
     """
     Disables a table (takes it off-line) If it is being served, the master
@@ -725,7 +733,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def isTableEnabled(self, tableName):
     """
     @return true if table is on-line
@@ -760,7 +767,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "isTableEnabled failed: unknown result");
 
-  @do_as
   def compact(self, tableNameOrRegionName):
     """
     Parameters:
@@ -791,7 +797,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def majorCompact(self, tableNameOrRegionName):
     """
     Parameters:
@@ -822,8 +827,7 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
-  def getTableNames(self):
+  def getTableNames(self, ):
     """
     List all the userspace tables.
 
@@ -855,7 +859,74 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getTableNames failed: unknown result");
 
-  @do_as
+  def isMappingEnable(self, ):
+    """
+    mapping enabled.
+
+    @return true if mappping enabled
+    """
+    self.send_isMappingEnable()
+    return self.recv_isMappingEnable()
+
+  def send_isMappingEnable(self, ):
+    self._oprot.writeMessageBegin('isMappingEnable', TMessageType.CALL, self._seqid)
+    args = isMappingEnable_args()
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_isMappingEnable(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = isMappingEnable_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.io is not None:
+      raise result.io
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "isMappingEnable failed: unknown result");
+
+  def getTableNamesByPath(self, path):
+    """
+    List all the mapr tables.
+
+    @return returns a list of names
+
+    Parameters:
+     - path
+    """
+    self.send_getTableNamesByPath(path)
+    return self.recv_getTableNamesByPath()
+
+  def send_getTableNamesByPath(self, path):
+    self._oprot.writeMessageBegin('getTableNamesByPath', TMessageType.CALL, self._seqid)
+    args = getTableNamesByPath_args()
+    args.path = path
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getTableNamesByPath(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = getTableNamesByPath_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.io is not None:
+      raise result.io
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getTableNamesByPath failed: unknown result");
+
   def getColumnDescriptors(self, tableName):
     """
     List all the column families assoicated with a table.
@@ -892,7 +963,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getColumnDescriptors failed: unknown result");
 
-  @do_as
   def getTableRegions(self, tableName):
     """
     List the regions associated with a table.
@@ -929,7 +999,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getTableRegions failed: unknown result");
 
-  @do_as
   def createTable(self, tableName, columnFamilies):
     """
     Create a table with the specified column families.  The name
@@ -975,7 +1044,6 @@ class Client(Iface):
       raise result.exist
     return
 
-  @do_as
   def deleteTable(self, tableName):
     """
     Deletes a table
@@ -1011,7 +1079,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def get(self, tableName, row, column, attributes):
     """
     Get a single TCell for the specified table, row, and column at the
@@ -1055,7 +1122,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "get failed: unknown result");
 
-  @do_as
   def getVer(self, tableName, row, column, numVersions, attributes):
     """
     Get the specified number of versions for the specified table,
@@ -1101,7 +1167,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getVer failed: unknown result");
 
-  @do_as
   def getVerTs(self, tableName, row, column, timestamp, numVersions, attributes):
     """
     Get the specified number of versions for the specified table,
@@ -1150,7 +1215,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getVerTs failed: unknown result");
 
-  @do_as
   def getRow(self, tableName, row, attributes):
     """
     Get all the data for the specified table and row at the latest
@@ -1192,7 +1256,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRow failed: unknown result");
 
-  @do_as
   def getRowWithColumns(self, tableName, row, columns, attributes):
     """
     Get the specified columns for the specified table and row at the latest
@@ -1236,7 +1299,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowWithColumns failed: unknown result");
 
-  @do_as
   def getRowTs(self, tableName, row, timestamp, attributes):
     """
     Get all the data for the specified table and row at the specified
@@ -1280,7 +1342,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowTs failed: unknown result");
 
-  @do_as
   def getRowWithColumnsTs(self, tableName, row, columns, timestamp, attributes):
     """
     Get the specified columns for the specified table and row at the specified
@@ -1326,7 +1387,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowWithColumnsTs failed: unknown result");
 
-  @do_as
   def getRows(self, tableName, rows, attributes):
     """
     Get all the data for the specified table and rows at the latest
@@ -1368,7 +1428,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRows failed: unknown result");
 
-  @do_as
   def getRowsWithColumns(self, tableName, rows, columns, attributes):
     """
     Get the specified columns for the specified table and rows at the latest
@@ -1412,7 +1471,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowsWithColumns failed: unknown result");
 
-  @do_as
   def getRowsTs(self, tableName, rows, timestamp, attributes):
     """
     Get all the data for the specified table and rows at the specified
@@ -1456,7 +1514,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowsTs failed: unknown result");
 
-  @do_as
   def getRowsWithColumnsTs(self, tableName, rows, columns, timestamp, attributes):
     """
     Get the specified columns for the specified table and rows at the specified
@@ -1502,7 +1559,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowsWithColumnsTs failed: unknown result");
 
-  @do_as
   def mutateRow(self, tableName, row, mutations, attributes):
     """
     Apply a series of mutations (updates/deletes) to a row in a
@@ -1546,7 +1602,6 @@ class Client(Iface):
       raise result.ia
     return
 
-  @do_as
   def mutateRowTs(self, tableName, row, mutations, timestamp, attributes):
     """
     Apply a series of mutations (updates/deletes) to a row in a
@@ -1592,7 +1647,6 @@ class Client(Iface):
       raise result.ia
     return
 
-  @do_as
   def mutateRows(self, tableName, rowBatches, attributes):
     """
     Apply a series of batches (each a series of mutations on a single row)
@@ -1634,7 +1688,6 @@ class Client(Iface):
       raise result.ia
     return
 
-  @do_as
   def mutateRowsTs(self, tableName, rowBatches, timestamp, attributes):
     """
     Apply a series of batches (each a series of mutations on a single row)
@@ -1678,7 +1731,6 @@ class Client(Iface):
       raise result.ia
     return
 
-  @do_as
   def atomicIncrement(self, tableName, row, column, value):
     """
     Atomically increment the column value specified.  Returns the next value post increment.
@@ -1721,7 +1773,6 @@ class Client(Iface):
       raise result.ia
     raise TApplicationException(TApplicationException.MISSING_RESULT, "atomicIncrement failed: unknown result");
 
-  @do_as
   def deleteAll(self, tableName, row, column, attributes):
     """
     Delete all cells that match the passed row and column.
@@ -1760,7 +1811,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def deleteAllTs(self, tableName, row, column, timestamp, attributes):
     """
     Delete all cells that match the passed row and column and whose
@@ -1802,7 +1852,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def deleteAllRow(self, tableName, row, attributes):
     """
     Completely delete the row's cells.
@@ -1839,7 +1888,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def increment(self, increment):
     """
     Increment a cell by the ammount.
@@ -1875,7 +1923,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def incrementRows(self, increments):
     """
     Parameters:
@@ -1906,7 +1953,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def deleteAllRowTs(self, tableName, row, timestamp, attributes):
     """
     Completely delete the row's cells marked with a timestamp
@@ -1946,7 +1992,6 @@ class Client(Iface):
       raise result.io
     return
 
-  @do_as
   def scannerOpenWithScan(self, tableName, scan, attributes):
     """
     Get a scanner on the current table, using the Scan instance
@@ -1986,7 +2031,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpenWithScan failed: unknown result");
 
-  @do_as
   def scannerOpen(self, tableName, startRow, columns, attributes):
     """
     Get a scanner on the current table starting at the specified row and
@@ -2033,7 +2077,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpen failed: unknown result");
 
-  @do_as
   def scannerOpenWithStop(self, tableName, startRow, stopRow, columns, attributes):
     """
     Get a scanner on the current table starting and stopping at the
@@ -2084,7 +2127,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpenWithStop failed: unknown result");
 
-  @do_as
   def scannerOpenWithPrefix(self, tableName, startAndPrefix, columns, attributes):
     """
     Open a scanner for a given prefix.  That is all rows will have the specified
@@ -2128,7 +2170,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpenWithPrefix failed: unknown result");
 
-  @do_as
   def scannerOpenTs(self, tableName, startRow, columns, timestamp, attributes):
     """
     Get a scanner on the current table starting at the specified row and
@@ -2178,7 +2219,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpenTs failed: unknown result");
 
-  @do_as
   def scannerOpenWithStopTs(self, tableName, startRow, stopRow, columns, timestamp, attributes):
     """
     Get a scanner on the current table starting and stopping at the
@@ -2232,7 +2272,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerOpenWithStopTs failed: unknown result");
 
-  @do_as
   def scannerGet(self, id):
     """
     Returns the scanner's current row value and advances to the next
@@ -2278,7 +2317,6 @@ class Client(Iface):
       raise result.ia
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerGet failed: unknown result");
 
-  @do_as
   def scannerGetList(self, id, nbRows):
     """
     Returns, starting at the scanner's current row value nbRows worth of
@@ -2326,7 +2364,6 @@ class Client(Iface):
       raise result.ia
     raise TApplicationException(TApplicationException.MISSING_RESULT, "scannerGetList failed: unknown result");
 
-  @do_as
   def scannerClose(self, id):
     """
     Closes the server-state associated with an open scanner.
@@ -2363,7 +2400,6 @@ class Client(Iface):
       raise result.ia
     return
 
-  @do_as
   def getRowOrBefore(self, tableName, row, family):
     """
     Get the row just before the specified one.
@@ -2404,7 +2440,6 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRowOrBefore failed: unknown result");
 
-  @do_as
   def getRegionInfo(self, row):
     """
     Get the regininfo for the specified row. It scans
@@ -2442,6 +2477,93 @@ class Client(Iface):
       raise result.io
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getRegionInfo failed: unknown result");
 
+  def append(self, append):
+    """
+    Appends values to one or more columns within a single row.
+
+    @return values of columns after the append operation.
+
+    Parameters:
+     - append: The single append operation to apply
+    """
+    self.send_append(append)
+    return self.recv_append()
+
+  def send_append(self, append):
+    self._oprot.writeMessageBegin('append', TMessageType.CALL, self._seqid)
+    args = append_args()
+    args.append = append
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_append(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = append_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.io is not None:
+      raise result.io
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "append failed: unknown result");
+
+  def checkAndPut(self, tableName, row, column, value, mput, attributes):
+    """
+    Atomically checks if a row/family/qualifier value matches the expected
+    value. If it does, it adds the corresponding mutation operation for put.
+
+    @return true if the new put was executed, false otherwise
+
+    Parameters:
+     - tableName: name of table
+     - row: row key
+     - column: column name
+     - value: the expected value for the column parameter, if not
+    provided the check is for the non-existence of the
+    column in question
+     - mput: mutation for the put
+     - attributes: Mutation attributes
+    """
+    self.send_checkAndPut(tableName, row, column, value, mput, attributes)
+    return self.recv_checkAndPut()
+
+  def send_checkAndPut(self, tableName, row, column, value, mput, attributes):
+    self._oprot.writeMessageBegin('checkAndPut', TMessageType.CALL, self._seqid)
+    args = checkAndPut_args()
+    args.tableName = tableName
+    args.row = row
+    args.column = column
+    args.value = value
+    args.mput = mput
+    args.attributes = attributes
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_checkAndPut(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = checkAndPut_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.io is not None:
+      raise result.io
+    if result.ia is not None:
+      raise result.ia
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "checkAndPut failed: unknown result");
+
 
 class Processor(Iface, TProcessor):
   def __init__(self, handler):
@@ -2453,6 +2575,8 @@ class Processor(Iface, TProcessor):
     self._processMap["compact"] = Processor.process_compact
     self._processMap["majorCompact"] = Processor.process_majorCompact
     self._processMap["getTableNames"] = Processor.process_getTableNames
+    self._processMap["isMappingEnable"] = Processor.process_isMappingEnable
+    self._processMap["getTableNamesByPath"] = Processor.process_getTableNamesByPath
     self._processMap["getColumnDescriptors"] = Processor.process_getColumnDescriptors
     self._processMap["getTableRegions"] = Processor.process_getTableRegions
     self._processMap["createTable"] = Processor.process_createTable
@@ -2490,6 +2614,8 @@ class Processor(Iface, TProcessor):
     self._processMap["scannerClose"] = Processor.process_scannerClose
     self._processMap["getRowOrBefore"] = Processor.process_getRowOrBefore
     self._processMap["getRegionInfo"] = Processor.process_getRegionInfo
+    self._processMap["append"] = Processor.process_append
+    self._processMap["checkAndPut"] = Processor.process_checkAndPut
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -2586,6 +2712,34 @@ class Processor(Iface, TProcessor):
     except IOError as io:
       result.io = io
     oprot.writeMessageBegin("getTableNames", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_isMappingEnable(self, seqid, iprot, oprot):
+    args = isMappingEnable_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = isMappingEnable_result()
+    try:
+      result.success = self._handler.isMappingEnable()
+    except IOError as io:
+      result.io = io
+    oprot.writeMessageBegin("isMappingEnable", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_getTableNamesByPath(self, seqid, iprot, oprot):
+    args = getTableNamesByPath_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getTableNamesByPath_result()
+    try:
+      result.success = self._handler.getTableNamesByPath(args.path)
+    except IOError as io:
+      result.io = io
+    oprot.writeMessageBegin("getTableNamesByPath", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -3124,6 +3278,36 @@ class Processor(Iface, TProcessor):
     except IOError as io:
       result.io = io
     oprot.writeMessageBegin("getRegionInfo", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_append(self, seqid, iprot, oprot):
+    args = append_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = append_result()
+    try:
+      result.success = self._handler.append(args.append)
+    except IOError as io:
+      result.io = io
+    oprot.writeMessageBegin("append", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_checkAndPut(self, seqid, iprot, oprot):
+    args = checkAndPut_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = checkAndPut_result()
+    try:
+      result.success = self._handler.checkAndPut(args.tableName, args.row, args.column, args.value, args.mput, args.attributes)
+    except IOError as io:
+      result.io = io
+    except IllegalArgument as ia:
+      result.ia = ia
+    oprot.writeMessageBegin("checkAndPut", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -3817,10 +4001,10 @@ class getTableNames_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype26, _size23) = iprot.readListBegin()
-          for _i27 in xrange(_size23):
-            _elem28 = iprot.readString();
-            self.success.append(_elem28)
+          (_etype47, _size44) = iprot.readListBegin()
+          for _i48 in xrange(_size44):
+            _elem49 = iprot.readString();
+            self.success.append(_elem49)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -3843,8 +4027,262 @@ class getTableNames_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRING, len(self.success))
-      for iter29 in self.success:
-        oprot.writeString(iter29)
+      for iter50 in self.success:
+        oprot.writeString(iter50)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.io is not None:
+      oprot.writeFieldBegin('io', TType.STRUCT, 1)
+      self.io.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class isMappingEnable_args:
+
+  thrift_spec = (
+  )
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('isMappingEnable_args')
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class isMappingEnable_result:
+  """
+  Attributes:
+   - success
+   - io
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'io', (IOError, IOError.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, io=None,):
+    self.success = success
+    self.io = io
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.io = IOError()
+          self.io.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('isMappingEnable_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.io is not None:
+      oprot.writeFieldBegin('io', TType.STRUCT, 1)
+      self.io.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getTableNamesByPath_args:
+  """
+  Attributes:
+   - path
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'path', None, None, ), # 1
+  )
+
+  def __init__(self, path=None,):
+    self.path = path
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.path = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getTableNamesByPath_args')
+    if self.path is not None:
+      oprot.writeFieldBegin('path', TType.STRING, 1)
+      oprot.writeString(self.path)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getTableNamesByPath_result:
+  """
+  Attributes:
+   - success
+   - io
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRING,None), None, ), # 0
+    (1, TType.STRUCT, 'io', (IOError, IOError.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, io=None,):
+    self.success = success
+    self.io = io
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype54, _size51) = iprot.readListBegin()
+          for _i55 in xrange(_size51):
+            _elem56 = iprot.readString();
+            self.success.append(_elem56)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.io = IOError()
+          self.io.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getTableNamesByPath_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRING, len(self.success))
+      for iter57 in self.success:
+        oprot.writeString(iter57)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -3957,12 +4395,12 @@ class getColumnDescriptors_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype31, _vtype32, _size30 ) = iprot.readMapBegin() 
-          for _i34 in xrange(_size30):
-            _key35 = iprot.readString();
-            _val36 = ColumnDescriptor()
-            _val36.read(iprot)
-            self.success[_key35] = _val36
+          (_ktype59, _vtype60, _size58 ) = iprot.readMapBegin() 
+          for _i62 in xrange(_size58):
+            _key63 = iprot.readString();
+            _val64 = ColumnDescriptor()
+            _val64.read(iprot)
+            self.success[_key63] = _val64
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -3985,9 +4423,9 @@ class getColumnDescriptors_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter37,viter38 in self.success.items():
-        oprot.writeString(kiter37)
-        viter38.write(oprot)
+      for kiter65,viter66 in self.success.items():
+        oprot.writeString(kiter65)
+        viter66.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -4100,11 +4538,11 @@ class getTableRegions_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype42, _size39) = iprot.readListBegin()
-          for _i43 in xrange(_size39):
-            _elem44 = TRegionInfo()
-            _elem44.read(iprot)
-            self.success.append(_elem44)
+          (_etype70, _size67) = iprot.readListBegin()
+          for _i71 in xrange(_size67):
+            _elem72 = TRegionInfo()
+            _elem72.read(iprot)
+            self.success.append(_elem72)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -4127,8 +4565,8 @@ class getTableRegions_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter45 in self.success:
-        iter45.write(oprot)
+      for iter73 in self.success:
+        iter73.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -4187,11 +4625,11 @@ class createTable_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.columnFamilies = []
-          (_etype49, _size46) = iprot.readListBegin()
-          for _i50 in xrange(_size46):
-            _elem51 = ColumnDescriptor()
-            _elem51.read(iprot)
-            self.columnFamilies.append(_elem51)
+          (_etype77, _size74) = iprot.readListBegin()
+          for _i78 in xrange(_size74):
+            _elem79 = ColumnDescriptor()
+            _elem79.read(iprot)
+            self.columnFamilies.append(_elem79)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -4212,8 +4650,8 @@ class createTable_args:
     if self.columnFamilies is not None:
       oprot.writeFieldBegin('columnFamilies', TType.LIST, 2)
       oprot.writeListBegin(TType.STRUCT, len(self.columnFamilies))
-      for iter52 in self.columnFamilies:
-        iter52.write(oprot)
+      for iter80 in self.columnFamilies:
+        iter80.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -4492,11 +4930,11 @@ class get_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype54, _vtype55, _size53 ) = iprot.readMapBegin() 
-          for _i57 in xrange(_size53):
-            _key58 = iprot.readString();
-            _val59 = iprot.readString();
-            self.attributes[_key58] = _val59
+          (_ktype82, _vtype83, _size81 ) = iprot.readMapBegin() 
+          for _i85 in xrange(_size81):
+            _key86 = iprot.readString();
+            _val87 = iprot.readString();
+            self.attributes[_key86] = _val87
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -4525,9 +4963,9 @@ class get_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter60,viter61 in self.attributes.items():
-        oprot.writeString(kiter60)
-        oprot.writeString(viter61)
+      for kiter88,viter89 in self.attributes.items():
+        oprot.writeString(kiter88)
+        oprot.writeString(viter89)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -4576,11 +5014,11 @@ class get_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype65, _size62) = iprot.readListBegin()
-          for _i66 in xrange(_size62):
-            _elem67 = TCell()
-            _elem67.read(iprot)
-            self.success.append(_elem67)
+          (_etype93, _size90) = iprot.readListBegin()
+          for _i94 in xrange(_size90):
+            _elem95 = TCell()
+            _elem95.read(iprot)
+            self.success.append(_elem95)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -4603,8 +5041,8 @@ class get_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter68 in self.success:
-        iter68.write(oprot)
+      for iter96 in self.success:
+        iter96.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -4687,11 +5125,11 @@ class getVer_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype70, _vtype71, _size69 ) = iprot.readMapBegin() 
-          for _i73 in xrange(_size69):
-            _key74 = iprot.readString();
-            _val75 = iprot.readString();
-            self.attributes[_key74] = _val75
+          (_ktype98, _vtype99, _size97 ) = iprot.readMapBegin() 
+          for _i101 in xrange(_size97):
+            _key102 = iprot.readString();
+            _val103 = iprot.readString();
+            self.attributes[_key102] = _val103
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -4724,9 +5162,9 @@ class getVer_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter76,viter77 in self.attributes.items():
-        oprot.writeString(kiter76)
-        oprot.writeString(viter77)
+      for kiter104,viter105 in self.attributes.items():
+        oprot.writeString(kiter104)
+        oprot.writeString(viter105)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -4775,11 +5213,11 @@ class getVer_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype81, _size78) = iprot.readListBegin()
-          for _i82 in xrange(_size78):
-            _elem83 = TCell()
-            _elem83.read(iprot)
-            self.success.append(_elem83)
+          (_etype109, _size106) = iprot.readListBegin()
+          for _i110 in xrange(_size106):
+            _elem111 = TCell()
+            _elem111.read(iprot)
+            self.success.append(_elem111)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -4802,8 +5240,8 @@ class getVer_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter84 in self.success:
-        iter84.write(oprot)
+      for iter112 in self.success:
+        iter112.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -4894,11 +5332,11 @@ class getVerTs_args:
       elif fid == 6:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype86, _vtype87, _size85 ) = iprot.readMapBegin() 
-          for _i89 in xrange(_size85):
-            _key90 = iprot.readString();
-            _val91 = iprot.readString();
-            self.attributes[_key90] = _val91
+          (_ktype114, _vtype115, _size113 ) = iprot.readMapBegin() 
+          for _i117 in xrange(_size113):
+            _key118 = iprot.readString();
+            _val119 = iprot.readString();
+            self.attributes[_key118] = _val119
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -4935,9 +5373,9 @@ class getVerTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 6)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter92,viter93 in self.attributes.items():
-        oprot.writeString(kiter92)
-        oprot.writeString(viter93)
+      for kiter120,viter121 in self.attributes.items():
+        oprot.writeString(kiter120)
+        oprot.writeString(viter121)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -4986,11 +5424,11 @@ class getVerTs_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype97, _size94) = iprot.readListBegin()
-          for _i98 in xrange(_size94):
-            _elem99 = TCell()
-            _elem99.read(iprot)
-            self.success.append(_elem99)
+          (_etype125, _size122) = iprot.readListBegin()
+          for _i126 in xrange(_size122):
+            _elem127 = TCell()
+            _elem127.read(iprot)
+            self.success.append(_elem127)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5013,8 +5451,8 @@ class getVerTs_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter100 in self.success:
-        iter100.write(oprot)
+      for iter128 in self.success:
+        iter128.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -5081,11 +5519,11 @@ class getRow_args:
       elif fid == 3:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype102, _vtype103, _size101 ) = iprot.readMapBegin() 
-          for _i105 in xrange(_size101):
-            _key106 = iprot.readString();
-            _val107 = iprot.readString();
-            self.attributes[_key106] = _val107
+          (_ktype130, _vtype131, _size129 ) = iprot.readMapBegin() 
+          for _i133 in xrange(_size129):
+            _key134 = iprot.readString();
+            _val135 = iprot.readString();
+            self.attributes[_key134] = _val135
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -5110,9 +5548,9 @@ class getRow_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 3)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter108,viter109 in self.attributes.items():
-        oprot.writeString(kiter108)
-        oprot.writeString(viter109)
+      for kiter136,viter137 in self.attributes.items():
+        oprot.writeString(kiter136)
+        oprot.writeString(viter137)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5161,11 +5599,11 @@ class getRow_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype113, _size110) = iprot.readListBegin()
-          for _i114 in xrange(_size110):
-            _elem115 = TRowResult()
-            _elem115.read(iprot)
-            self.success.append(_elem115)
+          (_etype141, _size138) = iprot.readListBegin()
+          for _i142 in xrange(_size138):
+            _elem143 = TRowResult()
+            _elem143.read(iprot)
+            self.success.append(_elem143)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5188,8 +5626,8 @@ class getRow_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter116 in self.success:
-        iter116.write(oprot)
+      for iter144 in self.success:
+        iter144.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -5259,21 +5697,21 @@ class getRowWithColumns_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype120, _size117) = iprot.readListBegin()
-          for _i121 in xrange(_size117):
-            _elem122 = iprot.readString();
-            self.columns.append(_elem122)
+          (_etype148, _size145) = iprot.readListBegin()
+          for _i149 in xrange(_size145):
+            _elem150 = iprot.readString();
+            self.columns.append(_elem150)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype124, _vtype125, _size123 ) = iprot.readMapBegin() 
-          for _i127 in xrange(_size123):
-            _key128 = iprot.readString();
-            _val129 = iprot.readString();
-            self.attributes[_key128] = _val129
+          (_ktype152, _vtype153, _size151 ) = iprot.readMapBegin() 
+          for _i155 in xrange(_size151):
+            _key156 = iprot.readString();
+            _val157 = iprot.readString();
+            self.attributes[_key156] = _val157
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -5298,16 +5736,16 @@ class getRowWithColumns_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter130 in self.columns:
-        oprot.writeString(iter130)
+      for iter158 in self.columns:
+        oprot.writeString(iter158)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter131,viter132 in self.attributes.items():
-        oprot.writeString(kiter131)
-        oprot.writeString(viter132)
+      for kiter159,viter160 in self.attributes.items():
+        oprot.writeString(kiter159)
+        oprot.writeString(viter160)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5356,11 +5794,11 @@ class getRowWithColumns_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype136, _size133) = iprot.readListBegin()
-          for _i137 in xrange(_size133):
-            _elem138 = TRowResult()
-            _elem138.read(iprot)
-            self.success.append(_elem138)
+          (_etype164, _size161) = iprot.readListBegin()
+          for _i165 in xrange(_size161):
+            _elem166 = TRowResult()
+            _elem166.read(iprot)
+            self.success.append(_elem166)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5383,8 +5821,8 @@ class getRowWithColumns_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter139 in self.success:
-        iter139.write(oprot)
+      for iter167 in self.success:
+        iter167.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -5459,11 +5897,11 @@ class getRowTs_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype141, _vtype142, _size140 ) = iprot.readMapBegin() 
-          for _i144 in xrange(_size140):
-            _key145 = iprot.readString();
-            _val146 = iprot.readString();
-            self.attributes[_key145] = _val146
+          (_ktype169, _vtype170, _size168 ) = iprot.readMapBegin() 
+          for _i172 in xrange(_size168):
+            _key173 = iprot.readString();
+            _val174 = iprot.readString();
+            self.attributes[_key173] = _val174
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -5492,9 +5930,9 @@ class getRowTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter147,viter148 in self.attributes.items():
-        oprot.writeString(kiter147)
-        oprot.writeString(viter148)
+      for kiter175,viter176 in self.attributes.items():
+        oprot.writeString(kiter175)
+        oprot.writeString(viter176)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5543,11 +5981,11 @@ class getRowTs_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype152, _size149) = iprot.readListBegin()
-          for _i153 in xrange(_size149):
-            _elem154 = TRowResult()
-            _elem154.read(iprot)
-            self.success.append(_elem154)
+          (_etype180, _size177) = iprot.readListBegin()
+          for _i181 in xrange(_size177):
+            _elem182 = TRowResult()
+            _elem182.read(iprot)
+            self.success.append(_elem182)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5570,8 +6008,8 @@ class getRowTs_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter155 in self.success:
-        iter155.write(oprot)
+      for iter183 in self.success:
+        iter183.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -5644,10 +6082,10 @@ class getRowWithColumnsTs_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype159, _size156) = iprot.readListBegin()
-          for _i160 in xrange(_size156):
-            _elem161 = iprot.readString();
-            self.columns.append(_elem161)
+          (_etype187, _size184) = iprot.readListBegin()
+          for _i188 in xrange(_size184):
+            _elem189 = iprot.readString();
+            self.columns.append(_elem189)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5659,11 +6097,11 @@ class getRowWithColumnsTs_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype163, _vtype164, _size162 ) = iprot.readMapBegin() 
-          for _i166 in xrange(_size162):
-            _key167 = iprot.readString();
-            _val168 = iprot.readString();
-            self.attributes[_key167] = _val168
+          (_ktype191, _vtype192, _size190 ) = iprot.readMapBegin() 
+          for _i194 in xrange(_size190):
+            _key195 = iprot.readString();
+            _val196 = iprot.readString();
+            self.attributes[_key195] = _val196
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -5688,8 +6126,8 @@ class getRowWithColumnsTs_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter169 in self.columns:
-        oprot.writeString(iter169)
+      for iter197 in self.columns:
+        oprot.writeString(iter197)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -5699,9 +6137,9 @@ class getRowWithColumnsTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter170,viter171 in self.attributes.items():
-        oprot.writeString(kiter170)
-        oprot.writeString(viter171)
+      for kiter198,viter199 in self.attributes.items():
+        oprot.writeString(kiter198)
+        oprot.writeString(viter199)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5750,11 +6188,11 @@ class getRowWithColumnsTs_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype175, _size172) = iprot.readListBegin()
-          for _i176 in xrange(_size172):
-            _elem177 = TRowResult()
-            _elem177.read(iprot)
-            self.success.append(_elem177)
+          (_etype203, _size200) = iprot.readListBegin()
+          for _i204 in xrange(_size200):
+            _elem205 = TRowResult()
+            _elem205.read(iprot)
+            self.success.append(_elem205)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5777,8 +6215,8 @@ class getRowWithColumnsTs_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter178 in self.success:
-        iter178.write(oprot)
+      for iter206 in self.success:
+        iter206.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -5840,21 +6278,21 @@ class getRows_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rows = []
-          (_etype182, _size179) = iprot.readListBegin()
-          for _i183 in xrange(_size179):
-            _elem184 = iprot.readString();
-            self.rows.append(_elem184)
+          (_etype210, _size207) = iprot.readListBegin()
+          for _i211 in xrange(_size207):
+            _elem212 = iprot.readString();
+            self.rows.append(_elem212)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype186, _vtype187, _size185 ) = iprot.readMapBegin() 
-          for _i189 in xrange(_size185):
-            _key190 = iprot.readString();
-            _val191 = iprot.readString();
-            self.attributes[_key190] = _val191
+          (_ktype214, _vtype215, _size213 ) = iprot.readMapBegin() 
+          for _i217 in xrange(_size213):
+            _key218 = iprot.readString();
+            _val219 = iprot.readString();
+            self.attributes[_key218] = _val219
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -5875,16 +6313,16 @@ class getRows_args:
     if self.rows is not None:
       oprot.writeFieldBegin('rows', TType.LIST, 2)
       oprot.writeListBegin(TType.STRING, len(self.rows))
-      for iter192 in self.rows:
-        oprot.writeString(iter192)
+      for iter220 in self.rows:
+        oprot.writeString(iter220)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 3)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter193,viter194 in self.attributes.items():
-        oprot.writeString(kiter193)
-        oprot.writeString(viter194)
+      for kiter221,viter222 in self.attributes.items():
+        oprot.writeString(kiter221)
+        oprot.writeString(viter222)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5933,11 +6371,11 @@ class getRows_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype198, _size195) = iprot.readListBegin()
-          for _i199 in xrange(_size195):
-            _elem200 = TRowResult()
-            _elem200.read(iprot)
-            self.success.append(_elem200)
+          (_etype226, _size223) = iprot.readListBegin()
+          for _i227 in xrange(_size223):
+            _elem228 = TRowResult()
+            _elem228.read(iprot)
+            self.success.append(_elem228)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -5960,8 +6398,8 @@ class getRows_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter201 in self.success:
-        iter201.write(oprot)
+      for iter229 in self.success:
+        iter229.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -6026,31 +6464,31 @@ class getRowsWithColumns_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rows = []
-          (_etype205, _size202) = iprot.readListBegin()
-          for _i206 in xrange(_size202):
-            _elem207 = iprot.readString();
-            self.rows.append(_elem207)
+          (_etype233, _size230) = iprot.readListBegin()
+          for _i234 in xrange(_size230):
+            _elem235 = iprot.readString();
+            self.rows.append(_elem235)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype211, _size208) = iprot.readListBegin()
-          for _i212 in xrange(_size208):
-            _elem213 = iprot.readString();
-            self.columns.append(_elem213)
+          (_etype239, _size236) = iprot.readListBegin()
+          for _i240 in xrange(_size236):
+            _elem241 = iprot.readString();
+            self.columns.append(_elem241)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype215, _vtype216, _size214 ) = iprot.readMapBegin() 
-          for _i218 in xrange(_size214):
-            _key219 = iprot.readString();
-            _val220 = iprot.readString();
-            self.attributes[_key219] = _val220
+          (_ktype243, _vtype244, _size242 ) = iprot.readMapBegin() 
+          for _i246 in xrange(_size242):
+            _key247 = iprot.readString();
+            _val248 = iprot.readString();
+            self.attributes[_key247] = _val248
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -6071,23 +6509,23 @@ class getRowsWithColumns_args:
     if self.rows is not None:
       oprot.writeFieldBegin('rows', TType.LIST, 2)
       oprot.writeListBegin(TType.STRING, len(self.rows))
-      for iter221 in self.rows:
-        oprot.writeString(iter221)
+      for iter249 in self.rows:
+        oprot.writeString(iter249)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter222 in self.columns:
-        oprot.writeString(iter222)
+      for iter250 in self.columns:
+        oprot.writeString(iter250)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter223,viter224 in self.attributes.items():
-        oprot.writeString(kiter223)
-        oprot.writeString(viter224)
+      for kiter251,viter252 in self.attributes.items():
+        oprot.writeString(kiter251)
+        oprot.writeString(viter252)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -6136,11 +6574,11 @@ class getRowsWithColumns_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype228, _size225) = iprot.readListBegin()
-          for _i229 in xrange(_size225):
-            _elem230 = TRowResult()
-            _elem230.read(iprot)
-            self.success.append(_elem230)
+          (_etype256, _size253) = iprot.readListBegin()
+          for _i257 in xrange(_size253):
+            _elem258 = TRowResult()
+            _elem258.read(iprot)
+            self.success.append(_elem258)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6163,8 +6601,8 @@ class getRowsWithColumns_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter231 in self.success:
-        iter231.write(oprot)
+      for iter259 in self.success:
+        iter259.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -6229,10 +6667,10 @@ class getRowsTs_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rows = []
-          (_etype235, _size232) = iprot.readListBegin()
-          for _i236 in xrange(_size232):
-            _elem237 = iprot.readString();
-            self.rows.append(_elem237)
+          (_etype263, _size260) = iprot.readListBegin()
+          for _i264 in xrange(_size260):
+            _elem265 = iprot.readString();
+            self.rows.append(_elem265)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6244,11 +6682,11 @@ class getRowsTs_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype239, _vtype240, _size238 ) = iprot.readMapBegin() 
-          for _i242 in xrange(_size238):
-            _key243 = iprot.readString();
-            _val244 = iprot.readString();
-            self.attributes[_key243] = _val244
+          (_ktype267, _vtype268, _size266 ) = iprot.readMapBegin() 
+          for _i270 in xrange(_size266):
+            _key271 = iprot.readString();
+            _val272 = iprot.readString();
+            self.attributes[_key271] = _val272
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -6269,8 +6707,8 @@ class getRowsTs_args:
     if self.rows is not None:
       oprot.writeFieldBegin('rows', TType.LIST, 2)
       oprot.writeListBegin(TType.STRING, len(self.rows))
-      for iter245 in self.rows:
-        oprot.writeString(iter245)
+      for iter273 in self.rows:
+        oprot.writeString(iter273)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -6280,9 +6718,9 @@ class getRowsTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter246,viter247 in self.attributes.items():
-        oprot.writeString(kiter246)
-        oprot.writeString(viter247)
+      for kiter274,viter275 in self.attributes.items():
+        oprot.writeString(kiter274)
+        oprot.writeString(viter275)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -6331,11 +6769,11 @@ class getRowsTs_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype251, _size248) = iprot.readListBegin()
-          for _i252 in xrange(_size248):
-            _elem253 = TRowResult()
-            _elem253.read(iprot)
-            self.success.append(_elem253)
+          (_etype279, _size276) = iprot.readListBegin()
+          for _i280 in xrange(_size276):
+            _elem281 = TRowResult()
+            _elem281.read(iprot)
+            self.success.append(_elem281)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6358,8 +6796,8 @@ class getRowsTs_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter254 in self.success:
-        iter254.write(oprot)
+      for iter282 in self.success:
+        iter282.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -6427,20 +6865,20 @@ class getRowsWithColumnsTs_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rows = []
-          (_etype258, _size255) = iprot.readListBegin()
-          for _i259 in xrange(_size255):
-            _elem260 = iprot.readString();
-            self.rows.append(_elem260)
+          (_etype286, _size283) = iprot.readListBegin()
+          for _i287 in xrange(_size283):
+            _elem288 = iprot.readString();
+            self.rows.append(_elem288)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype264, _size261) = iprot.readListBegin()
-          for _i265 in xrange(_size261):
-            _elem266 = iprot.readString();
-            self.columns.append(_elem266)
+          (_etype292, _size289) = iprot.readListBegin()
+          for _i293 in xrange(_size289):
+            _elem294 = iprot.readString();
+            self.columns.append(_elem294)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6452,11 +6890,11 @@ class getRowsWithColumnsTs_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype268, _vtype269, _size267 ) = iprot.readMapBegin() 
-          for _i271 in xrange(_size267):
-            _key272 = iprot.readString();
-            _val273 = iprot.readString();
-            self.attributes[_key272] = _val273
+          (_ktype296, _vtype297, _size295 ) = iprot.readMapBegin() 
+          for _i299 in xrange(_size295):
+            _key300 = iprot.readString();
+            _val301 = iprot.readString();
+            self.attributes[_key300] = _val301
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -6477,15 +6915,15 @@ class getRowsWithColumnsTs_args:
     if self.rows is not None:
       oprot.writeFieldBegin('rows', TType.LIST, 2)
       oprot.writeListBegin(TType.STRING, len(self.rows))
-      for iter274 in self.rows:
-        oprot.writeString(iter274)
+      for iter302 in self.rows:
+        oprot.writeString(iter302)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter275 in self.columns:
-        oprot.writeString(iter275)
+      for iter303 in self.columns:
+        oprot.writeString(iter303)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -6495,9 +6933,9 @@ class getRowsWithColumnsTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter276,viter277 in self.attributes.items():
-        oprot.writeString(kiter276)
-        oprot.writeString(viter277)
+      for kiter304,viter305 in self.attributes.items():
+        oprot.writeString(kiter304)
+        oprot.writeString(viter305)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -6546,11 +6984,11 @@ class getRowsWithColumnsTs_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype281, _size278) = iprot.readListBegin()
-          for _i282 in xrange(_size278):
-            _elem283 = TRowResult()
-            _elem283.read(iprot)
-            self.success.append(_elem283)
+          (_etype309, _size306) = iprot.readListBegin()
+          for _i310 in xrange(_size306):
+            _elem311 = TRowResult()
+            _elem311.read(iprot)
+            self.success.append(_elem311)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6573,8 +7011,8 @@ class getRowsWithColumnsTs_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter284 in self.success:
-        iter284.write(oprot)
+      for iter312 in self.success:
+        iter312.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -6644,22 +7082,22 @@ class mutateRow_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.mutations = []
-          (_etype288, _size285) = iprot.readListBegin()
-          for _i289 in xrange(_size285):
-            _elem290 = Mutation()
-            _elem290.read(iprot)
-            self.mutations.append(_elem290)
+          (_etype316, _size313) = iprot.readListBegin()
+          for _i317 in xrange(_size313):
+            _elem318 = Mutation()
+            _elem318.read(iprot)
+            self.mutations.append(_elem318)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype292, _vtype293, _size291 ) = iprot.readMapBegin() 
-          for _i295 in xrange(_size291):
-            _key296 = iprot.readString();
-            _val297 = iprot.readString();
-            self.attributes[_key296] = _val297
+          (_ktype320, _vtype321, _size319 ) = iprot.readMapBegin() 
+          for _i323 in xrange(_size319):
+            _key324 = iprot.readString();
+            _val325 = iprot.readString();
+            self.attributes[_key324] = _val325
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -6684,16 +7122,16 @@ class mutateRow_args:
     if self.mutations is not None:
       oprot.writeFieldBegin('mutations', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.mutations))
-      for iter298 in self.mutations:
-        iter298.write(oprot)
+      for iter326 in self.mutations:
+        iter326.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter299,viter300 in self.attributes.items():
-        oprot.writeString(kiter299)
-        oprot.writeString(viter300)
+      for kiter327,viter328 in self.attributes.items():
+        oprot.writeString(kiter327)
+        oprot.writeString(viter328)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -6836,11 +7274,11 @@ class mutateRowTs_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.mutations = []
-          (_etype304, _size301) = iprot.readListBegin()
-          for _i305 in xrange(_size301):
-            _elem306 = Mutation()
-            _elem306.read(iprot)
-            self.mutations.append(_elem306)
+          (_etype332, _size329) = iprot.readListBegin()
+          for _i333 in xrange(_size329):
+            _elem334 = Mutation()
+            _elem334.read(iprot)
+            self.mutations.append(_elem334)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -6852,11 +7290,11 @@ class mutateRowTs_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype308, _vtype309, _size307 ) = iprot.readMapBegin() 
-          for _i311 in xrange(_size307):
-            _key312 = iprot.readString();
-            _val313 = iprot.readString();
-            self.attributes[_key312] = _val313
+          (_ktype336, _vtype337, _size335 ) = iprot.readMapBegin() 
+          for _i339 in xrange(_size335):
+            _key340 = iprot.readString();
+            _val341 = iprot.readString();
+            self.attributes[_key340] = _val341
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -6881,8 +7319,8 @@ class mutateRowTs_args:
     if self.mutations is not None:
       oprot.writeFieldBegin('mutations', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.mutations))
-      for iter314 in self.mutations:
-        iter314.write(oprot)
+      for iter342 in self.mutations:
+        iter342.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -6892,9 +7330,9 @@ class mutateRowTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter315,viter316 in self.attributes.items():
-        oprot.writeString(kiter315)
-        oprot.writeString(viter316)
+      for kiter343,viter344 in self.attributes.items():
+        oprot.writeString(kiter343)
+        oprot.writeString(viter344)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -7026,22 +7464,22 @@ class mutateRows_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rowBatches = []
-          (_etype320, _size317) = iprot.readListBegin()
-          for _i321 in xrange(_size317):
-            _elem322 = BatchMutation()
-            _elem322.read(iprot)
-            self.rowBatches.append(_elem322)
+          (_etype348, _size345) = iprot.readListBegin()
+          for _i349 in xrange(_size345):
+            _elem350 = BatchMutation()
+            _elem350.read(iprot)
+            self.rowBatches.append(_elem350)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype324, _vtype325, _size323 ) = iprot.readMapBegin() 
-          for _i327 in xrange(_size323):
-            _key328 = iprot.readString();
-            _val329 = iprot.readString();
-            self.attributes[_key328] = _val329
+          (_ktype352, _vtype353, _size351 ) = iprot.readMapBegin() 
+          for _i355 in xrange(_size351):
+            _key356 = iprot.readString();
+            _val357 = iprot.readString();
+            self.attributes[_key356] = _val357
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -7062,16 +7500,16 @@ class mutateRows_args:
     if self.rowBatches is not None:
       oprot.writeFieldBegin('rowBatches', TType.LIST, 2)
       oprot.writeListBegin(TType.STRUCT, len(self.rowBatches))
-      for iter330 in self.rowBatches:
-        iter330.write(oprot)
+      for iter358 in self.rowBatches:
+        iter358.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 3)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter331,viter332 in self.attributes.items():
-        oprot.writeString(kiter331)
-        oprot.writeString(viter332)
+      for kiter359,viter360 in self.attributes.items():
+        oprot.writeString(kiter359)
+        oprot.writeString(viter360)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -7206,11 +7644,11 @@ class mutateRowsTs_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.rowBatches = []
-          (_etype336, _size333) = iprot.readListBegin()
-          for _i337 in xrange(_size333):
-            _elem338 = BatchMutation()
-            _elem338.read(iprot)
-            self.rowBatches.append(_elem338)
+          (_etype364, _size361) = iprot.readListBegin()
+          for _i365 in xrange(_size361):
+            _elem366 = BatchMutation()
+            _elem366.read(iprot)
+            self.rowBatches.append(_elem366)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -7222,11 +7660,11 @@ class mutateRowsTs_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype340, _vtype341, _size339 ) = iprot.readMapBegin() 
-          for _i343 in xrange(_size339):
-            _key344 = iprot.readString();
-            _val345 = iprot.readString();
-            self.attributes[_key344] = _val345
+          (_ktype368, _vtype369, _size367 ) = iprot.readMapBegin() 
+          for _i371 in xrange(_size367):
+            _key372 = iprot.readString();
+            _val373 = iprot.readString();
+            self.attributes[_key372] = _val373
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -7247,8 +7685,8 @@ class mutateRowsTs_args:
     if self.rowBatches is not None:
       oprot.writeFieldBegin('rowBatches', TType.LIST, 2)
       oprot.writeListBegin(TType.STRUCT, len(self.rowBatches))
-      for iter346 in self.rowBatches:
-        iter346.write(oprot)
+      for iter374 in self.rowBatches:
+        iter374.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -7258,9 +7696,9 @@ class mutateRowsTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter347,viter348 in self.attributes.items():
-        oprot.writeString(kiter347)
-        oprot.writeString(viter348)
+      for kiter375,viter376 in self.attributes.items():
+        oprot.writeString(kiter375)
+        oprot.writeString(viter376)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -7586,11 +8024,11 @@ class deleteAll_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype350, _vtype351, _size349 ) = iprot.readMapBegin() 
-          for _i353 in xrange(_size349):
-            _key354 = iprot.readString();
-            _val355 = iprot.readString();
-            self.attributes[_key354] = _val355
+          (_ktype378, _vtype379, _size377 ) = iprot.readMapBegin() 
+          for _i381 in xrange(_size377):
+            _key382 = iprot.readString();
+            _val383 = iprot.readString();
+            self.attributes[_key382] = _val383
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -7619,9 +8057,9 @@ class deleteAll_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter356,viter357 in self.attributes.items():
-        oprot.writeString(kiter356)
-        oprot.writeString(viter357)
+      for kiter384,viter385 in self.attributes.items():
+        oprot.writeString(kiter384)
+        oprot.writeString(viter385)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -7761,11 +8199,11 @@ class deleteAllTs_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype359, _vtype360, _size358 ) = iprot.readMapBegin() 
-          for _i362 in xrange(_size358):
-            _key363 = iprot.readString();
-            _val364 = iprot.readString();
-            self.attributes[_key363] = _val364
+          (_ktype387, _vtype388, _size386 ) = iprot.readMapBegin() 
+          for _i390 in xrange(_size386):
+            _key391 = iprot.readString();
+            _val392 = iprot.readString();
+            self.attributes[_key391] = _val392
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -7798,9 +8236,9 @@ class deleteAllTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter365,viter366 in self.attributes.items():
-        oprot.writeString(kiter365)
-        oprot.writeString(viter366)
+      for kiter393,viter394 in self.attributes.items():
+        oprot.writeString(kiter393)
+        oprot.writeString(viter394)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -7924,11 +8362,11 @@ class deleteAllRow_args:
       elif fid == 3:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype368, _vtype369, _size367 ) = iprot.readMapBegin() 
-          for _i371 in xrange(_size367):
-            _key372 = iprot.readString();
-            _val373 = iprot.readString();
-            self.attributes[_key372] = _val373
+          (_ktype396, _vtype397, _size395 ) = iprot.readMapBegin() 
+          for _i399 in xrange(_size395):
+            _key400 = iprot.readString();
+            _val401 = iprot.readString();
+            self.attributes[_key400] = _val401
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -7953,9 +8391,9 @@ class deleteAllRow_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 3)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter374,viter375 in self.attributes.items():
-        oprot.writeString(kiter374)
-        oprot.writeString(viter375)
+      for kiter402,viter403 in self.attributes.items():
+        oprot.writeString(kiter402)
+        oprot.writeString(viter403)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -8185,11 +8623,11 @@ class incrementRows_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.increments = []
-          (_etype379, _size376) = iprot.readListBegin()
-          for _i380 in xrange(_size376):
-            _elem381 = TIncrement()
-            _elem381.read(iprot)
-            self.increments.append(_elem381)
+          (_etype407, _size404) = iprot.readListBegin()
+          for _i408 in xrange(_size404):
+            _elem409 = TIncrement()
+            _elem409.read(iprot)
+            self.increments.append(_elem409)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -8206,8 +8644,8 @@ class incrementRows_args:
     if self.increments is not None:
       oprot.writeFieldBegin('increments', TType.LIST, 1)
       oprot.writeListBegin(TType.STRUCT, len(self.increments))
-      for iter382 in self.increments:
-        iter382.write(oprot)
+      for iter410 in self.increments:
+        iter410.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -8339,11 +8777,11 @@ class deleteAllRowTs_args:
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype384, _vtype385, _size383 ) = iprot.readMapBegin() 
-          for _i387 in xrange(_size383):
-            _key388 = iprot.readString();
-            _val389 = iprot.readString();
-            self.attributes[_key388] = _val389
+          (_ktype412, _vtype413, _size411 ) = iprot.readMapBegin() 
+          for _i415 in xrange(_size411):
+            _key416 = iprot.readString();
+            _val417 = iprot.readString();
+            self.attributes[_key416] = _val417
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -8372,9 +8810,9 @@ class deleteAllRowTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter390,viter391 in self.attributes.items():
-        oprot.writeString(kiter390)
-        oprot.writeString(viter391)
+      for kiter418,viter419 in self.attributes.items():
+        oprot.writeString(kiter418)
+        oprot.writeString(viter419)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -8499,11 +8937,11 @@ class scannerOpenWithScan_args:
       elif fid == 3:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype393, _vtype394, _size392 ) = iprot.readMapBegin() 
-          for _i396 in xrange(_size392):
-            _key397 = iprot.readString();
-            _val398 = iprot.readString();
-            self.attributes[_key397] = _val398
+          (_ktype421, _vtype422, _size420 ) = iprot.readMapBegin() 
+          for _i424 in xrange(_size420):
+            _key425 = iprot.readString();
+            _val426 = iprot.readString();
+            self.attributes[_key425] = _val426
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -8528,9 +8966,9 @@ class scannerOpenWithScan_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 3)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter399,viter400 in self.attributes.items():
-        oprot.writeString(kiter399)
-        oprot.writeString(viter400)
+      for kiter427,viter428 in self.attributes.items():
+        oprot.writeString(kiter427)
+        oprot.writeString(viter428)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -8671,21 +9109,21 @@ class scannerOpen_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype404, _size401) = iprot.readListBegin()
-          for _i405 in xrange(_size401):
-            _elem406 = iprot.readString();
-            self.columns.append(_elem406)
+          (_etype432, _size429) = iprot.readListBegin()
+          for _i433 in xrange(_size429):
+            _elem434 = iprot.readString();
+            self.columns.append(_elem434)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype408, _vtype409, _size407 ) = iprot.readMapBegin() 
-          for _i411 in xrange(_size407):
-            _key412 = iprot.readString();
-            _val413 = iprot.readString();
-            self.attributes[_key412] = _val413
+          (_ktype436, _vtype437, _size435 ) = iprot.readMapBegin() 
+          for _i439 in xrange(_size435):
+            _key440 = iprot.readString();
+            _val441 = iprot.readString();
+            self.attributes[_key440] = _val441
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -8710,16 +9148,16 @@ class scannerOpen_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter414 in self.columns:
-        oprot.writeString(iter414)
+      for iter442 in self.columns:
+        oprot.writeString(iter442)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter415,viter416 in self.attributes.items():
-        oprot.writeString(kiter415)
-        oprot.writeString(viter416)
+      for kiter443,viter444 in self.attributes.items():
+        oprot.writeString(kiter443)
+        oprot.writeString(viter444)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -8869,21 +9307,21 @@ class scannerOpenWithStop_args:
       elif fid == 4:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype420, _size417) = iprot.readListBegin()
-          for _i421 in xrange(_size417):
-            _elem422 = iprot.readString();
-            self.columns.append(_elem422)
+          (_etype448, _size445) = iprot.readListBegin()
+          for _i449 in xrange(_size445):
+            _elem450 = iprot.readString();
+            self.columns.append(_elem450)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype424, _vtype425, _size423 ) = iprot.readMapBegin() 
-          for _i427 in xrange(_size423):
-            _key428 = iprot.readString();
-            _val429 = iprot.readString();
-            self.attributes[_key428] = _val429
+          (_ktype452, _vtype453, _size451 ) = iprot.readMapBegin() 
+          for _i455 in xrange(_size451):
+            _key456 = iprot.readString();
+            _val457 = iprot.readString();
+            self.attributes[_key456] = _val457
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -8912,16 +9350,16 @@ class scannerOpenWithStop_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 4)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter430 in self.columns:
-        oprot.writeString(iter430)
+      for iter458 in self.columns:
+        oprot.writeString(iter458)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter431,viter432 in self.attributes.items():
-        oprot.writeString(kiter431)
-        oprot.writeString(viter432)
+      for kiter459,viter460 in self.attributes.items():
+        oprot.writeString(kiter459)
+        oprot.writeString(viter460)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -9059,21 +9497,21 @@ class scannerOpenWithPrefix_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype436, _size433) = iprot.readListBegin()
-          for _i437 in xrange(_size433):
-            _elem438 = iprot.readString();
-            self.columns.append(_elem438)
+          (_etype464, _size461) = iprot.readListBegin()
+          for _i465 in xrange(_size461):
+            _elem466 = iprot.readString();
+            self.columns.append(_elem466)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype440, _vtype441, _size439 ) = iprot.readMapBegin() 
-          for _i443 in xrange(_size439):
-            _key444 = iprot.readString();
-            _val445 = iprot.readString();
-            self.attributes[_key444] = _val445
+          (_ktype468, _vtype469, _size467 ) = iprot.readMapBegin() 
+          for _i471 in xrange(_size467):
+            _key472 = iprot.readString();
+            _val473 = iprot.readString();
+            self.attributes[_key472] = _val473
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -9098,16 +9536,16 @@ class scannerOpenWithPrefix_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter446 in self.columns:
-        oprot.writeString(iter446)
+      for iter474 in self.columns:
+        oprot.writeString(iter474)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 4)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter447,viter448 in self.attributes.items():
-        oprot.writeString(kiter447)
-        oprot.writeString(viter448)
+      for kiter475,viter476 in self.attributes.items():
+        oprot.writeString(kiter475)
+        oprot.writeString(viter476)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -9251,10 +9689,10 @@ class scannerOpenTs_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype452, _size449) = iprot.readListBegin()
-          for _i453 in xrange(_size449):
-            _elem454 = iprot.readString();
-            self.columns.append(_elem454)
+          (_etype480, _size477) = iprot.readListBegin()
+          for _i481 in xrange(_size477):
+            _elem482 = iprot.readString();
+            self.columns.append(_elem482)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -9266,11 +9704,11 @@ class scannerOpenTs_args:
       elif fid == 5:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype456, _vtype457, _size455 ) = iprot.readMapBegin() 
-          for _i459 in xrange(_size455):
-            _key460 = iprot.readString();
-            _val461 = iprot.readString();
-            self.attributes[_key460] = _val461
+          (_ktype484, _vtype485, _size483 ) = iprot.readMapBegin() 
+          for _i487 in xrange(_size483):
+            _key488 = iprot.readString();
+            _val489 = iprot.readString();
+            self.attributes[_key488] = _val489
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -9295,8 +9733,8 @@ class scannerOpenTs_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter462 in self.columns:
-        oprot.writeString(iter462)
+      for iter490 in self.columns:
+        oprot.writeString(iter490)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -9306,9 +9744,9 @@ class scannerOpenTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 5)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter463,viter464 in self.attributes.items():
-        oprot.writeString(kiter463)
-        oprot.writeString(viter464)
+      for kiter491,viter492 in self.attributes.items():
+        oprot.writeString(kiter491)
+        oprot.writeString(viter492)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -9461,10 +9899,10 @@ class scannerOpenWithStopTs_args:
       elif fid == 4:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype468, _size465) = iprot.readListBegin()
-          for _i469 in xrange(_size465):
-            _elem470 = iprot.readString();
-            self.columns.append(_elem470)
+          (_etype496, _size493) = iprot.readListBegin()
+          for _i497 in xrange(_size493):
+            _elem498 = iprot.readString();
+            self.columns.append(_elem498)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -9476,11 +9914,11 @@ class scannerOpenWithStopTs_args:
       elif fid == 6:
         if ftype == TType.MAP:
           self.attributes = {}
-          (_ktype472, _vtype473, _size471 ) = iprot.readMapBegin() 
-          for _i475 in xrange(_size471):
-            _key476 = iprot.readString();
-            _val477 = iprot.readString();
-            self.attributes[_key476] = _val477
+          (_ktype500, _vtype501, _size499 ) = iprot.readMapBegin() 
+          for _i503 in xrange(_size499):
+            _key504 = iprot.readString();
+            _val505 = iprot.readString();
+            self.attributes[_key504] = _val505
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -9509,8 +9947,8 @@ class scannerOpenWithStopTs_args:
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 4)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter478 in self.columns:
-        oprot.writeString(iter478)
+      for iter506 in self.columns:
+        oprot.writeString(iter506)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -9520,9 +9958,9 @@ class scannerOpenWithStopTs_args:
     if self.attributes is not None:
       oprot.writeFieldBegin('attributes', TType.MAP, 6)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
-      for kiter479,viter480 in self.attributes.items():
-        oprot.writeString(kiter479)
-        oprot.writeString(viter480)
+      for kiter507,viter508 in self.attributes.items():
+        oprot.writeString(kiter507)
+        oprot.writeString(viter508)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -9706,11 +10144,11 @@ class scannerGet_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype484, _size481) = iprot.readListBegin()
-          for _i485 in xrange(_size481):
-            _elem486 = TRowResult()
-            _elem486.read(iprot)
-            self.success.append(_elem486)
+          (_etype512, _size509) = iprot.readListBegin()
+          for _i513 in xrange(_size509):
+            _elem514 = TRowResult()
+            _elem514.read(iprot)
+            self.success.append(_elem514)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -9739,8 +10177,8 @@ class scannerGet_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter487 in self.success:
-        iter487.write(oprot)
+      for iter515 in self.success:
+        iter515.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -9872,11 +10310,11 @@ class scannerGetList_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype491, _size488) = iprot.readListBegin()
-          for _i492 in xrange(_size488):
-            _elem493 = TRowResult()
-            _elem493.read(iprot)
-            self.success.append(_elem493)
+          (_etype519, _size516) = iprot.readListBegin()
+          for _i520 in xrange(_size516):
+            _elem521 = TRowResult()
+            _elem521.read(iprot)
+            self.success.append(_elem521)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -9905,8 +10343,8 @@ class scannerGetList_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter494 in self.success:
-        iter494.write(oprot)
+      for iter522 in self.success:
+        iter522.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -10181,11 +10619,11 @@ class getRowOrBefore_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype498, _size495) = iprot.readListBegin()
-          for _i499 in xrange(_size495):
-            _elem500 = TCell()
-            _elem500.read(iprot)
-            self.success.append(_elem500)
+          (_etype526, _size523) = iprot.readListBegin()
+          for _i527 in xrange(_size523):
+            _elem528 = TCell()
+            _elem528.read(iprot)
+            self.success.append(_elem528)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -10208,8 +10646,8 @@ class getRowOrBefore_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter501 in self.success:
-        iter501.write(oprot)
+      for iter529 in self.success:
+        iter529.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.io is not None:
@@ -10348,6 +10786,367 @@ class getRegionInfo_result:
     if self.io is not None:
       oprot.writeFieldBegin('io', TType.STRUCT, 1)
       self.io.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class append_args:
+  """
+  Attributes:
+   - append: The single append operation to apply
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'append', (TAppend, TAppend.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, append=None,):
+    self.append = append
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.append = TAppend()
+          self.append.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('append_args')
+    if self.append is not None:
+      oprot.writeFieldBegin('append', TType.STRUCT, 1)
+      self.append.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class append_result:
+  """
+  Attributes:
+   - success
+   - io
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(TCell, TCell.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'io', (IOError, IOError.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, io=None,):
+    self.success = success
+    self.io = io
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype533, _size530) = iprot.readListBegin()
+          for _i534 in xrange(_size530):
+            _elem535 = TCell()
+            _elem535.read(iprot)
+            self.success.append(_elem535)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.io = IOError()
+          self.io.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('append_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter536 in self.success:
+        iter536.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.io is not None:
+      oprot.writeFieldBegin('io', TType.STRUCT, 1)
+      self.io.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class checkAndPut_args:
+  """
+  Attributes:
+   - tableName: name of table
+   - row: row key
+   - column: column name
+   - value: the expected value for the column parameter, if not
+  provided the check is for the non-existence of the
+  column in question
+   - mput: mutation for the put
+   - attributes: Mutation attributes
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'tableName', None, None, ), # 1
+    (2, TType.STRING, 'row', None, None, ), # 2
+    (3, TType.STRING, 'column', None, None, ), # 3
+    None, # 4
+    (5, TType.STRING, 'value', None, None, ), # 5
+    (6, TType.STRUCT, 'mput', (Mutation, Mutation.thrift_spec), None, ), # 6
+    (7, TType.MAP, 'attributes', (TType.STRING,None,TType.STRING,None), None, ), # 7
+  )
+
+  def __init__(self, tableName=None, row=None, column=None, value=None, mput=None, attributes=None,):
+    self.tableName = tableName
+    self.row = row
+    self.column = column
+    self.value = value
+    self.mput = mput
+    self.attributes = attributes
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.tableName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.row = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.column = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.value = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRUCT:
+          self.mput = Mutation()
+          self.mput.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 7:
+        if ftype == TType.MAP:
+          self.attributes = {}
+          (_ktype538, _vtype539, _size537 ) = iprot.readMapBegin() 
+          for _i541 in xrange(_size537):
+            _key542 = iprot.readString();
+            _val543 = iprot.readString();
+            self.attributes[_key542] = _val543
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('checkAndPut_args')
+    if self.tableName is not None:
+      oprot.writeFieldBegin('tableName', TType.STRING, 1)
+      oprot.writeString(self.tableName)
+      oprot.writeFieldEnd()
+    if self.row is not None:
+      oprot.writeFieldBegin('row', TType.STRING, 2)
+      oprot.writeString(self.row)
+      oprot.writeFieldEnd()
+    if self.column is not None:
+      oprot.writeFieldBegin('column', TType.STRING, 3)
+      oprot.writeString(self.column)
+      oprot.writeFieldEnd()
+    if self.value is not None:
+      oprot.writeFieldBegin('value', TType.STRING, 5)
+      oprot.writeString(self.value)
+      oprot.writeFieldEnd()
+    if self.mput is not None:
+      oprot.writeFieldBegin('mput', TType.STRUCT, 6)
+      self.mput.write(oprot)
+      oprot.writeFieldEnd()
+    if self.attributes is not None:
+      oprot.writeFieldBegin('attributes', TType.MAP, 7)
+      oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.attributes))
+      for kiter544,viter545 in self.attributes.items():
+        oprot.writeString(kiter544)
+        oprot.writeString(viter545)
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class checkAndPut_result:
+  """
+  Attributes:
+   - success
+   - io
+   - ia
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'io', (IOError, IOError.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ia', (IllegalArgument, IllegalArgument.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, io=None, ia=None,):
+    self.success = success
+    self.io = io
+    self.ia = ia
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.io = IOError()
+          self.io.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ia = IllegalArgument()
+          self.ia.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('checkAndPut_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.io is not None:
+      oprot.writeFieldBegin('io', TType.STRUCT, 1)
+      self.io.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ia is not None:
+      oprot.writeFieldBegin('ia', TType.STRUCT, 2)
+      self.ia.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
