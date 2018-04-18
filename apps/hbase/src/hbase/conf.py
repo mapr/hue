@@ -53,7 +53,7 @@ THRIFT_TRANSPORT = Config(
 HBASE_CONF_DIR = Config(
   key='hbase_conf_dir',
   help=_t('HBase configuration directory, where hbase-site.xml is located.'),
-  default=os.environ.get("HBASE_CONF_DIR", '/etc/hbase/conf')
+  default=os.environ.get("HBASE_CONF_DIR", os.path.join(os.environ.get('MAPR_HOME', '/mapr/home'), 'hbase/hbase-1.1.8/conf'))
 )
 
 # Hidden, just for making patching of older version of Hue easier. To remove in Hue 4.
@@ -64,6 +64,11 @@ USE_DOAS = Config(
   type=coerce_bool
 )
 
+MECHANISM=Config(
+    "mechanism",
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+    default='none',
+    type=str)
 
 def config_validator(user):
   res = []
