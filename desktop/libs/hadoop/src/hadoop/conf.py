@@ -82,8 +82,6 @@ HDFS_CLUSTERS = UnspecifiedConfigSection(
                   type=coerce_bool),
       TEMP_DIR=Config("temp_dir", help="HDFS directory for temporary files",
                       default='/tmp', type=str),
-      FILE_SIZE=Config("file_size",
-                       help="File size restriction for viewing file", default=1.0, type=float),
       HADOOP_CONF_DIR = Config(
         key="hadoop_conf_dir",
         default=os.environ.get("HADOOP_CONF_DIR", "/etc/hadoop/conf"),
