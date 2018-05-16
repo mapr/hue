@@ -66,7 +66,7 @@ class MapreduceApi(object):
     if self._security_enabled and mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
     if self._security_enabled and mechanism == 'MAPR-SECURITY':
-      self._client.set_kerberos_auth()
+      self._client.set_mapr_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 
