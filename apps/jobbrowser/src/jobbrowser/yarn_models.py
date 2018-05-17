@@ -142,7 +142,7 @@ class SparkJob(Application):
         client.set_mapr_auth()
 
       self._client.set_verify(yarn_cluster.SSL_CERT_CA_VERIFY.get())
-      actual_url = self._execute(self._root.resolve_redirect_url())
+      actual_url = self._execute(self._root.resolve_redirect_url)
 
       if actual_url.strip('/').split('/')[-1] == 'jobs':
         actual_url = actual_url.strip('/').replace('jobs', '')
