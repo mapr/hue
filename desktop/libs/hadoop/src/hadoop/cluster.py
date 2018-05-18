@@ -188,6 +188,11 @@ def get_yarncluster_from_maprcli(current_user=None):
       config.RESOURCE_MANAGER_API_URL.config.default_value = resourcemanager_url
       config.PROXY_API_URL.config.default_value = resourcemanager_url
 
+      spark_historyserver_url = call_maprcli_urls('spark-historyserver')
+
+      if spark_historyserver_url:
+        config.SPARK_HISTORY_SERVER_URL.config.default_value = spark_historyserver_url
+
     rm = ResourceManagerApi(config.RESOURCE_MANAGER_API_URL.get(), config.SECURITY_ENABLED.get(), config.SSL_CERT_CA_VERIFY.get(), config.MECHANISM.get())
     if current_user is None:
       rm.setuser(DEFAULT_USER)
