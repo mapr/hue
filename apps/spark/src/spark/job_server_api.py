@@ -59,12 +59,12 @@ class JobServerApi(object):
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
     self._security_enabled = SECURITY_ENABLED.get()
-    self._mechanims = MECHANISM.get()
+    self._mechanism = MECHANISM.get()
     self._thread_local = threading.local()
 
-    if self.security_enabled and self._mechanims == 'GSSAPI':
+    if self.security_enabled and self._mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
-    if self.security_enabled and self._mechanims == 'MAPR-SECURITY':
+    if self.security_enabled and self._mechanism == 'MAPR-SECURITY':
       self._client.set_mapr_auth()
 
   def __str__(self):
