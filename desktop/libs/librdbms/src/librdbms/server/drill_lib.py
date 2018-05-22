@@ -3,6 +3,7 @@ import os
 import logging
 LOG = logging.getLogger(__name__)
 
+from desktop.lib import paths
 from librdbms.server.rdbms_base_lib import BaseRDBMSDataTable, BaseRDBMSResult, BaseRDMSClient
 from librdbms.jdbc import Cursor
 
@@ -16,7 +17,7 @@ DEFAULT_USERNAME = 'example'
 DEFAULT_PASSWORD = 'example'
 DEFAULT_IMPERSONATION = True
 DEFAULT_PRINCIPAL = 'mapr/localhost@REALM'
-DEFAULT_CLASSPATH = ''  # TODO:
+DEFAULT_CLASSPATH = paths.get_desktop_root("libs/librdbms/drill-lib/*")
 DEFAULT_JDBC_DRIVER = 'com.mapr.drill.jdbc41.Driver'
 
 
