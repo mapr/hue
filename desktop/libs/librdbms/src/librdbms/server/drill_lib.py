@@ -125,6 +125,8 @@ class DrillClient(BaseRDMSClient):
       # First field in row is file "name"
       self.curs.execute("SHOW FILES IN `{}`".format(database))
       tables = [row[0] for row in self.curs.fetchall()]
+      # In Drill file system all directories and files that start with dot or underscore is ignored.
+      tables = [table for table in tables if table[0] not in ('.', '_', )]
     else:
       # First field in row is "TABLE_SCHEMA", second is "TABLE_NAME"
       self.curs.execute("SHOW TABLES IN `{}`".format(database))
