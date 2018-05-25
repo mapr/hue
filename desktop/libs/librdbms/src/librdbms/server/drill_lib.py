@@ -1,4 +1,5 @@
 import os
+import threading
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -19,6 +20,26 @@ DEFAULT_IMPERSONATION = True
 DEFAULT_PRINCIPAL = 'mapr/localhost@REALM'
 DEFAULT_CLASSPATH = paths.get_desktop_root("libs/librdbms/drill-lib/*")
 DEFAULT_JDBC_DRIVER = 'com.mapr.drill.jdbc41.Driver'
+
+
+JAVA_GATEWAY_CACHE = None
+JAVA_GATEWAY_CACHE_LOCK = threading.Lock()
+
+
+def get_java_gateway(*args, **kwargs):
+  global JAVA_GATEWAY_CACHE
+  global JAVA_GATEWAY_CACHE_LOCK
+
+  if JAVA_GATEWAY_CACHE is None:
+    JAVA_GATEWAY_CACHE_LOCK.acquire()
+    try:
+      if 'die_on_exit' not in kwargs:
+        kwargs['die_on_exit'] = True
+      JAVA_GATEWAY_CACHE = JavaGateway.launch_gateway(*args, **kwargs)
+    finally:
+      JAVA_GATEWAY_CACHE_LOCK.release()
+
+  return JAVA_GATEWAY_CACHE
 
 
 class DataTable(BaseRDBMSDataTable): pass
@@ -74,7 +95,7 @@ class DrillClient(BaseRDMSClient):
     self.username = username
     self.password = password
     self.jdbc_driver = jdbc_driver
-    self.gateway = JavaGateway.launch_gateway(classpath=classpath)
+    self.gateway = get_java_gateway(classpath=classpath)
 
     self.connect()
 
