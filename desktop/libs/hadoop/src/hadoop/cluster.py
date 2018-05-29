@@ -150,6 +150,8 @@ YARNCLUSTER_MAPRCLI_LOCK = threading.Lock()
 def get_yarncluster_from_maprcli(current_user=None):
   from hadoop.yarn import mapreduce_api
   from hadoop.yarn import resource_manager_api
+  from hadoop.yarn import history_server_api
+  from hadoop.yarn import spark_history_server_api
   from hadoop.yarn.resource_manager_api import ResourceManagerApi
   global MR_NAME_CACHE
 
@@ -202,6 +204,8 @@ def get_yarncluster_from_maprcli(current_user=None):
     YARNCLUSTER_MAPRCLI_CACHED = (config, rm)
     resource_manager_api.API_CACHE = None  # Reset cache
     mapreduce_api.API_CACHE = None
+    history_server_api.API_CACHE = None
+    spark_history_server_api.API_CACHE = None
 
     return YARNCLUSTER_MAPRCLI_CACHED
   finally:
