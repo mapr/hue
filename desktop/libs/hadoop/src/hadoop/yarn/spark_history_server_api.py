@@ -21,7 +21,6 @@ import posixpath
 import threading
 import urlparse
 
-from desktop.conf import AUTH_USERNAME, AUTH_PASSWORD
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
@@ -68,8 +67,10 @@ class SparkHistoryServerApi(object):
     self._root = Resource(self._client)
     self._security_enabled = security_enabled
 
-    if self._security_enabled:
-      self._client.set_basic_auth(AUTH_USERNAME.get(), AUTH_PASSWORD.get())
+    if self._security_enabled and mechanism == 'GSSAPI':
+      self._client.set_kerberos_auth()
+    if self._security_enabled and mechanism == 'MAPR-SECURITY':
+      self._client.set_mapr_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 
