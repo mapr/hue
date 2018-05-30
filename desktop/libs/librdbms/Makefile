@@ -31,7 +31,7 @@ default::
 #   Install app into the virtual environment.
 #
 .PHONY: env-install
-env-install: compile ext-env-install
+env-install: compile ext-env-install drill-java
 	@echo '--- Installing $(APP_NAME) into virtual-env'
 	@$(ENV_PYTHON) setup.py develop -N -q
 
@@ -62,3 +62,24 @@ else
 $(DB_PROXY_JAR):
 	$(error Cannot build DBProxy plugin without source)
 endif
+
+
+###################################
+# Get Drill JDBC drivers
+###################################
+
+DRILL_JAVA_LIB := $(PLUGIN_DIR)/drill-lib
+DRILL_JAVA_DIR := $(PLUGIN_DIR)/drill-java
+DRILL_JARS_DIR := $(DRILL_JAVA_DIR)/target/lib
+
+.PHONY: drill-java
+drill-java:
+	mkdir -p $(DRILL_JAVA_LIB)
+	cd $(DRILL_JAVA_DIR) && mvn clean dependency:copy-dependencies $(MAVEN_OPTIONS)
+	cp -r $(DRILL_JARS_DIR)/* $(DRILL_JAVA_LIB)
+	cd $(DRILL_JAVA_DIR) && mvn clean $(MAVEN_OPTIONS) ||:
+
+.PHONY: clean
+clean::
+	rm -rf $(DRILL_JAVA_LIB)
+	cd $(DRILL_JAVA_DIR) && mvn clean $(MAVEN_OPTIONS) ||:
