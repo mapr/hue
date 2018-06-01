@@ -20,6 +20,7 @@ import os
 
 from django.utils.translation import ugettext_lazy as _t
 
+from desktop.conf import default_ssl_validate
 from desktop.lib.conf import Config, coerce_bool
 from sqoop.settings import NICE_NAME
 
@@ -34,6 +35,13 @@ SQOOP_CONF_DIR = Config(
   key="sqoop_conf_dir",
   default='/etc/sqoop2/conf',
   help=_t("Path to Sqoop2 configuration directory."))
+
+SSL_CERT_CA_VERIFY = Config(
+  key="ssl_cert_ca_verify",
+  help=_t("Choose whether Hue should validate certificates received from the server."),
+  dynamic_default=default_ssl_validate,
+  type=coerce_bool
+)
 
 SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos or MapR-securtity authentication",
                         default=False, type=coerce_bool)
