@@ -23,7 +23,7 @@ import threading
 from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
 
-from spark.conf import get_livy_server_url, SECURITY_ENABLED
+from spark.conf import get_livy_server_url, SECURITY_ENABLED, SSL_CERT_CA_VERIFY
 from spark.conf import MECHANISM
 
 
@@ -66,6 +66,8 @@ class JobServerApi(object):
       self._client.set_kerberos_auth()
     if self.security_enabled and self._mechanism == 'MAPR-SECURITY':
       self._client.set_mapr_auth()
+
+    self._client.set_verify(SSL_CERT_CA_VERIFY.get())
 
   def __str__(self):
     return "JobServerApi at %s" % (self._url,)
