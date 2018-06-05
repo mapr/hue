@@ -2597,32 +2597,63 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 
 <script src="${ static('hbase/js/jstree.min.js') }" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" charset="utf-8">
-function referToTable(clicked) {
-  document.location = document.location + '/' + encodeURIComponent(clicked.id);
-}
+/*
+ * MAPR-14065 Hue Mapr-DB tables
+ */
+var $jstreeMapr = $('#jstree_mapr');
 
-function getCurrentCluster() {
-  return document.location.href.split('#')[1];
-}
-
-$('#jstree_mapr')
-  .bind('open_node.jstree', function(ev, data) {
-    $('#jstree_mapr').jstree(true).get_node(data.node.id).class = 'needrefresh';
-  })
-  .bind('close_node.jstree', function(ev, data) {
-    if ('needrefresh' === $('#jstree_mapr').jstree(true).get_node(data.node.id).class) {
-      $('#jstree_mapr').jstree(true).get_node(data.node.id).class = undefined;
-      $('#jstree_mapr').jstree(true).refresh_node(data.node.id);
-    }
-  })
+$jstreeMapr
   .jstree({
     'core': {
       'data': {
         'url': '/hbase/api/getlist/'
         , 'data': function(node) {
-          return {'id': node.id, 'cluster': getCurrentCluster()};
+          return {'id': node.id, 'cluster': window.hbaseApp.cluster()};
         }
       }
+    }
+  });
+var jstreeInst = $jstreeMapr.jstree(true);
+
+$jstreeMapr
+  .on('open_node.jstree', function(e, data) {
+    data.node.children.forEach(function(child) {
+      if(jstreeInst.is_leaf(child)) {
+        jstreeInst.hide_icon(child);
+      }
+    });
+  });
+
+
+/*
+ * MAPR-18650 [hbase] Mapr-db table browser doesn't update with new table
+ */
+$jstreeMapr
+  .on('close_node.jstree', function(e, data) {
+    data.node.needRefresh = true;
+  })
+  .on('open_node.jstree', function(e, data) {
+    if (data.node.needRefresh) {
+      jstreeInst.refresh_node(data.node);
+      data.node.needRefresh = false;
+    }
+  });
+
+
+/*
+ * MHUE-117 Error while open maprdb table via File Browser
+ */
+// Assistant panel open files by dogin huePubSub.publish('open.link', ...), which is not trigger routie:
+huePubSub.subscribe('open.link', function(link) {
+  routie.reload();
+});
+
+$jstreeMapr
+  .on('activate_node.jstree', function(e, data) {
+    if(jstreeInst.is_leaf(data.node)) {
+      var route = window.hbaseApp.cluster() + '/' + data.node.id;
+      var url = window.location.pathname + '#' + route;
+      huePubSub.publish('open.link', url);
     }
   });
 </script>
