@@ -160,15 +160,14 @@ def getList(request):
       resp.append({
         'id': path + directory + '/',
         'text': directory,
-        'children': True
+        'children': True,
       })
     for table in tables:
       table = table.split('/')[-1]
       resp.append({
         'id': path + table,
         'text': table,
-        'icon': False,
-        'li_attr': {'onClick': 'referToTable(this)'},
+        'children': False,
       })
 
     return JsonResponse(resp, safe=False)
