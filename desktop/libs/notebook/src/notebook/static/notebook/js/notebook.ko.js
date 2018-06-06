@@ -1481,6 +1481,7 @@ var EditorViewModel = (function() {
             self.loadData(data.result, 100);
             self.status('available');
             self.progress(100);
+            self.result.endTime(new Date());
           } else {
             if (! notebook.unloaded()) {
               self.checkStatus();
