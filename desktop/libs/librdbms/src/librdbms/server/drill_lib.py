@@ -20,6 +20,7 @@ DEFAULT_IMPERSONATION = True
 DEFAULT_PRINCIPAL = 'mapr/localhost@REALM'
 DEFAULT_CLASSPATH = paths.get_desktop_root("libs/librdbms/drill-lib/*")
 DEFAULT_JDBC_DRIVER = 'com.mapr.drill.jdbc41.Driver'
+DEFAULT_ZK_DIRECTORY = '/drill/'
 
 
 JAVA_GATEWAY_CACHE = None
@@ -62,6 +63,12 @@ class DrillClient(BaseRDMSClient):
     drillbits = query_server['drillbits']
     zk_quorum = query_server['zk_quorum']
     zk_cluster_id = query_server['zk_cluster_id']
+    zk_directory = query_server['options'].get('zk_directory', DEFAULT_ZK_DIRECTORY)
+    if zk_cluster_id:
+      zk_path = os.path.normpath('/' + zk_directory + '/' + zk_cluster_id)
+      zk_path = zk_path.replace('//', '/')  # normpath can return path with trailing slashes at beginning
+    else:
+      zk_path = ''
 
     mechanism = query_server['mechanism']
     username = query_server['username']
@@ -77,9 +84,9 @@ class DrillClient(BaseRDMSClient):
     jdbc_driver = query_server['options'].get('jdbc_driver', DEFAULT_JDBC_DRIVER)
 
     if connection_type == 'direct':
-      connection_string = 'jdbc:drill:drillbit={}'.format(drillbits)
+      connection_string = 'jdbc:drill:drillbit={}{}'.format(drillbits, zk_path)
     elif connection_type == 'zookeeper':
-      connection_string = 'jdbc:drill:zk={}/{}'.format(zk_quorum, zk_cluster_id)
+      connection_string = 'jdbc:drill:zk={}{}'.format(zk_quorum, zk_path)
     else:
       raise Exception('{} is not allowed for connection_type'.format(connection_type))
 
