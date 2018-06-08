@@ -185,6 +185,12 @@ class DrillClient(BaseRDMSClient):
     query = "SELECT {} FROM `{}`.`{}` LIMIT {}".format(column, database, table, limit)
     return self.execute_statement(query)
 
+  def explain(self, statement):
+    if statement.upper().startswith('EXPLAIN PLAN FOR'):
+      return self.execute_statement(statement)
+    else:
+      return self.execute_statement('EXPLAIN PLAN FOR ' + statement)
+
 
 class DrillCursor(Cursor):
   # Since Hue execute only one query per DrillClient instance, and not trying to close DrillClient anywhere,
