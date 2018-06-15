@@ -64,11 +64,6 @@ class DrillClient(BaseRDMSClient):
     zk_quorum = query_server['zk_quorum']
     zk_cluster_id = query_server['zk_cluster_id']
     zk_directory = query_server['options'].get('zk_directory', DEFAULT_ZK_DIRECTORY)
-    if zk_cluster_id:
-      zk_path = os.path.normpath('/' + zk_directory + '/' + zk_cluster_id)
-      zk_path = zk_path.replace('//', '/')  # normpath can return path with trailing slashes at beginning
-    else:
-      zk_path = ''
 
     mechanism = query_server['mechanism']
     username = query_server['username']
@@ -84,8 +79,10 @@ class DrillClient(BaseRDMSClient):
     jdbc_driver = query_server['options'].get('jdbc_driver', DEFAULT_JDBC_DRIVER)
 
     if connection_type == 'direct':
-      connection_string = 'jdbc:drill:drillbit={}{}'.format(drillbits, zk_path)
+      connection_string = 'jdbc:drill:drillbit={}'.format(drillbits)
     elif connection_type == 'zookeeper':
+      zk_path = os.path.normpath('/' + zk_directory + '/' + zk_cluster_id)
+      zk_path = zk_path.replace('//', '/')  # normpath can return path with trailing slashes at beginning
       connection_string = 'jdbc:drill:zk={}{}'.format(zk_quorum, zk_path)
     else:
       raise Exception('{} is not allowed for connection_type'.format(connection_type))
