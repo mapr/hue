@@ -160,12 +160,6 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
       <div style="padding-bottom: 20px">
         <input type="text" class="input-large search-query" placeholder="${_('Search for Table Name')}" data-bind="value: views.tables.searchQuery, clearable: views.tables.searchQuery, valueUpdate: 'afterkeydown'">
         % if can_write:
-          <span class="btn-group margin-left-10">
-            <button class="btn" data-bind="enable: views.tables.canEnable, click: views.tables.enableSelected"><i class="fa fa-check-square"></i> ${_('Enable')}</button>
-            <button class="btn" data-bind="enable: views.tables.canDisable, click: views.tables.disableSelected">
-              <i class="fa fa-square-o"></i> ${_('Disable')}
-            </button>
-          </span>
           <button class="btn" data-bind="enable: views.tables.selected().length > 0, click: views.tables.dropSelected"><i class="fa fa-trash-o"></i> ${_('Drop')}</button>
         % endif
         % if can_write:
@@ -182,7 +176,6 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
       <tr>
         <td><div data-bind="click: $data.select, css: { 'hue-checkbox': true,'fa': true, 'fa-check':$data.isSelected}" data-row-selector-exclude="true"></div></td>
         <td width="90%"><a data-bind="text:$data.name,attr: {href: '#'+hbaseApp.cluster()+'/'+$data.name}" data-row-selector="true"></a></td>
-        <td width="5%"><i data-bind="click: $data.toggle, css: {'fa': true, 'fa-check-square':$data.enabled, 'fa-square-o':$data.enabled != true}" data-row-selector-exclude="true"></i></td>
       </tr>
     </script>
 
@@ -2160,7 +2153,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 
       self.views = {
         tables: new DataTableViewModel({
-          columns: ['Table Name', 'Enabled'], el: 'views.tables', reload: function (callback) {
+          columns: ['Table Name'], el: 'views.tables', reload: function (callback) {
             var d_self = this;
             d_self.isReLoading(true);
             d_self.items.removeAll();
@@ -2644,7 +2637,7 @@ $jstreeMapr
 /*
  * MHUE-117 Error while open maprdb table via File Browser
  */
-// Assistant panel open files by dogin huePubSub.publish('open.link', ...), which is not trigger routie:
+// Assistant panel open files by doing huePubSub.publish('open.link', ...), which is not trigger routie:
 huePubSub.subscribe('open.link', function(link) {
   routie.reload();
 });
@@ -2656,6 +2649,15 @@ $jstreeMapr
       var url = window.location.pathname + '#' + route;
       huePubSub.publish('open.link', url);
     }
+  });
+
+
+/*
+ * Open filesystem root on page load
+ */
+$jstreeMapr
+  .one('load_node.jstree', function(e, data) {
+    if(data.node.id == '#') jstreeInst.open_node('/');
   });
 </script>
 
