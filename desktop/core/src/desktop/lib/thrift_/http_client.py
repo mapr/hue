@@ -85,3 +85,6 @@ class THttpClient(TTransportBase):
     # POST
     self._root = Resource(self._client)
     self._data = self._root.post('', data=data, headers=self._headers)
+
+  def set_verify(self, verify=True):
+    self._client.set_verify(verify)
