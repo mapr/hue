@@ -7,12 +7,29 @@
   <artifactId>drill-java</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <properties>
+    <simbadrill.version>1.5.9.1018</simbadrill.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.mapr.drill</groupId>
       <artifactId>DrillJDBC41</artifactId>
-      <version>1.5.9.1018</version>
-      <!-- version>1.5.11.1020</version -->
+      <version>${simbadrill.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.mapr.hadoop</groupId>
+          <artifactId>maprfs</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-auth</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -24,6 +41,7 @@
         <version>2.10</version>
         <configuration>
           <outputDirectory>${project.build.directory}/lib/</outputDirectory>
+          <excludeScope>provided</excludeScope>
         </configuration>
       </plugin>
     </plugins>
@@ -31,11 +49,10 @@
 
   <repositories>
     <repository>
-      <id>mapr release</id>
+      <id>mapr_release</id>
       <url>http://repository.mapr.com/maven/</url>
-      <snapshots><enabled>true</enabled></snapshots>
+      <snapshots><enabled>false</enabled></snapshots>
       <releases><enabled>true</enabled></releases>
     </repository>
   </repositories>
-
 </project>
