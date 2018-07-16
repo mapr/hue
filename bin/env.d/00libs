@@ -18,3 +18,7 @@ export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path
 
 # Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
 export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
+
+# MEP-28 Adapt all ecosystems to use the runtime library from /opt/mapr/lib.
+# Simba Drill JDBC driver needs to get hadoop-auth, hadoop-common and maprfs jars.
+export CLASSPATH=$(mapr classpath)
