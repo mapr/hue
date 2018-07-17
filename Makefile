@@ -163,6 +163,7 @@ INSTALL_CORE_FILES = \
 	tools/app_reg \
 	tools/virtual-bootstrap \
 	tools/relocatable.sh \
+	tools/ops \
 	VERS* LICENSE* README* \
 	bin \
 	desktop/conf.dist
