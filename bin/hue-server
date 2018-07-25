@@ -23,7 +23,7 @@ case $1 in
             exitval=1
         else
             cd "${HUE_HOME}"
-            nohup "${HUE_HOME}/bin/hue" runcpserver &>> /dev/null &
+            nohup "${HUE_HOME}/bin/hue" runcpserver &>> "$HUE_LOG_SERVER" &
             pid=$!
             echo $pid > "$HUE_PID_SERVER"
             echo "$(date) Starting Hue, pid $pid" >> "$HUE_LOG_SERVER"
