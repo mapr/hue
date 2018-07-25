@@ -33,22 +33,13 @@ initCfgEnv
 
 # Get MAPR_USER and MAPR_GROUP
 DAEMON_CONF="${MAPR_HOME}/conf/daemon.conf"
-if [ -z "$MAPR_USER" ] ; then
-  if [ -f "$DAEMON_CONF" ] ; then
-    MAPR_USER=$( awk -F = '$1 == "mapr.daemon.user" { print $2 }' "$DAEMON_CONF" )
-  else
-    # Hue installation on edge node (not on cluster)
-    MAPR_USER=`logname`
-  fi
-fi
+
+MAPR_USER=${MAPR_USER:-$( [ -f "$DAEMON_CONF" ] && awk -F = '$1 == "mapr.daemon.group" { print $2 }' "$DAEMON_CONF" )}
+MAPR_USER=${MAPR_USER:-"mapr"}
 export MAPR_USER
-if [ -z "$MAPR_GROUP" ] ; then
-  if [ -f "$DAEMON_CONF" ] ; then
-    MAPR_GROUP=$( awk -F = '$1 == "mapr.daemon.group" { print $2 }' "$DAEMON_CONF" )
-  else
-    MAPR_GROUP="$MAPR_USER"
-  fi
-fi
+
+MAPR_GROUP=${MAPR_GROUP:-$( [ -f "$DAEMON_CONF" ] && awk -F = '$1 == "mapr.daemon.group" { print $2 }' "$DAEMON_CONF" )}
+MAPR_GROUP=${MAPR_GROUP:-"$MAPR_USER"}
 export MAPR_GROUP
 
 # Initialize HUE_HOME
@@ -61,13 +52,6 @@ isOnlyRoles=${isOnlyRoles:-0}
 
 # Initialize security-related variables
 HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
-
-HUE_KEYS_DIR="${HUE_HOME}/keys"
-HUE_PEM_CERT_FILE="${HUE_KEYS_DIR}/cert.pem"
-HUE_SRC_STORE_PASSWD='mapr123'
-HUE_TMP_STORE="${HUE_KEYS_DIR}/keystore.p12"
-HUE_TMP_STORE_PASSWD='m@prt3ch777!!!S'
-HUE_PEM_KEY_FILE="${HUE_KEYS_DIR}/hue_private_keystore.pem"
 
 
 
@@ -112,86 +96,8 @@ done
 
 # Functions
 
-gen_keys() {
-  CERTIFICATEKEY="$(getClusterName)"
-
-  mkdir -p "${HUE_KEYS_DIR}"
-
-
-  logInfo 'Generating certificate from keystore...'
-  if [ -e "$HUE_PEM_CERT_FILE" ] ; then
-    logWarn "$HUE_PEM_CERT_FILE already exists. Skipping it."
-  else
-    keytool -export -alias "${CERTIFICATEKEY}" -keystore "${MAPR_CLDB_SSL_KEYSTORE}" -rfc -file "${HUE_PEM_CERT_FILE}" -storepass "${HUE_SRC_STORE_PASSWD}" &>/dev/null
-    local ret=$?
-    if [ $ret -ne 0 ] ; then
-      logErr 'No certificate has been generated.'
-      return $ret
-    fi
-  fi
-
-
-  logInfo 'Importing the keystore from JKS to PKCS12...'
-  if [ -e "$HUE_TMP_STORE" ] ; then
-    logWarn "$HUE_TMP_STORE already exists. Skipping it."
-  else
-    keytool -importkeystore -noprompt \
-      -srckeystore "${MAPR_CLDB_SSL_KEYSTORE}" -destkeystore "${HUE_TMP_STORE}" \
-      -srcstoretype JKS -deststoretype PKCS12 \
-      -srcstorepass "${HUE_SRC_STORE_PASSWD}" -deststorepass "${HUE_TMP_STORE_PASSWD}" \
-      -srcalias "${CERTIFICATEKEY}" -destalias "${CERTIFICATEKEY}" \
-      -srckeypass "${HUE_SRC_STORE_PASSWD}" -destkeypass "${HUE_TMP_STORE_PASSWD}" &>/dev/null
-    local ret=$?
-    if [ $ret -ne 0 ] ; then
-      logErr 'No keystore has been imported.'
-      return $ret
-    fi
-  fi
-
-
-  # Remove obsolete keystore.pem file with passphrase
-  if [ -e "${HUE_KEYS_DIR}/keystore.pem" ]; then
-    rm -f "${HUE_KEYS_DIR}/keystore.pem"
-  fi
-
-
-  logInfo 'Converting PKCS12 to pem using OpenSSL...'
-  if [ -e "$HUE_PEM_KEY_FILE" ] ; then
-    logWarn "$HUE_PEM_KEY_FILE already exists. Skipping it."
-  else
-    openssl pkcs12 -in ${HUE_TMP_STORE} -passin "pass:${HUE_TMP_STORE_PASSWD}" -passout "pass:${HUE_TMP_STORE_PASSWD}" 2>/dev/null |
-      openssl rsa -passin "pass:${HUE_TMP_STORE_PASSWD}" -out ${HUE_PEM_KEY_FILE} &>/dev/null
-    local ret=$?
-    if [ $ret -ne 0 ] ; then
-      logErr 'No PKCS12 has been converted.'
-      return $ret
-    fi
-  fi
-
-
-  logInfo "Remove temporary PKCS12 keystore file..."
-  if [ -e "${HUE_TMP_STORE}" ]; then
-    rm -f "${HUE_TMP_STORE}"
-  fi
-
-
-  logInfo 'Keys generated successfully.'
-
-  return $RETURN_SUCCESS
-}
-
-
-perm_keys() {
-  if [ -e "${HUE_PEM_CERT_FILE}" ]; then
-    chmod 0600 "${HUE_PEM_CERT_FILE}"
-  fi
-  if [ -e "${HUE_PEM_KEY_FILE}" ]; then
-    chmod 0400 "${HUE_PEM_KEY_FILE}"
-  fi
-}
-
 perm_scripts() {
-  chmod 0700 "${HUE_HOME}/bin/configure.sh"
+  chmod 0700 "${HUE_HOME}/bin/env.d/20secure"
 }
 
 perm_confs() {
@@ -285,16 +191,6 @@ if [ "$isOnlyRoles" == 1 ] ; then
     updSecure="true"
   fi
 
-  if [ "$updSecure" = "true" ] && [ "$isSecure" = "true" ] ; then
-    gen_keys
-    GEN_CERTS_RET=$?
-    if [ $GEN_CERTS_RET -ne $RETURN_SUCCESS ] ; then
-      logErr 'Can not configure Hue with --secure.'
-      exit $GEN_CERTS_RET
-    fi
-  fi
-
-  perm_keys
   perm_scripts
   perm_confs
 
