@@ -54,7 +54,7 @@ def config_validator(user):
 
   try:
     from sqoop import client
-    c = client.SqoopClient(url=SERVER_URL.get(), username=user.username, security_enabled=SECURITY_ENABLED.get(), mechanims=MECHANISM.get())
+    c = client.SqoopClient(url=SERVER_URL.get(), username=user.username, security_enabled=SECURITY_ENABLED.get(), mechanism=MECHANISM.get())
     c.get_connectors()
   except Exception, ex:
     LOG.exception('Sqoop2 API is not accessible: %s' % ex)

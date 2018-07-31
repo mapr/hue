@@ -166,6 +166,8 @@ class WebHdfs(Hdfs):
 
   @property
   def mechanism(self):
+    if not hasattr(self, '_mechanism'):
+      self._mechanism = None
     return self._mechanism
 
   @property
