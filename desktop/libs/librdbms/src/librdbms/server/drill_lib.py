@@ -1,4 +1,5 @@
 import os
+import shlex
 import threading
 
 import logging
@@ -99,7 +100,9 @@ class DrillClient(BaseRDMSClient):
     self.username = username
     self.password = password
     self.jdbc_driver = jdbc_driver
-    self.gateway = get_java_gateway(classpath=classpath)
+
+    javaopts = shlex.split(os.environ.get('MAPR_ECOSYSTEM_LOGIN_OPTS', ''))
+    self.gateway = get_java_gateway(classpath=classpath, javaopts=javaopts)
 
     self.connect()
 
