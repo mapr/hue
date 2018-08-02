@@ -53,6 +53,15 @@ isOnlyRoles=${isOnlyRoles:-0}
 # Initialize security-related variables
 HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
 
+# Warden related variables
+WARDEN_HUE_SRC="${HUE_HOME}/desktop/conf.dist/warden.hue.conf"
+WARDEN_HUE_CONF="${MAPR_CONF_DIR}/conf.d/warden.hue.conf"
+
+WARDEN_HEAPSIZE_MIN_KEY="service.heapsize.min"
+WARDEN_HEAPSIZE_MAX_KEY="service.heapsize.max"
+WARDEN_HEAPSIZE_PERCENT_KEY="service.heapsize.percent"
+WARDEN_RUNSTATE_KEY="service.runstate"
+
 
 
 # Parse options
@@ -108,13 +117,49 @@ perm_confs() {
 }
 
 
-install_warden_file() {
-  if  ! [ -d ${MAPR_CONF_DIR}/conf.d ]; then
-    mkdir -p ${MAPR_CONF_DIR}/conf.d > /dev/null 2>&1
+conf_get_property() {
+  local conf_file="$1"
+  local property_name="$2"
+  local delim="$3"
+  delim=${delim:-"="}
+  grep "^\s*${property_name}" "${conf_file}" | sed "s|^\s*${property_name}\s*${delim}\s*||"
+}
+
+conf_set_property() {
+  local conf_file="$1"
+  local property_name="$2"
+  local property_value="$3"
+  local delim="$4"
+  delim=${delim:-" = "}
+  if grep -q "^\s*${property_name}\s*${delim}" "${conf_file}"; then
+    # modify property
+    sed -i -r "s|^\s*${property_name}\s*${delim}.*$|${property_name}${delim}${property_value}|" "${conf_file}"
+  else
+    echo "${property_name}${delim}${property_value}" >> "${conf_file}"
+  fi
+}
+
+setup_warden_conf() {
+  local curr_heapsize_min
+  local curr_heapsize_max
+  local curr_heapsize_percent
+  local curr_runstate
+
+  if [ -f "$WARDEN_HUE_CONF" ]; then
+    curr_heapsize_min=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY")
+    curr_heapsize_max=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MAX_KEY")
+    curr_heapsize_percent=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_PERCENT_KEY")
+    curr_runstate=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY")
   fi
 
-  cp ${HUE_HOME}/desktop/conf.dist/warden.hue.conf ${MAPR_CONF_DIR}/conf.d/
-  chown $MAPR_USER:$MAPR_GROUP ${MAPR_CONF_DIR}/conf.d/warden.hue.conf
+  cp "$WARDEN_HUE_SRC" "$WARDEN_HUE_CONF"
+
+  [ -n "$curr_heapsize_min" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY" "$curr_heapsize_min" "="
+  [ -n "$curr_heapsize_max" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MAX_KEY" "$curr_heapsize_max" "="
+  [ -n "$curr_heapsize_percent" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_PERCENT_KEY" "$curr_heapsize_percent" "="
+  [ -n "$curr_runstate" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY" "$curr_runstate" "="
+
+  chown $MAPR_USER:$MAPR_GROUP "$WARDEN_HUE_CONF"
 
   logInfo 'Warden conf for Hue copied.'
 }
@@ -207,7 +252,7 @@ if [ "$isOnlyRoles" == 1 ] ; then
 
   chown_component
 
-  install_warden_file
+  setup_warden_conf
 
   # remove state file
   if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ] ; then
