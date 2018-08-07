@@ -120,8 +120,7 @@ perm_confs() {
 conf_get_property() {
   local conf_file="$1"
   local property_name="$2"
-  local delim="$3"
-  delim=${delim:-"="}
+  local delim="="
   grep "^\s*${property_name}" "${conf_file}" | sed "s|^\s*${property_name}\s*${delim}\s*||"
 }
 
@@ -129,8 +128,7 @@ conf_set_property() {
   local conf_file="$1"
   local property_name="$2"
   local property_value="$3"
-  local delim="$4"
-  delim=${delim:-" = "}
+  local delim="="
   if grep -q "^\s*${property_name}\s*${delim}" "${conf_file}"; then
     # modify property
     sed -i -r "s|^\s*${property_name}\s*${delim}.*$|${property_name}${delim}${property_value}|" "${conf_file}"
@@ -154,10 +152,10 @@ setup_warden_conf() {
 
   cp "$WARDEN_HUE_SRC" "$WARDEN_HUE_CONF"
 
-  [ -n "$curr_heapsize_min" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY" "$curr_heapsize_min" "="
-  [ -n "$curr_heapsize_max" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MAX_KEY" "$curr_heapsize_max" "="
-  [ -n "$curr_heapsize_percent" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_PERCENT_KEY" "$curr_heapsize_percent" "="
-  [ -n "$curr_runstate" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY" "$curr_runstate" "="
+  [ -n "$curr_heapsize_min" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY" "$curr_heapsize_min"
+  [ -n "$curr_heapsize_max" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MAX_KEY" "$curr_heapsize_max"
+  [ -n "$curr_heapsize_percent" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_PERCENT_KEY" "$curr_heapsize_percent"
+  [ -n "$curr_runstate" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY" "$curr_runstate"
 
   chown $MAPR_USER:$MAPR_GROUP "$WARDEN_HUE_CONF"
 
