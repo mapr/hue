@@ -1379,6 +1379,7 @@ def test_collect_validation_messages_default():
     # This is for the hue.ini file only
     error_list = []
     collect_validation_messages(conf, error_list)
+    print(error_list)
     assert_equal(len(error_list), 0)
   finally:
     os.remove(configspec.name)
