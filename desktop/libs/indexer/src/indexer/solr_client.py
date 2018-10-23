@@ -321,7 +321,8 @@ class SolrClient(object):
 
     properties = self.api.info_system()
 
-    _IS_SOLR_CLOUD = properties.get('mode', 'solrcloud') == 'solrcloud'
+    #_IS_SOLR_CLOUD = properties.get('mode', 'solrcloud') == 'solrcloud'
+    _IS_SOLR_CLOUD = False
     _IS_SOLR_6_OR_MORE = not str(properties.get('lucene', {}).get('solr-spec-version')).startswith('4.')
     _IS_SOLR_WITH_HDFS = False
     _ZOOKEEPER_HOST = properties.get('zkHost', get_solr_ensemble())

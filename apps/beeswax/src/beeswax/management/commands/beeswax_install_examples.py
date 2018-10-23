@@ -64,13 +64,9 @@ class Command(BaseCommand):
     exception = None
 
     # Documents will belong to this user but we run the install as the current user
-    try:
-      sample_user = install_sample_user()
-      self._install_queries(sample_user, app_name)
-      self._install_tables(user, app_name, db_name, tables)
-    except Exception, ex:
-      exception = ex
-
+    sample_user = install_sample_user()
+    self._install_queries(sample_user, app_name)
+    self._install_tables(user, app_name, db_name, tables)
     Document.objects.sync()
 
     if exception is not None:

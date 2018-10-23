@@ -70,7 +70,6 @@ from desktop.views import check_config, home, generate_configspec, load_confs, c
 from desktop.auth.backend import rewrite_user
 from dashboard.conf import HAS_SQL_ENABLED
 
-
 def test_home():
   c = make_logged_in_client(username="test_home", groupname="test_home", recreate=True, is_superuser=False)
   user = User.objects.get(username="test_home")
@@ -1384,6 +1383,7 @@ def test_collect_validation_messages_default():
     os.remove(configspec.name)
 
 def test_collect_validation_messages_extras():
+  LOG = logging.getLogger(__name__)
   try:
     # Generate the spec file
     configspec = generate_configspec()
@@ -1416,6 +1416,8 @@ def test_collect_validation_messages_extras():
     collect_validation_messages(conf, error_list)
   finally:
     os.remove(configspec.name)
+  if error_list != 1:
+    LOG.warn(str(conf))
   assert_equal(len(error_list), 1)
   assert_equal(u'Extra section, extrasection in the section: top level, Extra keyvalue, extrakey in the section: [desktop] , Extra section, extrasubsection in the section: [desktop] , Extra section, extrasubsubsection in the section: [desktop] [[auth]] ', error_list[0]['message'])
 
@@ -1444,12 +1446,8 @@ def test_db_migrations_sqlite():
       del DATABASES[name]
 
 def test_db_migrations_mysql():
+  LOG = logging.getLogger(__name__)
   if desktop.conf.DATABASE.ENGINE.get().find('mysql') < 0:
-    raise SkipTest
-  try:
-    subprocess.check_output('which mysql', shell=True)
-  except:
-    LOG.warn('mysql not installed')
     raise SkipTest
   versions = ['5_' + str(i) for i in range(7, 16)]
   os.putenv('PATH', '$PATH:/usr/local/bin')
@@ -1471,8 +1469,10 @@ def test_db_migrations_mysql():
       'CONN_MAX_AGE': desktop.conf.DATABASE.CONN_MAX_AGE.get(),
     }
     try:
-      os.system('mysql -u%(USER)s -p%(PASSWORD)s -e "CREATE DATABASE %(SCHEMA)s"' % DATABASES[name]) # No way to run this command with django
-      os.system('mysql -u%(USER)s -p%(PASSWORD)s %(SCHEMA)s < %(PATH)s' % DATABASES[name])
+      subprocess.check_output('mysql -u%(USER)s -p%(PASSWORD)s -e "CREATE DATABASE %(SCHEMA)s"' % DATABASES[name], stderr=subprocess.STDOUT, shell=True) # No way to run this command with django
+      subprocess.check_output('mysql -u%(USER)s -p%(PASSWORD)s %(SCHEMA)s < %(PATH)s' % DATABASES[name], stderr=subprocess.STDOUT, shell=True)
       call_command('migrate', '--fake-initial', '--database=%(SCHEMA)s' % DATABASES[name])
+    except subprocess.CalledProcessError as e:
+      LOG.warn('stderr: {}'.format(e.output))
     finally:
       del DATABASES[name]
