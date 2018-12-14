@@ -778,13 +778,13 @@
   [[metrics]]
 
    # Enable the metrics URL "/desktop/metrics"
-   ## enable_web_metrics=True
+   enable_web_metrics=True
 
    # If specified, Hue will write metrics to this file.
-   ## location=/var/log/hue/metrics.json
+   location=/tmp/hue_metrics_report.json
 
    # Time in milliseconds on how frequently to collect metrics
-   ## collection_interval=30000
+   collection_interval=60000
 
 
 ###########################################################################
