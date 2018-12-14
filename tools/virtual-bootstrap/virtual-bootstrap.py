@@ -2046,12 +2046,17 @@ deactivate () {
     ########################################################################
     ########################## Added by MapR team ##########################
     ########################################################################
-    LD_LIBRARY_PATH="$_OLD_LD_LIBRARY_PATH"
-    PYTHONPATH="$_OLD_PYTHONPATH"
-    export LD_LIBRARY_PATH
-    export PYTHONPATH
-    unset _OLD_LD_LIBRARY_PATH
-    unset _OLD_PYTHONPATH
+    if [ -n "$_OLD_LD_LIBRARY_PATH" ] ; then
+        LD_LIBRARY_PATH="$_OLD_LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH
+        unset _OLD_LD_LIBRARY_PATH
+    fi
+
+    if [ -n "$_OLD_PYTHONPATH" ] ; then
+        PYTHONPATH="$_OLD_PYTHONPATH"
+        export PYTHONPATH
+        unset _OLD_PYTHONPATH
+    fi
     ########################################################################
     ########################## Added by MapR team ##########################
     ########################################################################
