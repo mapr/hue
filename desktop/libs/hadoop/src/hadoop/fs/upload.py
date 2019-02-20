@@ -85,10 +85,9 @@ class HDFStemporaryUploadedFile(object):
     self._do_cleanup = True
 
   def __del__(self):
-    if self._do_cleanup:
-      # Do not do cleanup here. It's hopeless. The self._fs threadlocal states
-      # are going to be all wrong.
-      LOG.error("Left-over upload file is not cleaned up: %s" % (self._path,))
+    if self._do_cleanup and self._fs.exists(self._path):
+      LOG.error("Left-over upload file is not cleaned up: {}. Removing.".format(self._path))
+      self.remove()
 
   def get_temp_path(self):
     return self._path
