@@ -34,7 +34,7 @@ initCfgEnv
 # Get MAPR_USER and MAPR_GROUP
 DAEMON_CONF="${MAPR_HOME}/conf/daemon.conf"
 
-MAPR_USER=${MAPR_USER:-$( [ -f "$DAEMON_CONF" ] && awk -F = '$1 == "mapr.daemon.group" { print $2 }' "$DAEMON_CONF" )}
+MAPR_USER=${MAPR_USER:-$( [ -f "$DAEMON_CONF" ] && awk -F = '$1 == "mapr.daemon.user" { print $2 }' "$DAEMON_CONF" )}
 MAPR_USER=${MAPR_USER:-"mapr"}
 export MAPR_USER
 
