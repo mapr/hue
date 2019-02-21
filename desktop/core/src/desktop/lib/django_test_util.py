@@ -77,6 +77,10 @@ def make_logged_in_client(username="test", password="test", is_superuser=True, r
   assert ret, "Login failed (user '%s')." % username
   return c
 
+def make_anon_client():
+  c = Client()
+  return c
+
 _MULTI_WHITESPACE = re.compile("\s+", flags=re.MULTILINE)
 
 def compact_whitespace(s):

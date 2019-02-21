@@ -42,6 +42,7 @@ from hadoop.fs.exceptions import WebHdfsException
 LOG = logging.getLogger(__name__)
 
 
+TMP_FILE_SUFFIX = 'tmp'
 UPLOAD_SUBDIR = 'hue-uploads'
 
 
@@ -69,7 +70,7 @@ class HDFStemporaryUploadedFile(object):
 
     # We want to set the user to be the user doing the upload
     self._fs.setuser(request.user.username)
-    self._path = self._fs.mkswap(name, suffix='tmp', basedir=destination)
+    self._path = self._fs.mkswap(name, suffix=TMP_FILE_SUFFIX, basedir=destination)
 
     # Check access permissions before attempting upload
     try:
@@ -85,10 +86,9 @@ class HDFStemporaryUploadedFile(object):
     self._do_cleanup = True
 
   def __del__(self):
-    if self._do_cleanup:
-      # Do not do cleanup here. It's hopeless. The self._fs threadlocal states
-      # are going to be all wrong.
-      LOG.error("Left-over upload file is not cleaned up: %s" % (self._path,))
+    if self._do_cleanup and self._fs.exists(self._path):
+      LOG.error("Left-over upload file is not cleaned up: {}. Removing.".format(self._path))
+      self.remove()
 
   def get_temp_path(self):
     return self._path

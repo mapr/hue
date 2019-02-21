@@ -250,6 +250,12 @@ class WebHdfs(Hdfs):
     return path.startswith(self._scheme) if self._scheme else path == '/'
 
   def strip_normpath(self, path):
+    # Handle case with path like "maprfs://tmp/...", when urlparse returns "tmp" as netloc.
+    if path.startswith('maprfs:'):
+      path = path.lstrip('maprfs:')
+      path = path.lstrip('/')
+      path = "maprfs:///{}".format(path)
+
     split = urlparse(path)
     path = split._replace(scheme="", netloc="").geturl()
     return Hdfs.normpath(path)

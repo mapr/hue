@@ -51,7 +51,12 @@ def is_live_cluster():
 
 def get_fs_prefix(fs):
   prefix = '/tmp/hue_tests_%s' % str(time.time())
-  fs.mkdir(prefix, 0777)
+
+  # Workaround for MAPR-25525
+  # fs.mkdir(prefix, 0777)
+  fs.mkdir(prefix)
+  fs.chmod(prefix, 0777)
+
   return prefix
 
 def get_db_prefix(name='hive'):

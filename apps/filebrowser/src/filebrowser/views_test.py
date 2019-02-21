@@ -33,7 +33,7 @@ from nose.plugins.attrib import attr
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_true, assert_false, assert_equal, assert_not_equal, assert_raises
 
-from desktop.lib.django_test_util import make_logged_in_client
+from desktop.lib.django_test_util import make_anon_client, make_logged_in_client
 from desktop.lib.test_utils import grant_access, add_to_group, add_permission, remove_from_group
 from hadoop import pseudo_hdfs4
 from hadoop.conf import UPLOAD_CHUNK_SIZE
@@ -67,6 +67,8 @@ class TestFileBrowserWithHadoop(object):
   requires_hadoop = True
 
   def setUp(self):
+    self.c_anon = make_anon_client()
+
     self.c = make_logged_in_client(username='test', is_superuser=False)
     grant_access('test', 'test', 'filebrowser')
     add_to_group('test')
@@ -920,6 +922,46 @@ alert("XSS")
         # Seems like a Django bug.
         # StopFutureHandlers() does not seem to work in test mode as it continues to MemoryFileUploadHandler after perm issue and so fails.
         pass
+
+  def test_upload_file_anon_cleanup(self):
+    import hadoop.fs.upload as hadoop_fs_upload
+
+    prefix = self.prefix + '/test_upload_file_anon_cleanup'
+    self.cluster.fs.mkdir(prefix)
+
+    test_files = []
+    try:
+      for root in ['/', 'maprfs:', 'maprfs:/', 'maprfs://', 'maprfs:///']:
+        file_obj = tempfile.NamedTemporaryFile()
+        file_obj.write('Lorem ipsum dolor sit amet')
+        file_obj.flush()
+
+        local_path = file_obj.name
+        filename = os.path.basename(local_path)
+        hdfs_dir = root + prefix.lstrip('/')
+        hdfs_path = hdfs_dir + '/' + filename
+        hdfs_path_tmp = hdfs_path + '.' + hadoop_fs_upload.TMP_FILE_SUFFIX
+
+        test_files.append({'file_obj': file_obj, 'local_path': local_path, 'filename': filename,
+                           'hdfs_dir': hdfs_dir, 'hdfs_path': hdfs_path, 'hdfs_path_tmp': hdfs_path_tmp})
+
+      for test_file in test_files:
+        self.c_anon.post('/filebrowser/upload/file?dest=' + test_file['hdfs_dir'],
+                         dict(dest=test_file['hdfs_dir'], hdfs_file=file(test_file['local_path'])))
+        assert_raises(IOError, self.cluster.fs.stats, test_file['hdfs_path'])
+
+      # Temporary files should be deleted during garbage collection cycle.
+      # For details see hadoop.fs.upload.HDFStemporaryUploadedFile#__del__.
+      import gc
+      gc.collect()
+
+      for test_file in test_files:
+        assert_raises(IOError, self.cluster.fs.stats, test_file['hdfs_path'])
+        assert_raises(IOError, self.cluster.fs.stats, test_file['hdfs_path_tmp'])
+
+    finally:
+      for test_file in test_files:
+        test_file['file_obj'].close()
 
   def test_extract_zip(self):
     ENABLE_EXTRACT_UPLOADED_ARCHIVE.set_for_testing(True)
