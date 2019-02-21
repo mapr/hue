@@ -42,6 +42,7 @@ from hadoop.fs.exceptions import WebHdfsException
 LOG = logging.getLogger(__name__)
 
 
+TMP_FILE_SUFFIX = 'tmp'
 UPLOAD_SUBDIR = 'hue-uploads'
 
 
@@ -69,7 +70,7 @@ class HDFStemporaryUploadedFile(object):
 
     # We want to set the user to be the user doing the upload
     self._fs.setuser(request.user.username)
-    self._path = self._fs.mkswap(name, suffix='tmp', basedir=destination)
+    self._path = self._fs.mkswap(name, suffix=TMP_FILE_SUFFIX, basedir=destination)
 
     # Check access permissions before attempting upload
     try:
