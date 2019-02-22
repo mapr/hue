@@ -233,7 +233,7 @@ SSL_CIPHER_LIST = Config(
     'AES256-SHA',
     'AES',
     'CAMELLIA',
-    # 'DES-CBC3-SHA',
+    '!DES-CBC3-SHA',
     '!aNULL',
     '!eNULL',
     '!EXPORT',
@@ -245,10 +245,6 @@ SSL_CIPHER_LIST = Config(
     '!EDH-DSS-DES-CBC3-SHA',
     '!EDH-RSA-DES-CBC3-SHA',
     '!KRB5-DES-CBC3-SHA',
-
-    '!SSLv2',
-    '!SSLv3',
-    '!TLSv1',
   ]))
 
 SSL_PASSWORD = Config(
