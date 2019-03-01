@@ -27,7 +27,7 @@ from desktop.lib import thrift_util
 from desktop.lib.exceptions_renderable import PopupException
 
 from hbase import conf
-from hbase.hbase_site import get_server_principal, get_server_authentication, is_using_thrift_ssl, is_using_thrift_http
+from hbase.hbase_site import get_server_principal, is_using_thrift_ssl, is_using_thrift_http
 from hbase.server.hbase_lib import get_thrift_type, get_client_type
 
 
@@ -98,6 +98,7 @@ class HbaseApi(object):
         service_name="Hue HBase Thrift Client for %s" % name,
         kerberos_principal=_security['kerberos_principal_short_name'],
         use_sasl=_security['use_sasl'],
+        mechanism=_security['mechanism'],
         timeout_seconds=30,
         transport=conf.THRIFT_TRANSPORT.get(),
         transport_mode='http' if is_using_thrift_http() else 'socket',
@@ -114,14 +115,16 @@ class HbaseApi(object):
       kerberos_principal_short_name = principal.split('/', 1)[0]
     else:
       kerberos_principal_short_name = None
-    use_sasl = get_server_authentication() == 'KERBEROS'
+    mechanism = conf.MECHANISM.get().upper()
+    use_sasl = mechanism in ('GSSAPI', 'MAPR-SECURITY', )
 
-    if use_sasl and kerberos_principal_short_name is None:
+    if mechanism == 'GSSAPI' and kerberos_principal_short_name is None:
       raise PopupException(_("The kerberos principal name is missing from the hbase-site.xml configuration file."))
 
     return {
         'kerberos_principal_short_name': kerberos_principal_short_name,
         'use_sasl': use_sasl,
+        'mechanism': mechanism,
     }
 
   def get(self, cluster, tableName, row, column, attributes):
