@@ -58,6 +58,11 @@ SECURITY_ENABLED = Config(
   default=False,
   type=coerce_bool)
 
+MECHANISM = Config(
+  key="mechanism",
+  help=_t("Security mechanism of authentication none/GSSAPI/MAPR-SECURITY."),
+  default="none")
+
 # Spark SQL
 SQL_SERVER_HOST = Config(
   key="sql_server_host",

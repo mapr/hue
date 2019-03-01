@@ -1226,7 +1226,10 @@
   ## livy_server_session_kind=yarn
 
   # Whether Livy requires client to perform Kerberos authentication.
-  ## security_enabled=false
+  security_enabled=${security_enabled}
+
+  # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.
+  mechanism=${mechanism}
 
   # Host of the Sql Server
   ## sql_server_host=localhost
