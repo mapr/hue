@@ -57,7 +57,7 @@ LOCAL_SAMPLE_DATA_DIR = Config(
 
 REMOTE_SAMPLE_DIR = Config(
   key="remote_data_dir",
-  default="/user/hue/oozie/workspaces",
+  default="/oozie/workspaces",
   help=_t("Location on HDFS where the Oozie workflows are stored. Parameters are $TIME and $USER, e.g. /user/$USER/hue/workspaces/workflow-$TIME")
 )
 

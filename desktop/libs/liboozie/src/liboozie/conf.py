@@ -38,9 +38,15 @@ SECURITY_ENABLED = Config(
   default=False,
   type=coerce_bool)
 
+REMOTE_DEPLOYMENT_ROOT = Config(
+  key="remote_deployement_root",
+  default="/oozie/deployments",
+  help=_t("Location on HDFS where will be created directory to deploy workflows/coordinators when submitted by a non-owner."
+          " This directory will be created with 1777 permissions, and should be a root of \"remote_deployement_dir\"."))
+
 REMOTE_DEPLOYMENT_DIR = Config(
   key="remote_deployement_dir",
-  default="/user/hue/oozie/deployments/_$USER_-oozie-$JOBID-$TIME",
+  default="/oozie/deployments/_$USER_-oozie-$JOBID-$TIME",
   help=_t("Location on HDFS where the workflows/coordinators are deployed when submitted by a non-owner."
           " Parameters are $TIME, $USER and $JOBID, e.g. /user/$USER/hue/deployments/$JOBID-$TIME"))
 

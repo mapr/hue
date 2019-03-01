@@ -31,7 +31,7 @@ from hadoop import cluster
 from hadoop.fs.hadoopfs import Hdfs
 
 from liboozie.oozie_api import get_oozie
-from liboozie.conf import REMOTE_DEPLOYMENT_DIR
+from liboozie.conf import REMOTE_DEPLOYMENT_DIR, REMOTE_DEPLOYMENT_ROOT
 from liboozie.credentials import Credentials
 
 LOG = logging.getLogger(__name__)
@@ -231,7 +231,7 @@ class Submission(object):
 
     # Case of a shared job
     if self.user != self.job.owner:
-      path = Hdfs.join(REMOTE_DEPLOYMENT_DIR.get(), '_%s_-oozie-%s-%s' % (self.user.username, self.job.id, time.time()))
+      path = REMOTE_DEPLOYMENT_DIR.get().replace('$USER', self.user.username).replace('$TIME', str(time.time())).replace('$JOBID', str(self.job.id))
       # Shared coords or bundles might not have any existing workspaces
       if self.fs.exists(self.job.deployment_dir):
         self.fs.copy_remote_dir(self.job.deployment_dir, path, owner=self.user, dir_mode=0711)
@@ -325,7 +325,7 @@ class Submission(object):
 
 def create_directories(fs, directory_list=[]):
   # If needed, create the remote home, deployment and data directories
-  directories = [REMOTE_DEPLOYMENT_DIR.get()] + directory_list
+  directories = [REMOTE_DEPLOYMENT_ROOT.get()] + directory_list
 
   for directory in directories:
     if not fs.do_as_user(fs.DEFAULT_USER, fs.exists, directory):
