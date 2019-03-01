@@ -28,13 +28,13 @@ from pig.settings import NICE_NAME
 
 LOCAL_SAMPLE_DIR = Config(
   key="local_sample_dir",
-  default=os.path.join(os.path.dirname(__file__), "..", "..", "examples"),
+  default=os.path.join(os.environ.get("MAPR_HOME", "/opt/mapr"), "pig/pig-0.16/contrib/piggybank/java"),
   help=_t("Path to directory with piggybank.jar on local filesystem."),
   private=True)
 
 REMOTE_SAMPLE_DIR = Config(
   key="remote_data_dir",
-  default="/user/hue/pig/examples",
+  default="/oozie/pig/examples",
   help=_t("Location on HDFS where the Pig examples are stored."))
 
 
