@@ -565,7 +565,7 @@ class HiveServerClient:
         mechanism = HiveServerClient.HS2_MECHANISMS['NONE']
       else:
         cluster_conf = cluster.get_cluster_conf_for_job_submission()
-        use_sasl = cluster_conf is not None and cluster_conf.SECURITY_ENABLED.get()
+        use_sasl = cluster_conf is not None and cluster_conf.MECHANISM.get() == 'GSSAPI'
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
