@@ -60,8 +60,8 @@ from desktop.auth.backend import is_admin
 LOG = logging.getLogger(__name__)
 
 SAMPLE_USER_ID = 1100713
-SAMPLE_USER_INSTALL = 'hue'
-SAMPLE_USER_OWNERS = ['hue', 'sample']
+SAMPLE_USER_INSTALL = 'sample'
+SAMPLE_USER_OWNERS = ['sample']
 
 UTC_TIME_FORMAT = "%Y-%m-%dT%H:%MZ"
 HUE_VERSION = None
