@@ -866,7 +866,7 @@ DEFAULT_USER = Config(
 
 DEFAULT_HDFS_SUPERUSER = Config(
   key="default_hdfs_superuser",
-  help=_("This should be the hdfs super user"),
+  help=_("This should be the hadoop cluster admin, defaults to owner of maprfs:///var"),
   type=str,
   default="mapr")
 

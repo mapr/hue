@@ -30,10 +30,10 @@ from hadoop import cluster
 
 FS_CACHE = {}
 
-DEFAULT_SCHEMA = 'hdfs'
+DEFAULT_SCHEMA = 'maprfs'
 
 FS_GETTERS = {
-  'hdfs': cluster.get_hdfs,
+  'maprfs': cluster.get_hdfs,
 }
 if is_s3_enabled():
   FS_GETTERS['s3a'] = aws.get_s3fs
