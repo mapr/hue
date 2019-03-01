@@ -49,7 +49,7 @@ IMPALA_PRINCIPAL=Config(
   key='impala_principal',
   help=_t("Kerberos principal name for Impala. Typically 'impala/hostname.foo.com'."),
   type=str,
-  default="impala/%s" % socket.getfqdn())
+  default="mapr/%s" % socket.getfqdn())
 
 IMPERSONATION_ENABLED=Config(
   key='impersonation_enabled',
@@ -84,7 +84,7 @@ QUERY_TIMEOUT_S = Config(
   help=_t("If QUERY_TIMEOUT_S > 0, the query will be timed out (i.e. cancelled) if Impala does not do any work"
           " (compute or send back results) for that query within QUERY_TIMEOUT_S seconds."),
   type=int,
-  default=300
+  default=0
 )
 
 SESSION_TIMEOUT_S = Config(
