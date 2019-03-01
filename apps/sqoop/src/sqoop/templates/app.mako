@@ -96,9 +96,12 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
                 <span class="label label-warning" data-bind="visible: isRunning">
                   <span data-bind="text: submission().status"></span>
                 </span>
-                <span class="label label-error" style="display: inline-block" data-bind="visible: hasFailed">
+                <!-- ko if: $data.submission().status() == 'FAILED_TO_GET_STATUS' -->
+                  <span data-bind="text: submission().status().replace(/_/g, ' ')"></span>
+                <!-- /ko -->
+                <!-- ko if: $data.submission().status() != 'FAILED_TO_GET_STATUS' -->
                   <span data-bind="text: ('${_ko('Last run: ')}' + submission().createdFormatted())"></span>
-                </span>
+                <!-- /ko -->
               </div>
               <div class="main" data-bind="template: {name: 'job-list-item'}"></div>
               <div class="sqoop-progress" data-bind="style:{ width: submission().progressFormatted() }, visible: submission().progress() > 0"></div>
@@ -164,7 +167,7 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
                   ${_('Logs')}
                 </a>
               </li>
-              <li class="nav-header" data-bind="visible: $root.job().persisted && $.inArray(submission().status(), ['BOOTING', 'RUNNING', 'UNKNOWN', 'SUCCEEDED', 'FAILURE_ON_SUBMIT', 'FAILED']) > -1">${_('Last status')}</li>
+              <li class="nav-header" data-bind="visible: $root.job().persisted && $.inArray(submission().status(), ['BOOTING', 'RUNNING', 'UNKNOWN', 'SUCCEEDED', 'FAILURE_ON_SUBMIT', 'FAILED', 'FAILED_TO_GET_STATUS']) > -1">${_('Last status')}</li>
               <li data-bind="visible: $root.job().persisted">
                 <span class="label label-success" data-bind="visible: submission().status() == 'SUCCEEDED'">
                   <span data-bind="text:  submission().createdFormatted()"></span>
@@ -174,6 +177,9 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
                 </span>
                 <span class="label label-error" style="display: inline-block" data-bind="visible: $.inArray(submission().status(), ['FAILURE_ON_SUBMIT', 'FAILED']) > -1">
                   <span data-bind="text: submission().createdFormatted()"></span>
+                </span>
+                <span class="label label-error" style="display: inline-block" data-bind="visible: $.inArray(submission().status(), ['FAILED_TO_GET_STATUS']) > -1">
+                  <span data-bind="text: submission().status().replace(/_/g, ' ')"></span>
                 </span>
               </li>
               <li data-bind="visible: $root.job().isRunning()">
@@ -517,6 +523,30 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 </div>
 </script>
 
+<script type="text/html" id="driver-list">
+<div data-bind="css: {
+                  warning: name() in $root.warnings(),
+                  error: name() in $root.errors()
+                }" class="control-group">
+  <label class="control-label" data-bind="text: $root.label('driver', name())"></label>
+  <div class="controls">
+    <table data-bind="visible: value() && value().length > 0" style="margin-bottom: 4px">
+      <tbody data-bind="foreach: value()">
+        <tr>
+          <td>
+            <input data-bind="value: $rawData" type="text" class="span12 required" />
+          </td>
+          <td>
+            <a data-bind="click: $parent.removeFromList.bind($parent, [$index()])" class="btn" href="javascript:void(0);">${ _('Delete') }</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <a data-bind="click: $data.addToList.bind($data, [])" href="javascript:void(0);" class="btn">${_('Add')}</a>
+  </div>
+</div>
+</script>
+
 <script type="text/html" id="driver-enum">
 <div data-bind="css:{'control-group': id() != null, warning: name() in $root.warnings(), error: name() in $root.errors()}">
   <label class="control-label" data-bind="text: $root.label('driver', name())"></label>
@@ -611,6 +641,30 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 </div>
 </script>
 
+<script type="text/html" id="connector-list">
+<div data-bind="css: {
+                  warning: name() in $root.warnings(),
+                  error: name() in $root.errors()
+                }" class="control-group">
+  <label class="control-label" data-bind="text: $root.label('connector', name())"></label>
+  <div class="controls">
+    <table data-bind="visible: value() && value().length > 0" style="margin-bottom: 4px">
+      <tbody data-bind="foreach: value()">
+        <tr>
+          <td>
+            <input data-bind="value: $rawData" type="text" class="span12 required" />
+          </td>
+          <td>
+            <a data-bind="click: $parent.removeFromList.bind($parent, [$index()])" class="btn" href="javascript:void(0);">${ _('Delete') }</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <a data-bind="click: $data.addToList.bind($data, [])" href="javascript:void(0);" class="btn">${_('Add')}</a>
+  </div>
+</div>
+</script>
+
 <script type="text/html" id="connector-enum">
 <div data-bind="css: {
                   warning: name() in $root.warnings(),
@@ -651,6 +705,19 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 </div>
 </script>
 
+<script type="text/html" id="connector-long">
+<div data-bind="css: {
+                  warning: name() in $root.warnings(),
+                  error: name() in $root.errors()
+                }" class="control-group">
+  <label class="control-label" data-bind="text: $root.label('connector', name())" rel="tooltip"></label>
+  <div class="controls">
+    <input class="input-xlarge" data-bind="value: value, attr: { 'type': (sensitive() ? 'password' : 'text'), 'name': name, 'title': $root.help('connector', name())}" rel="tooltip">
+    <span data-bind="template: {'name': 'job-editor-form-field-error'}" class="help-inline"></span>
+  </div>
+</div>
+</script>
+
 <script type="text/html" id="connector-boolean">
 <div data-bind="css: {
                   warning: name() in $root.warnings(),
@@ -669,12 +736,48 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 </div>
 </script>
 
+<script type="text/html" id="connector-datetime">
+<div data-bind="css: {
+                  warning: name() in $root.warnings(),
+                  error: name() in $root.errors()
+                }" class="control-group">
+  <label class="control-label" data-bind="text: $root.label('connector', name())" rel="tooltip"></label>
+    <div class="controls">
+      <div class="input-prepend input-group">
+        <span class="add-on input-group-addon">
+          <i class="fa fa-calendar"></i>
+        </span>
+        <input type="text" class="input-small" data-bind="
+          value: value.date,
+          attr: { 'type': (sensitive() ? 'password' : 'text'), 'name': name },
+          event: {
+            mouseover: function(data, e) { $(e.target).parents('.controls').find('input').last().tooltip('show'); },
+            mouseout: function(data, e) { $(e.target).parents('.controls').find('input').last().tooltip('hide'); }
+          },
+          datepicker: {}
+        ">
+      </div>
+      <div class="input-prepend input-group">
+        <span class="add-on input-group-addon">
+          <i class="fa fa-clock-o"></i>
+        </span>
+        <input type="text" class="input-small" data-bind="value: value.time, attr: { 'type': (sensitive() ? 'password' : 'text'), 'name': name, 'title': $root.help('connector', name()) }, timepicker: {}" rel="tooltip">
+      </div>
+      <span class="help-inline"></span>
+    </div>
+  </div>
+</div>
+</script>
+
 <script src="${ static('desktop/ext/js/datatables-paging-0.1.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('desktop/js/hue.routie.js') }" type="text/javascript" charset="utf-8"></script>
 <script>
   routie.setPathname('/sqoop');
 </script>
 <script src="${ static('desktop/ext/js/bootstrap-editable.min.js') }"></script>
+<script src="${ static('desktop/ext/js/bootstrap-datepicker.min.js') }" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('desktop/ext/js/bootstrap-timepicker.min.js') }" type="text/javascript" charset="utf-8"></script>
+<script src="${ static('desktop/js/ko.hue-bindings.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('desktop/js/ko.editable.js') }"></script>
 <script src="${ static('sqoop/js/cclass.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('sqoop/js/koify.js') }" type="text/javascript" charset="utf-8"></script>
@@ -689,6 +792,8 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 <script src="${ static('sqoop/js/sqoop.submissions.js') }" type="text/javascript" charset="utf-8"></script>
 <script src="${ static('sqoop/js/sqoop.js') }" type="text/javascript" charset="utf-8"></script>
 
+<link rel="stylesheet" href="${ static('desktop/ext/css/bootstrap-datepicker.min.css') }" type="text/css" media="screen" title="no title" charset="utf-8" />
+<link rel="stylesheet" href="${ static('desktop/ext/css/bootstrap-timepicker.min.css') }" type="text/css" media="screen" title="no title" charset="utf-8" />
 <link href="${ static('desktop/ext/css/bootstrap-editable.css') }" rel="stylesheet">
 <link href="${ static('sqoop/css/sqoop.css') }" rel="stylesheet">
 
@@ -712,14 +817,14 @@ viewModel.job.subscribe(function(job) {
       viewModel.jobWizard.addPage(new wizard.Page({
         'identifier': 'job-editor-from',
         'caption': '${_("Step 1: From")}',
-        'description': '${_("Database")}',
+        // 'description': '${_("Database")}',
         'node': job,
         'template': 'job-editor-from'
       }));
       viewModel.jobWizard.addPage(new wizard.Page({
         'identifier': 'job-editor-to',
         'caption': '${_("Step 2: To")}',
-        'description': '${_("HDFS")}',
+        // 'description': '${_("HDFS")}',
         'node': job,
         'template': 'job-editor-to'
       }));
@@ -734,14 +839,14 @@ viewModel.job.subscribe(function(job) {
       viewModel.jobWizard.addPage(new wizard.Page({
         'identifier': 'job-editor-from',
         'caption': '${_("Step 2: From")}',
-        'description': '${_("Database")}',
+        // 'description': '${_("Database")}',
         'node': job,
         'template': 'job-editor-from'
       }));
       viewModel.jobWizard.addPage(new wizard.Page({
         'identifier': 'job-editor-to',
         'caption': '${_("Step 3: To")}',
-        'description': '${_("HDFS")}',
+        // 'description': '${_("HDFS")}',
         'node': job,
         'template': 'job-editor-to'
       }));
@@ -1190,7 +1295,7 @@ $(document).ready(function () {
 
         // Reload node.
         $(document).one('loaded.job', function() {
-          routie('job/run/' + node.id());
+          routie('job/run/' + node.name());
         });
         $(document).one('load_fail.job', function() {
           routie('jobs');

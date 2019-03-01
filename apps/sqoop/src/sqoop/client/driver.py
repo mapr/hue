@@ -37,6 +37,12 @@ class Driver(object):
 
     return Driver(**force_dict_to_strings(driver_dict))
 
+  @staticmethod
+  def from_dict_new(driver_dict):
+    driver_dict['job-config'] = driver_dict['job-config']['configs']
+
+    return Driver.from_dict(driver_dict)
+
   def to_dict(self):
     d = {
       'id': self.id,
@@ -44,5 +50,11 @@ class Driver(object):
       'job-config': [ job_config.to_dict() for job_config in self.job_config ],
       'all-config-resources': self.config_resources
     }
+
+    return d
+
+  def to_dict_new(self):
+    d = self.to_dict()
+    d['job-config'] = {'configs': d['job-config'], 'validatros': []}
 
     return d

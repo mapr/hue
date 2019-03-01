@@ -35,10 +35,10 @@ LOG = logging.getLogger(__name__)
 
 def get_connector_or_exception(exception_class=PopupException):
   def inner(view_func):
-    def decorate(request, connector_id, *args, **kwargs):
+    def decorate(request, connector_name, *args, **kwargs):
       try:
         c = client.SqoopClient(conf.SERVER_URL.get(), request.user.username, conf.SECURITY_ENABLED.get(), conf.MECHANISM.get(), request.LANGUAGE_CODE, ssl_cert_ca_verify=conf.SSL_CERT_CA_VERIFY.get())
-        connector = c.get_connector(int(connector_id))
+        connector = c.get_connector(connector_name)
       except RestException, e:
         handle_rest_exception(e, _('Could not get connector.'))
       return view_func(request, connector=connector, *args, **kwargs)
@@ -48,10 +48,10 @@ def get_connector_or_exception(exception_class=PopupException):
 
 def get_link_or_exception(exception_class=PopupException):
   def inner(view_func):
-    def decorate(request, link_id, *args, **kwargs):
+    def decorate(request, link_name, *args, **kwargs):
       try:
         c = client.SqoopClient(conf.SERVER_URL.get(), request.user.username, conf.SECURITY_ENABLED.get(), conf.MECHANISM.get(), request.LANGUAGE_CODE, ssl_cert_ca_verify=conf.SSL_CERT_CA_VERIFY.get())
-        link = c.get_link(int(link_id))
+        link = c.get_link(link_name)
       except RestException, e:
         handle_rest_exception(e, _('Could not get link.'))
       return view_func(request, link=link, *args, **kwargs)
@@ -61,17 +61,17 @@ def get_link_or_exception(exception_class=PopupException):
 
 def get_job_or_exception(exception_class=PopupException):
   def inner(view_func):
-    def decorate(request, job_id, *args, **kwargs):
+    def decorate(request, job_name, *args, **kwargs):
       try:
         c = client.SqoopClient(conf.SERVER_URL.get(), request.user.username, conf.SECURITY_ENABLED.get(), conf.MECHANISM.get(), request.LANGUAGE_CODE, ssl_cert_ca_verify=conf.SSL_CERT_CA_VERIFY.get())
-        job = c.get_job(int(job_id))
+        job = c.get_job(job_name)
       except RestException, e:
         handle_rest_exception(e, _('Could not get job.'))
       return view_func(request, job=job, *args, **kwargs)
     return wraps(view_func)(decorate)
   return inner
 
-
+# This decorator is never used, and shoult be rewrited
 def get_submission_or_exception(exception_class=PopupException):
   def inner(view_func):
     def decorate(request, submission_id, *args, **kwargs):

@@ -62,6 +62,10 @@ function to_inputs(key, value) {
 
 
 var configs = (function($) {
+  var DATE_FORMAT = "YYYY-MM-DD";
+  var TIME_FORMAT = "hh:mm";
+  var DATETIME_EXPORT_FORMAT = "YYYY-MM-DD hh:mm:ss";
+
   var map_config_properties = {
     'create': function(options) {
       return new SqoopConfig({modelDict: options.data});
@@ -76,6 +80,12 @@ var configs = (function($) {
       switch(options.data.type.toLowerCase()) {
         case 'map':
         return new SqoopMapInput({modelDict: options.data});
+
+        case 'list':
+        return new SqoopListInput({modelDict: options.data});
+
+        case 'datetime':
+        return new SqoopDateTimeInput({modelDict: options.data});
 
         default:
         return new SqoopInput({modelDict: options.data});
@@ -156,6 +166,34 @@ var configs = (function($) {
     }
   });
 
+  var ListInputModel = InputModel.extend({
+    'value': [],
+    'initialize': function (attrs) {
+      if (!attrs.value) {
+          attrs.value = [];
+      } else if(!$.isArray(attrs.value)) {
+        attrs.value = attrs.value.split(',');
+      }
+      return attrs;
+    }
+  });
+
+  var DateTimeInputModel = InputModel.extend({
+    'value': null
+    , 'initialize': function(attrs) {
+      if(attrs.value) {
+        if(!attrs.value.date) {
+          var date = new Date().setTime(attrs.value);
+          attrs.value = { date: moment(date).format(DATE_FORMAT), time: moment(date).format(TIME_FORMAT) };
+        }
+      } else {
+        var date = new Date();
+        attrs.value = { date: moment(date).format(DATE_FORMAT), time: moment(date).format(TIME_FORMAT) };
+      }
+      return attrs;
+    }
+  });
+
   var SqoopConfig = koify.MinimalNode.extend({
     'model_class': ConfigModel,
     'map': function() {
@@ -226,6 +264,40 @@ var configs = (function($) {
     }
   });
 
+  var SqoopListInput = SqoopInput.extend({
+    'model_class': ListInputModel,
+    'initialize': function() {
+      var self = this;
+      self.parent.initialize.apply(self, arguments);
+
+      self.addToList = function() {
+        var value = ko.observable("");
+        value.subscribe(function() {
+          self.value.valueHasMutated();
+        });
+        self.value().push(value);
+        self.value.valueHasMutated();
+      };
+
+      self.removeFromList = function(index) {
+        self.value().splice(index, 1);
+        self.value.valueHasMutated();
+      };
+    },
+    fixModel: function(model) {
+      model.value = model.value.join(',');
+      return model;
+    }
+  });
+
+  var SqoopDateTimeInput = SqoopInput.extend({
+    'model_class': DateTimeInputModel,
+    fixModel: function (model) {
+      model.value = moment(model.value.date + ' ' + model.value.time, DATE_FORMAT + ' ' + TIME_FORMAT).valueOf().toString();
+      return model;
+    }
+  });
+
   return {
     'ConfigModel': ConfigModel,
     'InputModel': InputModel,
@@ -233,6 +305,8 @@ var configs = (function($) {
     'Config': SqoopConfig,
     'Input': SqoopInput,
     'MapInput': SqoopMapInput,
-    'MapProperties': map_properties
+    'ListInput': SqoopListInput,
+    'MapProperties': map_properties,
+    'DateTimeInput': SqoopDateTimeInput
   };
 })(jQuery);

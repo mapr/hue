@@ -73,44 +73,50 @@ class SqoopClient(object):
       'sqoop-user-name': self._username
     }
 
+  @property
+  def params(self):
+    return {
+      'user.name': self._username
+    }
+
   def get_version(self):
-    return self._root.get('version', headers=self.headers)
+    return self._root.get('version', params=self.params, headers=self.headers)
 
   def get_driver(self):
-    resp_dict = self._root.get('%s/driver' % API_VERSION, headers=self.headers)
-    driver = Driver.from_dict(resp_dict)
+    resp_dict = self._root.get('%s/driver' % API_VERSION, params=self.params, headers=self.headers)
+    driver = Driver.from_dict_new(resp_dict)
     return driver
 
   def get_connectors(self):
-    resp_dict = self._root.get('%s/connectors' % API_VERSION, headers=self.headers)
-    connectors = [ Connector.from_dict(connector_dict) for connector_dict in resp_dict['connectors'] ]
+    resp_dict = self._root.get('%s/connector/all' % API_VERSION, params=self.params, headers=self.headers)
+    connectors = [ Connector.from_dict_new(connector_dict) for connector_dict in resp_dict['connectors'] ]
     return connectors
 
-  def get_connector(self, connector_id):
-    resp_dict = self._root.get('%s/connector/%d/' % (API_VERSION, connector_id), headers=self.headers)
-    if resp_dict['connector']:
-      return Connector.from_dict(resp_dict['connector'])
+  def get_connector(self, connector_name):
+    resp_dict = self._root.get('%s/connector/%s/' % (API_VERSION, connector_name), params=self.params, headers=self.headers)
+    if resp_dict.get('connectors'):
+      return Connector.from_dict_new(resp_dict['connectors'][0])
     return None
 
   def get_links(self):
-    resp_dict = self._root.get('%s/links' % API_VERSION, headers=self.headers)
-    links = [Link.from_dict(link_dict) for link_dict in resp_dict['links']]
+    resp_dict = self._root.get('%s/link/all' % API_VERSION, params=self.params, headers=self.headers)
+    links = [Link.from_dict_new(link_dict) for link_dict in resp_dict['links']]
     return links
 
-  def get_link(self, link_id):
-    resp_dict = self._root.get('%s/link/%d/' % (API_VERSION, link_id), headers=self.headers)
-    if resp_dict['link']:
-      return Link.from_dict(resp_dict['link'])
+  def get_link(self, link_name):
+    resp_dict = self._root.get('%s/link/%s/' % (API_VERSION, link_name), params=self.params, headers=self.headers)
+    if resp_dict.get('links'):
+      return Link.from_dict_new(resp_dict['links'][0])
     return None
 
   def create_link(self, link):
     link.creation_date = int( round(time.time() * 1000) )
     link.update_date = link.creation_date
-    link_dict = link.to_dict()
+    link_dict = link.to_dict_new()
     request_dict = {
-      'link': link_dict
+      'links': [link_dict]
     }
-    resp = self._root.post('%s/link/' % API_VERSION, data=json.dumps(request_dict), headers=self.headers)
+    resp = self._root.post('%s/link/' % API_VERSION, data=json.dumps(request_dict), params=self.params, headers=self.headers)
 
     # Lame check that iterates to make sure we have an error
     # Server responds with: {'validation-result': [{},{}]} or {'validation-result': [{KEY: ERROR},{KEY: ERROR}]}
@@ -118,18 +124,18 @@ class SqoopClient(object):
       if result:
         raise SqoopException.from_dicts(resp['validation-result'])
 
-    link.id = resp['id']
+    link.name = resp['name']
     return link
 
   def update_link(self, link):
     if not link.link_config_values:
       link.link_config_values = self.get_connectors()[0].link_config
     link.updated = int( round(time.time() * 1000) )
-    link_dict = link.to_dict()
+    link_dict = link.to_dict_new()
     request_dict = {
-      'link': link_dict
+      'links': [link_dict]
     }
-    resp = self._root.put('%s/link/%d/' % (API_VERSION, link.id), data=json.dumps(request_dict), headers=self.headers)
+    resp = self._root.put('%s/link/%s/' % (API_VERSION, link.name), data=json.dumps(request_dict), params=self.params, headers=self.headers)
     
     # Lame check that iterates to make sure we have an error
     # Server responds with: {'validation-result': [{},{}]} or {'validation-result': [{KEY: ERROR},{KEY: ERROR}]}
@@ -140,18 +146,18 @@ class SqoopClient(object):
     return link
 
   def delete_link(self, link):
-    resp = self._root.delete('%s/link/%d/' % (API_VERSION, link.id), headers=self.headers)
+    resp = self._root.delete('%s/link/%s/' % (API_VERSION, link.name), params=self.params, headers=self.headers)
     return None
 
   def get_jobs(self):
-    resp_dict = self._root.get('%s/jobs' % API_VERSION, headers=self.headers)
-    jobs = [Job.from_dict(job_dict) for job_dict in resp_dict['jobs']]
+    resp_dict = self._root.get('%s/job/all' % API_VERSION, params=self.params, headers=self.headers)
+    jobs = [Job.from_dict_new(job_dict) for job_dict in resp_dict['jobs']]
     return jobs
 
-  def get_job(self, job_id):
-    resp_dict = self._root.get('%s/job/%d/' % (API_VERSION, job_id), headers=self.headers)
-    if resp_dict['job']:
-      return Job.from_dict(resp_dict['job'])
+  def get_job(self, job_name):
+    resp_dict = self._root.get('%s/job/%s/' % (API_VERSION, job_name), params=self.params, headers=self.headers)
+    if resp_dict.get('jobs'):
+      return Job.from_dict_new(resp_dict['jobs'][0])
     return None
 
   def create_job(self, job):
@@ -163,14 +169,14 @@ class SqoopClient(object):
       job.driver_config_values = self.get_driver().job_config
     job.creation_date = int( round(time.time() * 1000) )
     job.update_date = job.creation_date
-    job_dict = job.to_dict()
+    job_dict = job.to_dict_new()
     request_dict = {
-      'job': job_dict
+      'jobs': [job_dict]
     }
-    resp = self._root.post('%s/job/' % API_VERSION, data=json.dumps(request_dict), headers=self.headers)
-    if 'id' not in resp:
+    resp = self._root.post('%s/job/' % API_VERSION, data=json.dumps(request_dict), params=self.params, headers=self.headers)
+    if 'name' not in resp:
       raise SqoopException.from_dicts(resp['validation-result'])
-    job.id = resp['id']
+    job.name = resp['name']
     return job
 
   def update_job(self, job):
@@ -181,11 +187,11 @@ class SqoopClient(object):
     if not job.driver_config_values:
       job.driver_config_values = self.get_driver().job_config
     job.updated = int( round(time.time() * 1000) )
-    job_dict = job.to_dict()
+    job_dict = job.to_dict_new()
     request_dict = {
-      'job': job_dict
+      'jobs': [job_dict]
     }
-    resp = self._root.put('%s/job/%d/' % (API_VERSION, job.id), data=json.dumps(request_dict), headers=self.headers)
+    resp = self._root.put('%s/job/%s/' % (API_VERSION, job.name), data=json.dumps(request_dict), params=self.params, headers=self.headers)
 
     # Lame check that iterates to make sure we have an error
     # Server responds with: {'validation-result': [{},{}]} or {'validation-result': [{KEY: ERROR},{KEY: ERROR}]}
@@ -196,25 +202,27 @@ class SqoopClient(object):
     return job
 
   def delete_job(self, job):
-    resp_dict = self._root.delete('%s/job/%s' % (API_VERSION, job.id), headers=self.headers)
+    resp_dict = self._root.delete('%s/job/%s' % (API_VERSION, job.name), params=self.params, headers=self.headers)
     return None
 
   def get_job_status(self, job):
-    resp_dict = self._root.get('%s/job/%d/status' % (API_VERSION, job.id), headers=self.headers)
-    return Submission.from_dict(resp_dict['submission'])
+    resp_dict = self._root.get('%s/job/%s/status' % (API_VERSION, job.name), params=self.params, headers=self.headers)
+    return Submission.from_dict(resp_dict['submissions'][0])
 
   def start_job(self, job):
-    resp_dict = self._root.put('%s/job/%d/start' % (API_VERSION, job.id), headers=self.headers)
-    if resp_dict['submission']['status'] in SqoopClient.STATUS_BAD:
-      raise SqoopSubmissionException.from_dict(resp_dict['submission'])
-    return Submission.from_dict(resp_dict['submission'])
+    resp_dict = self._root.put('%s/job/%s/start' % (API_VERSION, job.name), params=self.params, headers=self.headers)
+    submission_dict = resp_dict['submissions'][0]
+    if submission_dict['status'] in SqoopClient.STATUS_BAD:
+      raise SqoopSubmissionException.from_dict(submission_dict)
+    return Submission.from_dict(submission_dict)
 
   def stop_job(self, job):
-    resp_dict = self._root.put('%s/job/%d/stop' % (API_VERSION, job.id), headers=self.headers)
-    return Submission.from_dict(resp_dict['submission'])
+    resp_dict = self._root.put('%s/job/%s/stop' % (API_VERSION, job.name), params=self.params, headers=self.headers)
+    submission_dict = resp_dict['submissions'][0]
+    return Submission.from_dict(submission_dict)
 
   def get_submissions(self):
-    resp_dict = self._root.get('%s/submissions' % API_VERSION, headers=self.headers)
+    resp_dict = self._root.get('%s/submissions' % API_VERSION, params=self.params, headers=self.headers)
     submissions = [Submission.from_dict(submission_dict) for submission_dict in resp_dict['submissions']]
     return submissions
 

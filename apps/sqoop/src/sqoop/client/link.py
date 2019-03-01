@@ -26,7 +26,7 @@ class Link(object):
 
   SKIP = ('id', 'creation_date', 'creation_user', 'update_date', 'update_user')
 
-  def __init__(self, name, connector_id, link_config_values=None, enabled=True, creation_user='hue', creation_date=0, update_user='hue', update_date=0, **kwargs):
+  def __init__(self, name, connector_id, link_config_values=None, enabled=True, creation_user='hue', creation_date=0, update_user='hue', connector_name='', update_date=0, **kwargs):
     self.id = kwargs.setdefault('id', -1)
     self.creation_user = creation_user
     self.creation_date = creation_date
@@ -35,6 +35,7 @@ class Link(object):
     self.enabled = enabled
     self.name = name
     self.connector_id = connector_id
+    self.connector_name = connector_name
     self.link_config_values = link_config_values
 
   @staticmethod
@@ -44,6 +45,9 @@ class Link(object):
 
     if not 'connector_id' in link_dict:
       link_dict['connector_id'] = link_dict.setdefault('connector-id', -1)
+
+    if not 'connector_name' in link_dict:
+      link_dict['connector_name'] = link_dict.setdefault('connector-name', '')
 
     if not 'creation_user' in link_dict:
       link_dict['creation_user'] = link_dict.setdefault('creation-user', 'hue')
@@ -59,6 +63,12 @@ class Link(object):
 
     return Link(**force_dict_to_strings(link_dict))
 
+  @staticmethod
+  def from_dict_new(link_dict):
+    link_dict['link-config-values'] = link_dict['link-config-values']['configs']
+
+    return Link.from_dict(link_dict)
+
   def to_dict(self):
     d = {
       'id': self.id,
@@ -68,9 +78,21 @@ class Link(object):
       'update-user': self.update_user,
       'update-date': self.update_date,
       'connector-id': self.connector_id,
+      'connector-name': self.connector_name,
       'link-config-values': [ config.to_dict() for config in self.link_config_values ],
       'enabled': self.enabled
     }
+    return d
+
+  def to_dict_new(self):
+    d = self.to_dict()
+    for config in d['link-config-values']:
+      config['validators'] = []
+      for input in config['inputs']:
+        input['validators'] = []
+        input['overrides'] = ''
+    d['link-config-values'] = {'configs': d['link-config-values'], 'validators': []}
+
     return d
 
   def update_from_dict(self, link_dict):

@@ -36,8 +36,9 @@ class Submission(object):
     "external-link": "http://solaris:50030/jobdetails.jsp?jobid=job_201306201740_0001"
   }
   """
-  def __init__(self, job_id, status, progress, created, updated, enabled=True, **kwargs):
+  def __init__(self, job_id, status, progress, created, updated, enabled=True, job_name=None, **kwargs):
     self.job_id = job_id
+    self.job_name = job_name
     self.status = status
     self.progress = progress
     self.created = created
@@ -48,7 +49,8 @@ class Submission(object):
 
   @staticmethod
   def from_dict(submission_dict):
-    submission_dict['job_id'] = submission_dict['job']
+    submission_dict['job_id'] = submission_dict.get('job', -1)
+    submission_dict['job_name'] = submission_dict['job-name']
     submission_dict['created'] = submission_dict['creation-date']
     submission_dict['updated'] = submission_dict['last-update-date']
     submission_dict['external_id'] = submission_dict.get('external-id', None)
@@ -58,6 +60,7 @@ class Submission(object):
   def to_dict(self):
     d = {
       'job': self.job_id,
+      'job-name': self.job_name,
       'status': self.status,
       'progress': self.progress,
       'creation-date': self.created,
@@ -76,8 +79,9 @@ class Submission(object):
 
 class SqoopSubmissionException(Exception):
 
-  def __init__(self, job_id, status, progress, created, updated, **kwargs):
+  def __init__(self, job_id, status, progress, created, updated, job_name, **kwargs):
     self.job_id = job_id
+    self.job_name = job_name
     self.status = status
     self.progress = progress
     self.created = created
@@ -87,7 +91,8 @@ class SqoopSubmissionException(Exception):
 
   @staticmethod
   def from_dict(submission_dict):
-    submission_dict['job_id'] = submission_dict['job']
+    submission_dict['job_id'] = submission_dict.get('job', -1)
+    submission_dict['job_name'] = submission_dict.get('job-name', None)
     submission_dict['created'] = submission_dict['creation-date']
     submission_dict['updated'] = submission_dict['last-update-date']
     submission_dict['exception'] = submission_dict.get('exception', None)
@@ -98,6 +103,7 @@ class SqoopSubmissionException(Exception):
   def to_dict(self):
     d = {
       'job': self.job_id,
+      'job-name': self.job_name,
       'status': self.status,
       'progress': self.progress,
       'creation-date': self.created,
