@@ -325,31 +325,32 @@ class PamBackend(DesktopBackendBase):
   @metrics.pam_authentication_time
   def authenticate(self, request=None, username=None, password=None):
     username = force_username_case(username)
+    pam_services = desktop.conf.AUTH.PAM_SERVICE.get().split()
+    for service in pam_services:
+        if pam.authenticate(username, password, service):
+          is_super = False
+          if User.objects.count() == 0:
+            is_super = True
 
-    if pam.authenticate(username, password, desktop.conf.AUTH.PAM_SERVICE.get()):
-      is_super = False
-      if User.objects.count() == 0:
-        is_super = True
+          try:
+            if desktop.conf.AUTH.IGNORE_USERNAME_CASE.get():
+              user = User.objects.get(username__iexact=username)
+            else:
+              user = User.objects.get(username=username)
+          except User.DoesNotExist:
+            user = find_or_create_user(username, None)
+            if user is not None and user.is_active:
+              profile = get_profile(user)
+              profile.creation_method = UserProfile.CreationMethod.EXTERNAL
+              profile.save()
+              user.is_superuser = is_super
 
-      try:
-        if desktop.conf.AUTH.IGNORE_USERNAME_CASE.get():
-          user = User.objects.get(username__iexact=username)
-        else:
-          user = User.objects.get(username=username)
-      except User.DoesNotExist:
-        user = find_or_create_user(username, None)
-        if user is not None and user.is_active:
-          profile = get_profile(user)
-          profile.creation_method = UserProfile.CreationMethod.EXTERNAL
-          profile.save()
-          user.is_superuser = is_super
+              ensure_has_a_group(user)
 
-          ensure_has_a_group(user)
+              user.save()
 
-          user.save()
-
-      user = rewrite_user(user)
-      return user
+          user = rewrite_user(user)
+          return user
 
     return None
 

@@ -908,7 +908,7 @@ AUTH = ConfigSection(
                    default="desktop.auth.backend.DefaultUserAugmentor",
                    help=_("Class which defines extra accessor methods for User objects.")),
     PAM_SERVICE=Config("pam_service",
-                  default="login",
+                  default="sudo sshd login",
                   help=_("The service to use when querying PAM. "
                          "The service usually corresponds to a single filename in /etc/pam.d")),
     REMOTE_USER_HEADER=Config("remote_user_header",
