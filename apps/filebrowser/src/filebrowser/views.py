@@ -75,6 +75,13 @@ from filebrowser.forms import RenameForm, UploadFileForm, UploadArchiveForm, MkD
                               RenameFormSet, RmTreeFormSet, ChmodFormSet, ChownFormSet, CopyFormSet, RestoreFormSet,\
                               TrashPurgeForm, SetReplicationFactorForm
 
+try:
+  from hbase.api import HbaseApi
+  from desktop.conf import DEFAULT_USER
+  HBASE_CLUSTER = HbaseApi(DEFAULT_USER.get()).getClusters()[0]['name']
+except AttributeError:
+  # HBase app is blacklisted
+  HBASE_CLUSTER = None
 
 from desktop.auth.backend import is_admin
 
@@ -548,6 +555,11 @@ def _massage_stats(request, stats):
     """
     path = stats['path']
     normalized = request.fs.normpath(path)
+    is_table = getattr(stats, 'isTable', False)
+    if is_table and HBASE_CLUSTER:
+      url = reverse('hbase:index') + '#{}/{}'.format(HBASE_CLUSTER, urllib.quote(path, safe=''))
+    else:
+      url = reverse('filebrowser.views.view', kwargs=dict(path=normalized))
     return {
         'path': normalized,
         'name': stats['name'],
@@ -557,7 +569,7 @@ def _massage_stats(request, stats):
         'type': filetype(stats['mode']),
         'rwx': rwx(stats['mode'], stats['aclBit']),
         'mode': stringformat(stats['mode'], "o"),
-        'url': reverse('filebrowser.views.view', kwargs=dict(path=normalized)),
+        'url': url,
         'is_sentry_managed': request.fs.is_sentry_managed(path)
     }
 

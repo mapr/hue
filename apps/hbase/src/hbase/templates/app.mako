@@ -2639,6 +2639,24 @@ $jstreeMapr
       data.node.needRefresh = false;
     }
   });
+
+
+/*
+ * MHUE-117 Error while open maprdb table via File Browser
+ */
+// Assistant panel open files by dogin huePubSub.publish('open.link', ...), which is not trigger routie:
+huePubSub.subscribe('open.link', function(link) {
+  routie.reload();
+});
+
+$jstreeMapr
+  .on('activate_node.jstree', function(e, data) {
+    if(jstreeInst.is_leaf(data.node)) {
+      var route = window.hbaseApp.cluster() + '/' + data.node.id;
+      var url = window.location.pathname + '#' + route;
+      huePubSub.publish('open.link', url);
+    }
+  });
 </script>
 
 %if not is_embeddable:
