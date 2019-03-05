@@ -233,7 +233,7 @@ SSL_CIPHER_LIST = Config(
     'AES256-SHA',
     'AES',
     'CAMELLIA',
-    'DES-CBC3-SHA',
+    '!DES-CBC3-SHA',
     '!aNULL',
     '!eNULL',
     '!EXPORT',
