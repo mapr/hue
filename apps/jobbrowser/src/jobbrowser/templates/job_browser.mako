@@ -1942,7 +1942,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
       self.apiStatus = ko.observableDefault(job.apiStatus);
       self.progress = ko.observableDefault(job.progress);
       self.isRunning = ko.computed(function() {
-        return self.apiStatus() == 'RUNNING' || self.apiStatus() == 'PAUSED';
+        return ['RUNNING', 'PAUSED', 'SUSPENDED'].indexOf(self.apiStatus()) != -1;
       });
 
       self.user = ko.observableDefault(job.user);
@@ -2374,7 +2374,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
       self.coordinator = coordinator;
 
       self.isRunning = ko.computed(function () {
-        return ['RUNNING', 'PAUSED', 'WAITING'].indexOf(self.status()) != -1;
+        return self.coordinator.isRunning();
       });
 
       self.canWrite = ko.computed(function () {
