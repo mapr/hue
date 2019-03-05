@@ -25,6 +25,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 %endif
 <div id="hbaseComponents">
 <link href="${ static('hbase/css/hbase.css') }" rel="stylesheet" type="text/css" />
+<link href="${ static('hbase/css/maprtables.css') }" rel="stylesheet" type="text/css" />
 
 <div class="navbar hue-title-bar nokids">
     <div class="navbar-inner">
@@ -185,6 +186,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
       </tr>
     </script>
 
+    <div id="jstree_mapr"></div>
     <!-- New Table Modal -->
     <form id="new_table_modal" action="createTable" method="POST" class="modal hide fade ajaxSubmit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       ${ csrf_token(request) | n,unicode }
@@ -2566,6 +2568,37 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
   routie.setPathname('/hbase');
 </script>
 <script src="${ static('desktop/ext/js/mustache.js') }" type="text/javascript" charset="utf-8"></script>
+
+<script src="${ static('hbase/js/jstree.min.js') }" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+/*
+ * MAPR-14065 Hue Mapr-DB tables
+ */
+var $jstreeMapr = $('#jstree_mapr');
+
+$jstreeMapr
+  .jstree({
+    'core': {
+      'data': {
+        'url': '/hbase/api/getlist/'
+        , 'data': function(node) {
+          return {'id': node.id, 'cluster': window.hbaseApp.cluster()};
+        }
+      }
+    }
+  });
+
+var jstreeInst = $jstreeMapr.jstree(true);
+
+$jstreeMapr
+  .on('open_node.jstree', function(e, data) {
+    data.node.children.forEach(function(child) {
+      if(jstreeInst.is_leaf(child)) {
+        jstreeInst.hide_icon(child);
+      }
+    });
+  });
+</script>
 
 %if not is_embeddable:
 ${ commonfooter(request, messages) | n,unicode }

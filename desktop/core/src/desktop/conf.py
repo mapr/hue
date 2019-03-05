@@ -274,7 +274,7 @@ SECURE_CONTENT_SECURITY_POLICY = Config(
           "style-src 'self' 'unsafe-inline' fonts.googleapis.com;"+
           "connect-src 'self';"+
           "frame-src *;"+
-          "child-src 'self' data: *.vimeo.com;"+
+          "child-src 'self' data: blob: *.vimeo.com;"+
           "object-src 'none'")
 
 SECURE_SSL_REDIRECT = Config(

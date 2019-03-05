@@ -45,7 +45,7 @@ TRUNCATE_LIMIT = Config(
 
 THRIFT_TRANSPORT = Config(
   key="thrift_transport",
-  default="framed",
+  default="buffered",
   help=_t("'framed' is used to chunk up responses, which is useful when used in conjunction with the nonblocking server in Thrift."
        "'buffered' used to be the default of the HBase Thrift Server."),
   type=str
@@ -90,7 +90,7 @@ def config_validator(user):
       cluster_name = api.getClusters()[0]['name'] # Currently pick first configured cluster
       # Check connectivity
       api.connectCluster(cluster_name)
-      api.getTableList(cluster_name)
+      api.getTableListByPath(cluster_name, '/')
   except Exception, e:
     print e
     if 'Could not connect' in str(e):

@@ -20,6 +20,7 @@ from hbase import views as hbase_views
 
 urlpatterns = [
   url(r'^$', hbase_views.app, name='index'),
+  url(r'^api/getlist/$', hbase_views.get_list, name='getlist'),
   url(r'api/(?P<url>.+)$', hbase_views.api_router),
 
   url(r'^install_examples$', hbase_views.install_examples, name='install_examples'),

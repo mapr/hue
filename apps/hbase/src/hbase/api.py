@@ -144,6 +144,10 @@ class HbaseApi(object):
     client = self.connectCluster(cluster)
     return [{'name': name, 'enabled': client.isTableEnabled(name, doas=self.user.username)} for name in client.getTableNames(doas=self.user.username)]
 
+  def getTableListByPath(self, cluster, path):
+    client = self.connectCluster(cluster)
+    return client.getTableNamesByPath(path, doas=self.user.username)
+
   def getRows(self, cluster, tableName, columns, startRowKey, numRows, prefix=False):
     client = self.connectCluster(cluster)
     if prefix == False:
