@@ -29,6 +29,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  void compact(Bytes tableNameOrRegionName)'
   print '  void majorCompact(Bytes tableNameOrRegionName)'
   print '   getTableNames()'
+  print '  bool isMappingEnable()'
+  print '   getTableNamesByPath(string path)'
   print '   getColumnDescriptors(Text tableName)'
   print '   getTableRegions(Text tableName)'
   print '  void createTable(Text tableName,  columnFamilies)'
@@ -66,6 +68,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  void scannerClose(ScannerID id)'
   print '   getRowOrBefore(Text tableName, Text row, Text family)'
   print '  TRegionInfo getRegionInfo(Text row)'
+  print '   append(TAppend append)'
+  print '  bool checkAndPut(Text tableName, Text row, Text column, Text value, Mutation mput,  attributes)'
   print ''
   sys.exit(0)
 
@@ -152,6 +156,18 @@ elif cmd == 'getTableNames':
     print 'getTableNames requires 0 args'
     sys.exit(1)
   pp.pprint(client.getTableNames())
+
+elif cmd == 'isMappingEnable':
+  if len(args) != 0:
+    print 'isMappingEnable requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.isMappingEnable())
+
+elif cmd == 'getTableNamesByPath':
+  if len(args) != 1:
+    print 'getTableNamesByPath requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.getTableNamesByPath(args[0],))
 
 elif cmd == 'getColumnDescriptors':
   if len(args) != 1:
@@ -374,6 +390,18 @@ elif cmd == 'getRegionInfo':
     print 'getRegionInfo requires 1 args'
     sys.exit(1)
   pp.pprint(client.getRegionInfo(eval(args[0]),))
+
+elif cmd == 'append':
+  if len(args) != 1:
+    print 'append requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.append(eval(args[0]),))
+
+elif cmd == 'checkAndPut':
+  if len(args) != 6:
+    print 'checkAndPut requires 6 args'
+    sys.exit(1)
+  pp.pprint(client.checkAndPut(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),eval(args[5]),))
 
 else:
   print 'Unrecognized method %s' % cmd
