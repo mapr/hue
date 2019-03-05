@@ -145,6 +145,8 @@ YARN_CLUSTERS = UnspecifiedConfigSection(
                           help=_t('Resource Manager logical name.')),
       SECURITY_ENABLED=Config("security_enabled", help="Is running with Kerberos authentication",
                               default=False, type=coerce_bool),
+      MECHANISM=Config("mechanism", help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+                       default='none', type=str),
       SUBMIT_TO=Config('submit_to', help="Whether Hue should use this cluster to run jobs",
                        default=False, type=coerce_bool), # False here for backward compatibility
       IS_YARN=Config("is_yarn", help="Attribute set only on YARN clusters and not MR1 ones.",

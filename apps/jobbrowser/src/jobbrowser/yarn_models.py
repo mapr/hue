@@ -135,8 +135,10 @@ class SparkJob(Application):
       self._root = Resource(self._client)
       yarn_cluster = cluster.get_cluster_conf_for_job_submission()
       self._security_enabled = yarn_cluster.SECURITY_ENABLED.get()
-      if self._security_enabled:
+      if yarn_cluster.SECURITY_ENABLED.get() and yarn_cluster.MECHANISM.get() == 'GSSAPI':
         self._client.set_kerberos_auth()
+      if yarn_cluster.SECURITY_ENABLED.get() and yarn_cluster.MECHANISM.get() == 'MAPR-SECURITY':
+        self._client.set_mapr_auth()
 
       self._client.set_verify(yarn_cluster.SSL_CERT_CA_VERIFY.get())
       actual_url = self._execute(self._root.resolve_redirect_url)

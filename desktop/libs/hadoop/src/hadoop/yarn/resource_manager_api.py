@@ -50,7 +50,7 @@ def get_resource_manager(username=None):
         yarn_cluster = cluster.get_cluster_conf_for_job_submission()
         if yarn_cluster is None:
           raise PopupException(_('No Resource Manager are available.'))
-        API_CACHE = ResourceManagerApi(yarn_cluster.RESOURCE_MANAGER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get())
+        API_CACHE = ResourceManagerApi(yarn_cluster.RESOURCE_MANAGER_API_URL.get(), yarn_cluster.SECURITY_ENABLED.get(), yarn_cluster.SSL_CERT_CA_VERIFY.get(), yarn_cluster.MECHANISM.get())
     finally:
       API_CACHE_LOCK.release()
 
@@ -61,7 +61,7 @@ def get_resource_manager(username=None):
 
 class ResourceManagerApi(object):
 
-  def __init__(self, rm_url, security_enabled=False, ssl_cert_ca_verify=False):
+  def __init__(self, rm_url, security_enabled=False, ssl_cert_ca_verify=False, mechanism='none'):
     self._url = posixpath.join(rm_url, 'ws', _API_VERSION)
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
@@ -69,8 +69,10 @@ class ResourceManagerApi(object):
     self._thread_local = threading.local() # To store user info
     self.from_failover = False
 
-    if self._security_enabled:
+    if self._security_enabled and mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
+    if self._security_enabled and mechanism == 'MAPR-SECURITY':
+      self._client.set_mapr_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 

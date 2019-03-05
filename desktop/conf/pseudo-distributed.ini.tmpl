@@ -1029,8 +1029,11 @@
       # Resource Manager logical name (required for HA)
       ## logical_name=
 
-      # Change this if your YARN cluster is Kerberos-secured
-      ## security_enabled=false
+      # Change this if your YARN cluster is secured
+      security_enabled=${security_enabled}
+
+      # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY
+      mechanism=${mechanism}
 
       # URL of the ResourceManager API
       ## resourcemanager_api_url=http://localhost:8088
