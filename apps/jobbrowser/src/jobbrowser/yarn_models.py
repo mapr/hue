@@ -547,6 +547,11 @@ class Attempt:
     attempt = self.task.job.job_attempts['jobAttempt'][-1]
     log_link = attempt['logsLink']
 
+    log_link_scheme = urlparse.urlparse(log_link).scheme
+    if not log_link_scheme:
+      log_link_scheme = urlparse.urlparse(self.task.job.api.url).scheme
+      log_link = '{}:{}'.format(log_link_scheme, log_link)
+
     # Generate actual task log link from logsLink url
     if self.task.job.status in ('NEW', 'SUBMITTED', 'RUNNING'):
       logs_path = '/node/containerlogs/'
