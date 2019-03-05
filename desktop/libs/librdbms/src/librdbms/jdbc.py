@@ -114,6 +114,8 @@ class Cursor():
     self.stmt = None
     self.rs = None
     self._meta = None
+    self._rs_next = None
+    self._rs_finished = True
 
   def execute(self, statement):
     self.stmt = self.conn.createStatement()
@@ -122,6 +124,7 @@ class Cursor():
     if has_rs:
       self.rs = self.stmt.getResultSet()
       self._meta = self.rs.getMetaData()
+      self._rs_finished = False
     else:
       self._meta = self.stmt.getUpdateCount()
 
@@ -130,7 +133,18 @@ class Cursor():
   def fetchmany(self, n=None):
     res = []
 
-    while self.rs.next() and (n is None or n > 0):
+    if self._rs_finished == True:
+        return res
+
+    while True:
+      self._rs_next = self.rs.next()
+
+      if not self._rs_next:
+        self._rs_finished = True
+
+      if not (self._rs_next and (n is None or n > 0)):
+        break
+
       row = []
       for c in xrange(self._meta.getColumnCount()):
         cell = self.rs.getObject(c + 1)

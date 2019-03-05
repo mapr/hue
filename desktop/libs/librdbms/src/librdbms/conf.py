@@ -76,6 +76,38 @@ DATABASES = UnspecifiedConfigSection(
         type=int,
         default=0,
       ),
+      CONNECTION_TYPE=Config(
+        key='connection_type',
+        help=_t('Connection type. This can be:\n'
+                '1. direct\n'
+                '2. zookeeper\n'),
+        type=str,
+        default='direct',
+      ),
+      DRILLBITS=Config(
+        key='drillbits',
+        help=_t('Drillbit address for direct connection.'),
+        type=str,
+        default='localhost:31010',
+      ),
+      ZK_QUORUM=Config(
+        key='zk_quorum',
+        help=_t('ZooKeeper quorum for connection through ZooKeeper.'),
+        type=str,
+        default='localhost:5181',
+      ),
+      ZK_CLUSTER_ID=Config(
+        key='zk_cluster_id',
+        help=_t('Set ZKClusterID to the name of the Drillbit cluster to use.'),
+        type=str,
+        default='',
+      ),
+      MECHANISM=Config(
+        key='mechanism',
+        help=_t('Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.'),
+        type=str,
+        default='none',
+      ),
       OPTIONS=Config(
         key='options',
         help=_t('Database options to send to the server when connecting.'),

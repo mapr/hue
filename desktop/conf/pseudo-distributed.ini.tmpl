@@ -838,6 +838,10 @@
       name=Impala
       interface=hiveserver2
 
+    [[[drill]]]
+      name=Drill
+      interface=rdbms
+
     # [[[sparksql]]]
     #   name=SparkSql
     #   interface=hiveserver2
@@ -1703,6 +1707,49 @@
 
       # Database schema, to be used only when public schema is revoked in postgres
       ## schema=public
+
+    [[[drill]]]
+      # Name to show in the UI.
+      nice_name="Drill"
+
+      # Database backend to use.
+      engine=drill
+
+      # Connection type. This can be:
+      # 1. direct
+      # 2. zookeeper
+      connection_type=direct
+
+      # Drillbit address for direct connection.
+      drillbits=localhost:31010
+
+      # ZooKeeper quorum for connection through ZooKeeper.
+      ## zk_quorum=localhost:5181
+
+      # Set ZKClusterID to the name of the Drillbit cluster to use.
+      ## zk_cluster_id=
+
+      # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.
+      mechanism=${mechanism}
+
+      # Username to authenticate with when connecting to the database.
+      # Used with plain authentication (mechanism set to "none").
+      ## user=example
+
+      # Password matching the username to authenticate with when
+      # connecting to the database.
+      # Used with plain authentication (mechanism set to "none").
+      ## password=example
+
+      # Execute this script to produce the database password.
+      # This will be used when password is required and `password` is not set.
+      ## password_script=
+
+      # Available options:
+      # "impersonation" to enable or disable outbound impersonation.
+      # "principal" of Drill service. Used when Kerberos authentication is enabled.
+      ## options='{"impersonation": true, "principal": "mapr/localhost@REALM"}'
+
 
 ###########################################################################
 # Settings to configure SAML

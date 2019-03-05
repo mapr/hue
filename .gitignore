@@ -95,6 +95,7 @@ tools/jenkins/ext/
 tools/jenkins/oozie.sql
 apps/logs
 java-lib/
+drill-lib/
 dependency-reduced-pom.xml
 
 

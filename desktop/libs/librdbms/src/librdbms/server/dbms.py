@@ -28,6 +28,7 @@ MYSQL = 'mysql'
 POSTGRESQL = 'postgresql'
 SQLITE = 'sqlite'
 ORACLE = 'oracle'
+DRILL = 'drill'
 
 
 def get(user, query_server=None):
@@ -50,6 +51,10 @@ def get(user, query_server=None):
     from librdbms.server.oracle_lib import OracleClient
 
     return Rdbms(OracleClient(query_server, user), ORACLE)
+  elif query_server['server_name'] == 'drill':
+    from librdbms.server.drill_lib import DrillClient
+
+    return Rdbms(DrillClient(query_server, user), DRILL)
 
 
 def get_query_server_config(server=None):
@@ -66,6 +71,11 @@ def get_query_server_config(server=None):
       'server_port': DATABASES[name].PORT.get(),
       'username': DATABASES[name].USER.get(),
       'password': get_database_password(name),
+      'connection_type': DATABASES[name].CONNECTION_TYPE.get(),
+      'drillbits': DATABASES[name].DRILLBITS.get(),
+      'zk_quorum': DATABASES[name].ZK_QUORUM.get(),
+      'zk_cluster_id': DATABASES[name].ZK_CLUSTER_ID.get(),
+      'mechanism': DATABASES[name].MECHANISM.get(),
       'options': force_dict_to_strings(DATABASES[name].OPTIONS.get()),
       'alias': name
     }
