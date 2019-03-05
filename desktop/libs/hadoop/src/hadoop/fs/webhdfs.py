@@ -55,23 +55,28 @@ class WebHdfs(Hdfs):
   DEFAULT_USER = desktop.conf.DEFAULT_USER.get()        # This should be the user running Hue
   TRASH_CURRENT = 'Current'
 
+  _mechanism = None
+  _mutual_ssl_auth = False
+  _ssl_cert = None
+  _ssl_key = None
+
   def __init__(self, url,
                fs_defaultfs,
                logical_name=None,
                hdfs_superuser=None,
                security_enabled=False,
-               mechanism=None,
                ssl_cert_ca_verify=True,
                temp_dir="/tmp",
                umask=01022,
+               hdfs_supergroup=None,
+               mechanism=None,
                mutual_ssl_auth=False,
                ssl_cert=None,
                ssl_key=None,
-               hdfs_supergroup=None):
+               ):
     self._url = url
     self._superuser = hdfs_superuser
     self._security_enabled = security_enabled
-    self._mechanism = mechanism
     self._ssl_cert_ca_verify = ssl_cert_ca_verify
     self._temp_dir = temp_dir
     self._umask = umask
@@ -82,6 +87,8 @@ class WebHdfs(Hdfs):
     self._netloc = "";
     self._is_remote = False
     self._has_trash_support = True
+
+    self._mechanism = mechanism
 
     # Mutual SSL authentication
     self._mutual_ssl_auth = mutual_ssl_auth
@@ -104,14 +111,15 @@ class WebHdfs(Hdfs):
                fs_defaultfs=fs_defaultfs,
                logical_name=hdfs_config.LOGICAL_NAME.get(),
                security_enabled=hdfs_config.SECURITY_ENABLED.get(),
-               mechanism=hdfs_config.MECHANISM.get(),
                ssl_cert_ca_verify=hdfs_config.SSL_CERT_CA_VERIFY.get(),
                temp_dir=hdfs_config.TEMP_DIR.get(),
                umask=get_umask_mode(),
+               hdfs_supergroup=get_supergroup(),
+               mechanism=hdfs_config.MECHANISM.get(),
                mutual_ssl_auth=hdfs_config.MUTUAL_SSL_AUTH.get(),
                ssl_cert=hdfs_config.SSL_CERT.get(),
                ssl_key=hdfs_config.SSL_KEY.get(),
-               hdfs_supergroup=get_supergroup())
+               )
 
   def __str__(self):
     return "WebHdfs at %s" % self._url
@@ -167,6 +175,18 @@ class WebHdfs(Hdfs):
   @property
   def mechanism(self):
     return self._mechanism
+
+  @property
+  def mutual_ssl_auth(self):
+    return self._mutual_ssl_auth
+
+  @property
+  def ssl_cert(self):
+    return self._ssl_cert
+
+  @property
+  def ssl_key(self):
+    return self._ssl_key
 
   @property
   def superuser(self):
@@ -840,7 +860,7 @@ class WebHdfs(Hdfs):
       raise WebHdfsException(_("Failed to create '%s'. HDFS did not return a redirect") % path)
 
     # Now talk to the real thing. The redirect url already includes the params.
-    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify, self.mechanism, self._mutual_ssl_auth, self._ssl_cert, self._ssl_key)
+    client = self._make_client(next_url, self.security_enabled, self.ssl_cert_ca_verify, self.mechanism, self.mutual_ssl_auth, self.ssl_cert, self.ssl_key)
 
     # Make sure to reuse the session in order to preserve the Kerberos cookies.
     client._session = self._client._session

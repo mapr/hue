@@ -43,7 +43,7 @@ def get_connectors(request):
     'connectors': []
   }
   try:
-    c = client.SqoopClient(conf.SERVER_URL.get(), request.user.username, request.LANGUAGE_CODE, ssl_cert_ca_verify=conf.SSL_CERT_CA_VERIFY.get())
+    c = client.SqoopClient(conf.SERVER_URL.get(), request.user.username, conf.SECURITY_ENABLED.get(), conf.MECHANISM.get(), request.LANGUAGE_CODE, ssl_cert_ca_verify=conf.SSL_CERT_CA_VERIFY.get())
     response['connectors'] = list_to_dict(c.get_connectors())
   except RestException, e:
     response.update(handle_rest_exception(e, _('Could not get connectors.')))

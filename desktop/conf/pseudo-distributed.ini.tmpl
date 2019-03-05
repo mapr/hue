@@ -1313,8 +1313,11 @@
   # Sqoop server URL
   ## server_url=http://localhost:12000/sqoop
 
-  # Path to configuration directory
-  ## sqoop_conf_dir=/etc/sqoop2/conf
+  # Change this if your cluster is secured
+  security_enabled=${security_enabled}
+
+  # Security mechanism of authentication none/GSSAPI/MAPR-SECURITY
+  mechanism=${mechanism}
 
   # Choose whether Hue should validate certificates received from the server.
   ## ssl_cert_ca_verify=true

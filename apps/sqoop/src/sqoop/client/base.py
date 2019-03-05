@@ -28,7 +28,6 @@ from sqoop.client.driver import Driver
 from sqoop.client.exception import SqoopException
 from sqoop.client.submission import Submission, SqoopSubmissionException
 from sqoop.client.resource import SqoopResource
-from sqoop.sqoop_properties import has_sqoop_has_security
 
 
 LOG = logging.getLogger(__name__)
@@ -43,16 +42,19 @@ class SqoopClient(object):
   STATUS_GOOD = ('FINE', 'ACCEPTABLE')
   STATUS_BAD = ('UNACCEPTABLE', 'FAILURE_ON_SUBMIT')
 
-  def __init__(self, url, username, language='en', ssl_cert_ca_verify=False):
+  def __init__(self, url, username, security_enabled=False, mechanism=None, language='en', ssl_cert_ca_verify=False):
     self._url = url
     self._client = HttpClient(self._url, logger=LOG)
     self._root = SqoopResource(self._client)
     self._language = language
     self._username = username
+    self._mechanism = mechanism
+    self._security_enabled = security_enabled
 
-    if has_sqoop_has_security():
+    if security_enabled and mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
-    self._security_enabled = has_sqoop_has_security()
+    if security_enabled and mechanism == 'MAPR-SECURITY':
+      self._client.set_mapr_auth()
 
     self._client.set_verify(ssl_cert_ca_verify)
 
