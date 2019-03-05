@@ -22,7 +22,7 @@
 
   # Set this to a random string, the longer the better.
   # This is used for secure hashing in the session store.
-  secret_key=
+  secret_key=asdf0w993q02495uperw9poijsdfqweoriu23o4iuoweifjlkasdjfwiqeru034590345098
 
   # Execute this script to produce the Django secret key. This will be used when
   # 'secret_key' is not set.
@@ -48,8 +48,8 @@
   # Time zone name
   time_zone=America/Los_Angeles
 
-  # Enable or disable debug mode.
-  ## django_debug_mode=true
+  # Enable or disable Django debug mode.
+  django_debug_mode=false
 
   # Enable development mode, where notably static files are not cached.
   dev=true
@@ -64,7 +64,7 @@
   send_dbug_messages=true
 
   # Enable or disable backtrace for server error
-  ## http_500_debug_mode=true
+  http_500_debug_mode=false
 
   # Enable or disable memory profiling.
   ## memory_profiler=false
@@ -208,7 +208,7 @@
 
   # Comma separated list of apps to not load at server startup.
   # e.g.: pig,zookeeper
-  ## app_blacklist=
+  app_blacklist=search,zookeeper
 
   # Id of the cluster where Hue is located.
   ## cluster_id='default'
@@ -815,7 +815,7 @@
   # enable_query_scheduling=false
 
   ## Main flag to override the automatic starting of the DBProxy server.
-  # enable_dbproxy_server=true
+  enable_dbproxy_server=false
 
   ## Classpath to be appended to the default DBProxy server classpath.
   # dbproxy_extra_classpath=

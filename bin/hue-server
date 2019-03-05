@@ -1,0 +1,64 @@
+#!/bin/bash
+
+export MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
+export HUE_VERSION=${HUE_VERSION:-$(cat "${MAPR_HOME}/hue/hueversion")}
+export HUE_HOME=${HUE_HOME:-"${MAPR_HOME}/hue/hue-${HUE_VERSION}"}
+
+CMD=${0##*/}
+
+HUE_PID_SERVER="${MAPR_HOME}/pid/hue.pid"
+HUE_LOG_DIR="${HUE_HOME}/logs"
+HUE_LOG_SERVER="${HUE_LOG_DIR}/hue.out"
+
+mkdir -p "${HUE_LOG_DIR}"
+
+
+case $1 in
+    start)
+        exitval=0
+        # Start Hue
+        if [ -e "$HUE_PID_SERVER" ] && kill -0 $(cat "$HUE_PID_SERVER") &>/dev/null; then
+            pid=$(cat "$HUE_PID_SERVER")
+            echo "Hue is running as process $pid. Stop it first."
+            exitval=1
+        else
+            cd "${HUE_HOME}"
+            nohup "${HUE_HOME}/bin/hue" runcpserver &>> "$HUE_LOG_SERVER" &
+            pid=$!
+            echo $pid > "$HUE_PID_SERVER"
+            echo "$(date) Starting Hue, pid $pid" >> "$HUE_LOG_SERVER"
+            echo "Starting Hue, pid $pid"
+        fi
+        exit $exitval
+        ;;
+    stop)
+        exitval=0
+        # Stop Hue
+        if ! [ -e "$HUE_PID_SERVER" ] || ! kill -0 $(cat "$HUE_PID_SERVER") &>/dev/null; then
+            echo "Hue is not running"
+            exitval=1
+        else
+            pid=$(cat "$HUE_PID_SERVER")
+            kill $pid
+            rm "$HUE_PID_SERVER"
+            echo "$(date) Stopping Hue, pid $pid" >> "$HUE_LOG_SERVER"
+            echo "Stopping Hue, pid $pid"
+        fi
+        exit $exitval
+        ;;
+    status)
+        exitval=0
+        # Check if Hue process is running
+        if [ -e "$HUE_PID_SERVER" ] && kill -0 $(cat "$HUE_PID_SERVER") &>/dev/null; then
+            pid=$(cat "$HUE_PID_SERVER")
+            echo "Hue is running, pid $pid"
+        else
+            echo "Hue is not running"
+            exitval=1
+        fi
+        exit $exitval
+        ;;
+    *)
+        echo "${CMD} supports only start|stop|status arguments"
+        exit 1
+esac

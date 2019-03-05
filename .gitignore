@@ -108,3 +108,9 @@ dependency-reduced-pom.xml
 node_modules/
 
 junitresults*
+
+
+# Files specific to MapR distribution
+keys/
+desktop/conf/.isSecure
+desktop/conf/.not_configured_yet
