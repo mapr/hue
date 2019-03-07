@@ -1942,7 +1942,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
       self.apiStatus = ko.observableDefault(job.apiStatus);
       self.progress = ko.observableDefault(job.progress);
       self.isRunning = ko.computed(function() {
-        return ['RUNNING', 'PAUSED', 'SUSPENDED'].indexOf(self.apiStatus()) != -1;
+        return ['RUNNING', 'PAUSED'].indexOf(self.apiStatus()) != -1;
       });
 
       self.user = ko.observableDefault(job.user);
@@ -2267,7 +2267,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
 
       self.control = function (action) {
         if (action == 'rerun') {
-          $.get('/oozie/rerun_oozie_job/' + self.id() + '/?format=json', function(response) {
+          $.get('/oozie/rerun_oozie_job/' + self.id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" }', function(response) {
             $('#rerun-modal${ SUFFIX }').modal('show');
             self.rerunModalContent(response);
           });
@@ -2372,10 +2372,6 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
       var self = this;
       Job.apply(self, [vm, job]);
       self.coordinator = coordinator;
-
-      self.isRunning = ko.computed(function () {
-        return self.coordinator.isRunning();
-      });
 
       self.canWrite = ko.computed(function () {
         return self.coordinator.canWrite();
@@ -2594,7 +2590,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
 
       self.control = function (action) {
         if (action == 'rerun') {
-          $.get('/oozie/rerun_oozie_coord/' + vm.job().id() + '/?format=json', function(response) {
+          $.get('/oozie/rerun_oozie_coord/' + vm.job().id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" }', function(response) {
             $('#rerun-modal${ SUFFIX }').modal('show');
             vm.job().rerunModalContent(response);
 
@@ -2606,8 +2602,8 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
               });
               option.appendTo($(frag));
             });
-            $('#id_actions').find('option').remove();
-            $(frag).appendTo('#id_actions');
+            $('#id_actions${ SUFFIX }').find('option').remove();
+            $(frag).appendTo('#id_actions${ SUFFIX }');
           });
         } else if (action == 'ignore') {
           $.post('/oozie/manage_oozie_jobs/' + vm.job().id() + '/ignore', {
@@ -2919,12 +2915,12 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
 
       huePubSub.publish('cluster.config.get.config');
 
-      huePubSub.subscribe('submit.rerun.popup.return', function (data) {
-        $.jHueNotify.info("${_('Rerun submitted.')}");
+      huePubSub.subscribe('submit.rerun.popup.return${ SUFFIX }', function (data) {
+        $.jHueNotify.info('${_("Rerun submitted.")}');
         $('#rerun-modal${ SUFFIX }').modal('hide');
         jobBrowserViewModel.job().apiStatus('RUNNING');
         jobBrowserViewModel.job().updateJob();
-      }, 'jobbrowser');
+      }, '${ "jobbrowser" if not is_mini else "" }');
       % if is_mini:
         huePubSub.subscribe('mini.jb.navigate', function (interface) {
           $('#jobsPanel .nav-pills li').removeClass('active');
