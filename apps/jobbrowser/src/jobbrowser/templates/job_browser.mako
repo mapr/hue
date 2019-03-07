@@ -2267,7 +2267,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
 
       self.control = function (action) {
         if (action == 'rerun') {
-          $.get('/oozie/rerun_oozie_job/' + self.id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" }', function(response) {
+          $.get('/oozie/rerun_oozie_job/' + self.id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" | n }', function(response) {
             $('#rerun-modal${ SUFFIX }').modal('show');
             self.rerunModalContent(response);
           });
@@ -2590,20 +2590,22 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
 
       self.control = function (action) {
         if (action == 'rerun') {
-          $.get('/oozie/rerun_oozie_coord/' + vm.job().id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" }', function(response) {
+          $.get('/oozie/rerun_oozie_coord/' + vm.job().id() + '/?format=json' + '${ "&is_mini=true" if is_mini else "" | n }', function(response) {
             $('#rerun-modal${ SUFFIX }').modal('show');
             vm.job().rerunModalContent(response);
 
-            var frag = document.createDocumentFragment();
-            vm.job().coordinatorActions().selectedJobs().forEach(function (item) {
-              var option = $('<option>', {
-                value: item.properties.number(),
-                selected: true
+            setTimeout(function () {
+              var frag = document.createDocumentFragment();
+              vm.job().coordinatorActions().selectedJobs().forEach(function (item) {
+                var option = $('<option>', {
+                  value: item.properties.number(),
+                  selected: true
+                });
+                option.appendTo($(frag));
               });
-              option.appendTo($(frag));
-            });
-            $('#id_actions${ SUFFIX }').find('option').remove();
-            $(frag).appendTo('#id_actions${ SUFFIX }');
+              $('#id_actions${ SUFFIX }').find('option').remove();
+              $(frag).appendTo('#id_actions${ SUFFIX }');
+            }, 100);
           });
         } else if (action == 'ignore') {
           $.post('/oozie/manage_oozie_jobs/' + vm.job().id() + '/ignore', {
