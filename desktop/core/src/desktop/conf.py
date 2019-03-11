@@ -797,7 +797,7 @@ KERBEROS = ConfigSection(
       help=_("Path to keep Kerberos credentials cached."),
       private=True,
       type=str,
-      default="/var/run/hue/hue_krb5_ccache",
+      default="/tmp/hue_krb5_ccache",
     ),
     KINIT_PATH=Config(
       key='kinit_path',
