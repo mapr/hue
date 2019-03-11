@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Disable annoying warning that we are connecting to some service (like HttP-FS),
+# without verifying its certificates.
+export PYTHONWARNINGS="ignore:Unverified HTTPS request"
