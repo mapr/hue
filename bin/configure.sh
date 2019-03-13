@@ -192,10 +192,10 @@ write_secure() {
 }
 
 
-init_db_user() {
-  "${HUE_HOME}/bin/hue" syncdb --noinput || return $?
-  "${HUE_HOME}/bin/hue" migrate --merge || return $?
-  "${HUE_HOME}/bin/hue" shell <<EOF
+init_db_and_user() {
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" makemigrations --noinput --merge || return $?
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate || return $?
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" shell <<EOF
 from django.contrib.auth.models import User
 from useradmin.models import get_default_user_group
 def create_user_mapr():
@@ -237,7 +237,7 @@ if [ "$isOnlyRoles" == 1 ] ; then
   perm_confs
 
   logInfo "Syncing database."
-  INITDB_OUT=$(init_db_user 2>&1)
+  INITDB_OUT=$(init_db_and_user 2>&1)
   INITDB_RES=$?
   if [ $INITDB_RES -ne $RETURN_SUCCESS ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
