@@ -8,7 +8,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <simbadrill.version>1.5.9.1018</simbadrill.version>
+    <simbadrill.version>1.6.0.1001</simbadrill.version>
   </properties>
 
   <dependencies>
