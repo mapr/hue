@@ -884,7 +884,9 @@ var EditorViewModel = (function() {
           var variable = variables[p2];
           var pad = variable.type() == 'datetime-local' && variable.value().length == 16 ? ':00' : ''; // Chrome drops the seconds from the timestamp when it's at 0 second.
           var value = variable.value();
-          return p1 + (value !== undefined && value !== null ? value + pad : variable.meta.placeholder && variable.meta.placeholder());
+          const isValuePresent = //If value is string there is a need to check whether it is empty
+              typeof value === 'string' ? value : value !== undefined && value !== null;
+          return p1 + (isValuePresent ? value + pad : variable.meta.placeholder && variable.meta.placeholder());
         });
       }
       return statement;
