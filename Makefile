@@ -165,7 +165,7 @@ INSTALL_CORE_FILES = \
 	tools/enable-python27.sh \
 	tools/relocatable.sh \
 	tools/ops \
-	VERS* LICENSE* README* \
+	VERS* LICENSE* README* NOTICE* \
 	bin \
 	desktop/conf.dist
 
