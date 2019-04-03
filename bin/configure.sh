@@ -61,6 +61,9 @@ WARDEN_HEAPSIZE_MAX_KEY="service.heapsize.max"
 WARDEN_HEAPSIZE_PERCENT_KEY="service.heapsize.percent"
 WARDEN_RUNSTATE_KEY="service.runstate"
 
+# Other
+HUE_INITIAL_DB_MIGRATION_LOG="${HUE_HOME}/logs/initial-db-migration.log"
+
 
 
 # Parse options
@@ -237,11 +240,13 @@ if [ "$isOnlyRoles" == 1 ] ; then
   perm_confs
 
   logInfo "Syncing database."
-  INITDB_OUT=$(init_db_and_user 2>&1)
-  INITDB_RES=$?
-  if [ $INITDB_RES -ne $RETURN_SUCCESS ] ; then
+  initdb_out=$(init_db_and_user 2>&1)
+  initdb_res=$?
+  if [ $initdb_res -ne $RETURN_SUCCESS ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
+
+  echo "$initdb_out" | sudo -u "$MAPR_USER" tee -a "$HUE_INITIAL_DB_MIGRATION_LOG" >/dev/null
 
   if [ "$updSecure" = "true" ] ; then
     write_secure "$isSecure"
