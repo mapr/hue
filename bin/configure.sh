@@ -246,7 +246,7 @@ if [ "$isOnlyRoles" == 1 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
 
-  echo "$initdb_out" | sudo -u "$MAPR_USER" tee -a "$HUE_INITIAL_DB_MIGRATION_LOG" >/dev/null
+  echo "$initdb_out" >> "$HUE_INITIAL_DB_MIGRATION_LOG"
 
   if [ "$updSecure" = "true" ] ; then
     write_secure "$isSecure"
