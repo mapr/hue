@@ -62,7 +62,8 @@ WARDEN_HEAPSIZE_PERCENT_KEY="service.heapsize.percent"
 WARDEN_RUNSTATE_KEY="service.runstate"
 
 # Other
-HUE_INITIAL_DB_MIGRATION_LOG="${HUE_HOME}/logs/initial-db-migration.log"
+HUE_LOG_DIR="${HUE_HOME}/logs"
+HUE_LOG_INITIAL_DB_MIGRATION="${HUE_LOG_DIR}/initial-db-migration.log"
 
 
 
@@ -246,7 +247,8 @@ if [ "$isOnlyRoles" == 1 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
 
-  echo "$initdb_out" >> "$HUE_INITIAL_DB_MIGRATION_LOG"
+  mkdir -p "$HUE_LOG_DIR"
+  echo "$initdb_out" >> "$HUE_LOG_INITIAL_DB_MIGRATION"
 
   if [ "$updSecure" = "true" ] ; then
     write_secure "$isSecure"
