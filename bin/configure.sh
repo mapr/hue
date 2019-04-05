@@ -240,21 +240,20 @@ if [ "$isOnlyRoles" == 1 ] ; then
   perm_scripts
   perm_confs
 
+  if [ "$updSecure" = "true" ] ; then
+    write_secure "$isSecure"
+  fi
+
+  chown_component
+
   logInfo "Syncing database."
   initdb_out=$(init_db_and_user 2>&1)
   initdb_res=$?
   if [ $initdb_res -ne $RETURN_SUCCESS ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
-
-  mkdir -p "$HUE_LOG_DIR"
-  echo "$initdb_out" >> "$HUE_LOG_INITIAL_DB_MIGRATION"
-
-  if [ "$updSecure" = "true" ] ; then
-    write_secure "$isSecure"
-  fi
-
-  chown_component
+  sudo -u "$MAPR_USER" mkdir -p "$HUE_LOG_DIR"
+  echo "$initdb_out" | sudo -u "$MAPR_USER" tee -a "$HUE_LOG_INITIAL_DB_MIGRATION" >/dev/null
 
   setup_warden_conf
 
