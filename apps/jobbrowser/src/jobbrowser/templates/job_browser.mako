@@ -2423,6 +2423,10 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
                 var rerunModalData = $(this).data('modal');
                 rerunModalData.$backdrop.appendTo("#jobbrowserMiniComponents");
             });
+            $('#killModal${ SUFFIX }').on('shown', function (e) {
+                 var killModalData = $(this).data('modal');
+                 killModalData.$backdrop.appendTo("#jobbrowserMiniComponents");
+            });
             %endif
 
             vm.job().fetchLogs();
