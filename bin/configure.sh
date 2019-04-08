@@ -9,8 +9,6 @@
 # during install. If it is run standalone, need to correctly initialize
 # the variables that it normally inherits from the master configure.sh
 #######################################################################
-
-RETURN_SUCCESS=0
 RETURN_ERR_MAPR_HOME=1
 RETURN_ERR_ARGS=2
 RETURN_ERR_MAPRCLUSTER=3
@@ -95,7 +93,7 @@ while [ ${#} -gt 0 ] ; do
       shift 2;;
     -h)
       echo "${USAGE}"
-      exit $RETURN_SUCCESS
+      exit 0
       ;;
     *)
       # Invalid arguments passed
@@ -200,29 +198,23 @@ init_db_and_user() {
   sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" makemigrations --noinput --merge || return $?
   sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate || return $?
   sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" shell <<EOF
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from useradmin.models import get_default_user_group
-def create_user_mapr():
-  try:
-    user = User.objects.get(username='$MAPR_USER')
-  except Exception as e:
-    User.objects.create(id=1, username='$MAPR_USER')
-    user = User.objects.get(username='$MAPR_USER')
-    user.set_password('mapr')
-    user.is_superuser = True
-    
-    default_group = get_default_user_group()
-    if default_group is not None:
-      user.groups.add(default_group)
-    user.save()
+User = get_user_model()
 
-create_user_mapr()
+try:
+  user = User.objects.get(username='$MAPR_USER')
+except:
+  user = User.objects.create(id=1, username='$MAPR_USER')
+  user.set_password('mapr')
+  user.is_superuser = True
+  default_group = get_default_user_group()
+  if default_group is not None:
+    user.groups.add(default_group)
+  user.save()
 EOF
-  if [ $? -ne $RETURN_SUCCESS ] ; then
-    return $?
-  fi
 
-  return 0
+  return $?
 }
 
 
@@ -249,7 +241,7 @@ if [ "$isOnlyRoles" == 1 ] ; then
   logInfo "Syncing database."
   initdb_out=$(init_db_and_user 2>&1)
   initdb_res=$?
-  if [ $initdb_res -ne $RETURN_SUCCESS ] ; then
+  if [ $initdb_res -ne 0 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
   sudo -u "$MAPR_USER" mkdir -p "$HUE_LOG_DIR"
@@ -267,4 +259,4 @@ fi
 
 
 
-exit $RETURN_SUCCESS
+exit 0
