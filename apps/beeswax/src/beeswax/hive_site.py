@@ -151,7 +151,7 @@ def hiveserver2_jdbc_url():
     if get_conf().get(_CNF_HIVESERVER2_TRUSTSTORE_PASSWORD):
       urlbase += ';trustStorePassword=%s' % get_conf().get(_CNF_HIVESERVER2_TRUSTSTORE_PASSWORD)
 
-  if get_conf().get(_CNF_HIVESERVER2_AUTHENTICATION, 'NONE').upper() == 'MAPRSASL':
+  if beeswax.conf.get_hive_mechanism() == 'MAPRSASL':
     urlbase += ';auth=%s' % 'maprsasl'
 
   return urlbase
