@@ -195,8 +195,10 @@ write_secure() {
 
 
 init_db_and_user() {
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" makemigrations --noinput --merge || return $?
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate || return $?
+  oldpwd="$PWD"
+  cd "$HUE_LOG_DIR"
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" makemigrations --noinput --merge &&
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate &&
   sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" shell <<EOF
 from django.contrib.auth import get_user_model
 from useradmin.models import get_default_user_group
@@ -213,8 +215,9 @@ except:
     user.groups.add(default_group)
   user.save()
 EOF
-
-  return $?
+  ret=$?
+  cd "$oldpwd"
+  return $ret
 }
 
 
@@ -237,6 +240,7 @@ if [ "$isOnlyRoles" == 1 ] ; then
   fi
 
   chown_component
+  sudo -u "$MAPR_USER" mkdir -p "$HUE_LOG_DIR"
 
   logInfo "Syncing database."
   initdb_out=$(init_db_and_user 2>&1)
@@ -244,7 +248,6 @@ if [ "$isOnlyRoles" == 1 ] ; then
   if [ $initdb_res -ne 0 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
-  sudo -u "$MAPR_USER" mkdir -p "$HUE_LOG_DIR"
   echo "$initdb_out" | sudo -u "$MAPR_USER" tee -a "$HUE_LOG_INITIAL_DB_MIGRATION" >/dev/null
 
   setup_warden_conf
