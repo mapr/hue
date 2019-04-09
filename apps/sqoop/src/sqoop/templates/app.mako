@@ -807,7 +807,7 @@ ${ commonheader(None, "sqoop", user, request) | n,unicode }
 
 <script type="text/javascript">
 
-var FB_STAT = '${reverse('filebrowser.views.stat', kwargs={'path': '/'})}';
+var FB_STAT = '${reverse('stat', kwargs={'path': '/'})}';
 
 //// Job Wizard
 viewModel.job.subscribe(function(job) {
