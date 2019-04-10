@@ -197,8 +197,7 @@ write_secure() {
 init_db_and_user() {
   oldpwd="$PWD"
   cd "$HUE_LOG_DIR"
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" makemigrations --noinput --merge &&
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate &&
+  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate --run-syncdb --fake-initial &&
   sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" shell <<EOF
 from django.contrib.auth import get_user_model
 from useradmin.models import get_default_user_group
