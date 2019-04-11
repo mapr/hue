@@ -1113,6 +1113,9 @@ else:
       self.isPermissionEnabled = ko.pureComputed(function () {
         return !self.isS3() && !self.isABFSRoot();
       });
+      self.isChangeOwnerEnabled = ko.pureComputed(function () {
+        return !self.isS3();
+      });
       self.isReplicationEnabled = ko.pureComputed(function () {
         return self.isHdfs();
       });
