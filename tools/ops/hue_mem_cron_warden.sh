@@ -39,5 +39,6 @@ MEM_MB=$(expr "$MEM" '/' 1024)
 
 
 if [ "$MEM_MB" -gt "$KILL_ME" ] ; then
-    sudo -u "$MAPR_USER" -E maprcli node services -action restart -nodes `hostname` -name hue
+    sudo -u "$MAPR_USER" -E "${HUE_HOME}/bin/hue-server" stop
+    sudo -u "$MAPR_USER" -E "${HUE_HOME}/bin/hue-server" start
 fi
