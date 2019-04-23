@@ -142,6 +142,7 @@ setup_warden_conf() {
   local curr_heapsize_max
   local curr_heapsize_percent
   local curr_runstate
+  local tmp_hue_warden_file
 
   if [ -f "$WARDEN_HUE_CONF" ]; then
     curr_heapsize_min=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY")
@@ -150,14 +151,18 @@ setup_warden_conf() {
     curr_runstate=$(conf_get_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY")
   fi
 
-  cp "$WARDEN_HUE_SRC" "$WARDEN_HUE_CONF"
+  tmp_hue_warden_file="/tmp/$(basename $WARDEN_HUE_CONF).$$"
 
-  [ -n "$curr_heapsize_min" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MIN_KEY" "$curr_heapsize_min"
-  [ -n "$curr_heapsize_max" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_MAX_KEY" "$curr_heapsize_max"
-  [ -n "$curr_heapsize_percent" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_HEAPSIZE_PERCENT_KEY" "$curr_heapsize_percent"
-  [ -n "$curr_runstate" ] && conf_set_property "$WARDEN_HUE_CONF" "$WARDEN_RUNSTATE_KEY" "$curr_runstate"
+  cp "$WARDEN_HUE_SRC" "$tmp_hue_warden_file"
 
+  [ -n "$curr_heapsize_min" ] && conf_set_property "$tmp_hue_warden_file" "$WARDEN_HEAPSIZE_MIN_KEY" "$curr_heapsize_min"
+  [ -n "$curr_heapsize_max" ] && conf_set_property "$tmp_hue_warden_file" "$WARDEN_HEAPSIZE_MAX_KEY" "$curr_heapsize_max"
+  [ -n "$curr_heapsize_percent" ] && conf_set_property "$tmp_hue_warden_file" "$WARDEN_HEAPSIZE_PERCENT_KEY" "$curr_heapsize_percent"
+  [ -n "$curr_runstate" ] && conf_set_property "$tmp_hue_warden_file" "$WARDEN_RUNSTATE_KEY" "$curr_runstate"
+
+  cp "$tmp_hue_warden_file" "$WARDEN_HUE_CONF"
   chown $MAPR_USER:$MAPR_GROUP "$WARDEN_HUE_CONF"
+  rm -f "$tmp_hue_warden_file"
 
   logInfo 'Warden conf for Hue copied.'
 }
