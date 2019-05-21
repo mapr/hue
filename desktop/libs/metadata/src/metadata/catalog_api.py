@@ -253,18 +253,20 @@ def find_entity(request):
   if not entity_type:
     raise MetadataApiException("find_entity requires a type value, e.g. - 'database', 'table', 'file'")
 
-  if entity_type.lower() == 'database':
+  if entity_type.lower() == 'database' or entity_type.lower() == 'hive_db':
     if not name:
       raise MetadataApiException('get_database requires name param')
     response['entity'] = api.get_database(name)
-  elif entity_type.lower() == 'table' or entity_type.lower() == 'view':
-    if not database or not name:
-      raise MetadataApiException('get_table requires database and name param')
+  elif entity_type.lower() == 'table' or entity_type.lower() == 'view' or entity_type.lower() == 'hive_table':
+    # TODO check back when table query string is clear for specific db
+    # if not database or not name:
+    #   raise MetadataApiException('get_table requires database and name param')
     is_view = entity_type.lower() == 'view'
     response['entity'] = api.get_table(database, name, is_view=is_view)
-  elif entity_type.lower() == 'field':
-    if not database or not table or not name:
-      raise MetadataApiException('get_field requires database, table, and name params')
+  elif entity_type.lower() == 'field' or entity_type.lower() == 'hive_column':
+    # TODO check back when column query string is clear for specific db and table
+    # if not database or not table or not name:
+    #   raise MetadataApiException('get_field requires database, table, and name params')
     response['entity'] = api.get_field(database, table, name)
   elif entity_type.lower() == 'directory':
     if not path:
@@ -300,7 +302,6 @@ def suggest(request):
   response['status'] = 0
 
   return JsonResponse(response)
-
 
 @error_handler
 def get_entity(request):

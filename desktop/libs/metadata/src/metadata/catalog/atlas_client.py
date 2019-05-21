@@ -310,58 +310,29 @@ class AtlasApi(Api):
       LOG.error(msg)
       raise CatalogApiException(e.message)
 
+  def get_database(self, name):
+    # Search with Atlas API for hive database with specific name
+    query = '+'.join(['hive_db','where', 'name=%s']) % name
+    return self._root.get('/v2/search/dsl?query=%s' % query, headers=self.__headers, params=self.__params)
 
-  def find_entity(self, source_type, type, name, **filters):
-    """
-    GET /api/v3/entities?query=((sourceType:<source_type>)AND(type:<type>)AND(originalName:<name>))
-    http://cloudera.github.io/navigator/apidocs/v3/path__v3_entities.html
-    """
-    try:
-      params = self.__params
+  def get_table(self, database_name, table_name, is_view=False):
+    # Search with Atlas API for hive tables with specific name
+    # TODO: query string for search with qualifiedName startsWith db.table
+    # qualifiedName_prefix = '%s.%s' %(database_name, table_name)
+    query = '+'.join(['hive_table','where', 'name=%s']) % table_name
+    return self._root.get('/v2/search/dsl?query=%s' % query, headers=self.__headers, params=self.__params)
 
-      query_filters = {
-        'sourceType': source_type,
-        'originalName': name,
-        'deleted': 'false'
-      }
-
-      for key, value in filters.items():
-        query_filters[key] = value
-
-      filter_query = 'AND'.join('(%s:%s)' % (key, value) for key, value in query_filters.items())
-      filter_query = '%(type)s AND %(filter_query)s' % {
-        'type': '(type:%s)' % 'TABLE OR type:VIEW' if type == 'TABLE' else type, # Impala does not always say that a table is actually a view
-        'filter_query': filter_query
-      }
-
-      source_ids = self.get_cluster_source_ids()
-      if source_ids:
-        filter_query = source_ids + '(' + filter_query + ')'
-
-      params += (
-        ('query', filter_query),
-        ('offset', 0),
-        ('limit', 2),  # We are looking for single entity, so limit to 2 to check for multiple results
-      )
-
-      response = self._root.get('entities', headers=self.__headers, params=params)
-
-      if not response:
-        raise CatalogEntityDoesNotExistException('Could not find entity with query filters: %s' % str(query_filters))
-      elif len(response) > 1:
-        raise CatalogApiException('Found more than 1 entity with query filters: %s' % str(query_filters))
-
-      return response[0]
-    except RestException, e:
-      msg = 'Failed to find entity: %s' % str(e)
-      LOG.error(msg)
-      raise CatalogApiException(e.message)
-
+  def get_field(self, database_name, table_name, field_name):
+    # Search with Atlas API for hive tables with specific name
+    # TODO: query string for search with qualifiedName startsWith sys.test5.id
+    # qualifiedName_prefix = '%s.%s.%s' %(database_name, table_name, field_name)
+    query = '+'.join(['hive_column','where', 'name=%s']) % field_name
+    return self._root.get('/v2/search/dsl?query=%s' % query, headers=self.__headers, params=self.__params)
 
   def get_entity(self, entity_id):
     """
-    GET /api/v3/entities/:id
-    http://cloudera.github.io/navigator/apidocs/v3/path__v3_entities_-id-.html
+    # TODO: check how to get entity by Atlas __guid or qualifiedName
+    GET /v2/search/dsl?query=
     """
     try:
       return self._root.get('entities/%s' % entity_id, headers=self.__headers, params=self.__params)
@@ -369,7 +340,6 @@ class AtlasApi(Api):
       msg = 'Failed to get entity %s: %s' % (entity_id, str(e))
       LOG.error(msg)
       raise CatalogApiException(e.message)
-
 
   def update_entity(self, entity, **metadata):
     """
