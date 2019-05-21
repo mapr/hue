@@ -34,6 +34,7 @@ from metadata import conf
 from metadata.conf import has_catalog, NAVIGATOR, get_navigator_auth_password, get_navigator_auth_username
 from metadata.catalog_api import _augment_highlighting
 from metadata.catalog.navigator_client import NavigatorApi
+from metadata.catalog.atlas_client import AtlasApi
 
 
 LOG = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ class TestNavigator(object):
 
   def test_api_find_entity(self):
     # Disabled as entities not showing up in time
-    raise SkipTest
+    # raise SkipTest
 
     resp = self.client.get(reverse('metadata:find_entity'), {'type': 'database', 'name': 'default'})
     json_resp = json.loads(resp.content)
@@ -210,3 +211,71 @@ class TestNavigatorAPI(object):
       conf.NAVIGATOR_AUTH_PASSWORD = None
       for _reset in resets:
         _reset()
+
+class TestAtlas(object):
+  integration = True
+
+  @classmethod
+  def setup_class(cls):
+    cls.client = make_logged_in_client(username='test', is_superuser=False)
+    cls.user = User.objects.get(username='test')
+    cls.interface = 'atlas'
+    cls.user = rewrite_user(cls.user)
+    # cls.interface = cls.request.POST.get('interface', cls.CATALOG.INTERFACE.get())
+    add_to_group('test')
+    grant_access("test", "test", "metadata")
+
+    if not is_live_cluster() or not has_catalog(cls.user):
+      raise SkipTest
+
+    cls.api = AtlasApi(cls.user)
+
+
+  @classmethod
+  def teardown_class(cls):
+    cls.user.is_superuser = False
+    cls.user.save()
+
+  def test_api_find_entity_with_type_hive_db_and_name(self, type='hive_db', name='sys'):
+    # find_entity(source_type='HIVE', type='DATABASE', name='default')
+    '''
+    # query = "hive_db+where+name=sys+select+name,__guid"
+    # query = hive_db + where + name = sys + select + qualifiedName, name, __guid
+    # query=hdfs_path+select+name,__guid+limit+1
+    {"queryType":"DSL","queryText":"hive_db where name=sys select name,__guid","attributes":{"name":["name","__guid"],"values":[["sys","16cab673-e4b1-4ee6-83cf-c0017ed855ca"]]}}
+    '''
+    expected_query = " ".join([type, "where", "name=%s"]) %name
+    resp = self.client.get(reverse('metadata:catalog_find_entity'), {'type': type, 'name': name})
+    json_resp = json.loads(resp.content)
+    LOG.info("Hue response: %s", json_resp)
+    assert_equal(0, json_resp['status'], json_resp)
+    LOG.info(json_resp['entity']['queryText'])
+    assert_equal(expected_query, json_resp['entity']['queryText'])
+
+  def test_api_find_entity_with_type_hive_table_and_name(self, type='hive_table', name='test5', database_name=""):
+    # find_entity(source_type='HIVE', type='DATABASE', name='default')
+    '''
+    # query = "hive_db+where+name=sys+select+name,__guid"
+    # query = hive_db + where + name = sys + select + qualifiedName, name, __guid
+    '''
+    expected_query = " ".join([type, "where", "name=%s"]) %name
+    resp = self.client.get(reverse('metadata:catalog_find_entity'), {'type': type, 'name': name})
+    json_resp = json.loads(resp.content)
+    LOG.info("Hue response: %s", json_resp)
+    assert_equal(0, json_resp['status'], json_resp)
+    LOG.info(json_resp['entity']['queryText'])
+    assert_equal(expected_query, json_resp['entity']['queryText'])
+
+  def test_api_find_entity_with_type_hive_column_and_name(self, type='hive_column', name='id'):
+    '''
+    # query = "hive_db+where+name=sys+select+name,__guid"
+    # query = hive_db + where + name = sys + select + qualifiedName, name, __guid
+    '''
+    expected_query = " ".join([type, "where", "name=%s"]) %name
+    resp = self.client.get(reverse('metadata:catalog_find_entity'), {'type': type, 'name': name})
+    json_resp = json.loads(resp.content)
+    LOG.info("Hue response: %s", json_resp)
+    assert_equal(0, json_resp['status'], json_resp)
+    LOG.info(json_resp['entity']['queryText'])
+    assert_equal(expected_query, json_resp['entity']['queryText'])
+
