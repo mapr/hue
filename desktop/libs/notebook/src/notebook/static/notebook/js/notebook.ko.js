@@ -1584,6 +1584,7 @@ var EditorViewModel = (function() {
         if (data.status === 0) {
           self.result.handle(data.handle);
           self.result.hasResultset(data.handle.has_result_set);
+          self.showLogs(true);
           if (data.handle.sync) {
             self.loadData(data.result, 100);
             self.status('available');
