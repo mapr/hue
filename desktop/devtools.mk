@@ -36,9 +36,7 @@ PYPI_MIRROR ?= https://pypi.python.org/simple/
 .PHONY: $(DEVTOOLS)
 $(DEVTOOLS):
 	@echo "--- Installing development tool: $@"
-	$(ENV_EASY_INSTALL) -i $(PYPI_MIRROR) \
-	   -f http://package.mapr.com/tools/desktop-sdk-python-packages/ \
-	   -H package.mapr.com  $(SETUPTOOLS_OPTS) $(subst ],,$(subst [,==,$@))
+	$(ENV_EASY_INSTALL) -i $(PYPI_MIRROR) $(SETUPTOOLS_OPTS) $(subst ],,$(subst [,==,$@))
 
 $(BLD_DIR):
 	@mkdir -p $@
