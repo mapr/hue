@@ -93,6 +93,7 @@ class QueryHistory(models.Model):
 
   class Meta(object):
     ordering = ['-submission_date']
+    app_label = 'beeswax'
 
   @staticmethod
   def build(*args, **kwargs):
@@ -234,6 +235,7 @@ class HiveServerQueryHistory(QueryHistory):
 
   class Meta(object):
     proxy = True
+    app_label = 'beeswax'
 
   def get_handle(self):
     secret, guid = HiveServerQueryHandle.get_decoded(self.server_id, self.server_guid)
@@ -284,6 +286,7 @@ class SavedQuery(models.Model):
 
   class Meta(object):
     ordering = ['-mtime']
+    app_label = 'beeswax'
 
   def get_design(self):
     try:
@@ -437,6 +440,9 @@ class Session(models.Model):
   def __str__(self):
     return '%s %s' % (self.owner, self.last_used)
 
+  class Meta:
+    app_label = 'beeswax'
+
 
 class QueryHandle(object):
   def __init__(self, secret=None, guid=None, operation_type=None, has_result_set=None, modified_row_count=None, log_context=None, session_guid=None):
@@ -533,3 +539,6 @@ class MetaInstall(models.Model):
       return MetaInstall.objects.get(id=1)
     except MetaInstall.DoesNotExist:
       return MetaInstall(id=1)
+
+  class Meta:
+    app_label = 'beeswax'
