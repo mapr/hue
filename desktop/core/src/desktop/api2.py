@@ -149,7 +149,7 @@ def get_context_computes(request, interface):
       } for cluster in clusters if cluster.get('type') == 'direct'
     ])
 
-  if interface == 'impala' or interface == 'report':
+  if interface == 'report':
     if IS_K8_ONLY.get():
       dw_clusters = DataWarehouse2Api(request.user).list_clusters()['clusters']
     else:

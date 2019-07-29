@@ -213,22 +213,20 @@ var ContextCatalog = (function () {
       var deferred = $.Deferred();
       self.computePromises[options.sourceType] = deferred.promise();
 
-      if (options.sourceType !== 'impala') {
-        ApiHelper.getInstance().fetchContextComputes(options).done(function (computes) {
-          if (computes[options.sourceType]) {
-            var computes = computes[options.sourceType];
-            if (computes) {
-              self.computes[options.sourceType] = computes;
-              deferred.resolve(self.computes[options.sourceType])
-              // TODO: save
-            } else {
-              deferred.reject();
-            }
+      ApiHelper.getInstance().fetchContextComputes(options).done(function (computes) {
+        if (computes[options.sourceType]) {
+          var computes = computes[options.sourceType];
+          if (computes) {
+            self.computes[options.sourceType] = computes;
+            deferred.resolve(self.computes[options.sourceType])
+            // TODO: save
           } else {
             deferred.reject();
           }
-        });
-      }
+        } else {
+          deferred.reject();
+        }
+      });
 
       return self.computePromises[options.sourceType];
     };
