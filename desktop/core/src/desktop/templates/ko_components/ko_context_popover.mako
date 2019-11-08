@@ -691,7 +691,7 @@ from metadata.conf import has_navigator
       DataCatalogContext.prototype.openInTableBrowser = function () {
         var self = this;
         huePubSub.publish('open.link', '/metastore/table' + (self.catalogEntry().isTableOrView() ? '/' : 's/') + self.catalogEntry().path.join('/')
-                + '?source=' + self.catalogEntry().getSourceType() + '&namespace=' + self.catalogEntry().namespace.id);
+                + '?source_type=' + self.catalogEntry().getSourceType() + '&namespace=' + self.catalogEntry().namespace.id);
         huePubSub.publish('context.popover.hide');
         huePubSub.publish('global.search.close');
       };

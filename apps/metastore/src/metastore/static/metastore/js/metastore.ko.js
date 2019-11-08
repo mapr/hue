@@ -148,7 +148,7 @@ var MetastoreViewModel = (function () {
       }
       if (self.source() && self.source().namespace()) {
         var params = {
-          source: self.source().type
+          source_type: self.source().type
         };
         if (window.HAS_MULTI_CLUSTER) {
           params.namespace = self.source().namespace().id
@@ -280,8 +280,8 @@ var MetastoreViewModel = (function () {
           if (param.indexOf('namespace=') === 0) {
             namespaceId = param.replace('namespace=', '');
           }
-          if (param.indexOf('source=') === 0) {
-            sourceType = param.replace('source=', '');
+          if (param.indexOf('source_type=') === 0) {
+            sourceType = param.replace('source_type=', '');
           }
         });
       }

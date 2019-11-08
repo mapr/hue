@@ -395,7 +395,7 @@ var ApiHelper = (function () {
       }
 
       if (options && options.errorCallback) {
-        options.errorCallback(errorMessage);
+        options.errorCallback(errorMessage, errorResponse);
       }
       return errorMessage;
     };
@@ -1355,7 +1355,7 @@ var ApiHelper = (function () {
       source_type: options.sourceType
     };
     if (options.path.length === 1) {
-      url = '/metastore/databases/' + options.path[1] + '/alter';
+      url = '/metastore/databases/' + options.path[0] + '/alter';
       data.properties = ko.mapping.toJSON(options.properties);
     } else if (options.path.length === 2) {
       url = '/metastore/table/' + options.path[0] + '/' + options.path[1] + '/alter';
@@ -1395,6 +1395,7 @@ var ApiHelper = (function () {
    * @param {boolean} [options.silenceErrors]
    *
    * @param {ContextCompute} options.compute
+   * @param {string} options.sourceType
    * @param {string[]} options.path
    *
    * @return {CancellablePromise}
@@ -1421,12 +1422,12 @@ var ApiHelper = (function () {
 
     var data = {
       format: 'json',
-      cluster: JSON.stringify(options.compute)
-      //'source_type': options.sourceType // TODO: Blows up server-side with 'impala'
+      cluster: JSON.stringify(options.compute),
+      source_type: options.sourceType
     };
 
-    var request = self[options.path.length === 1 ? 'simplePost' : 'simpleGet'](url, data, {
-      silenceErrors: options.silenceErrors,
+    var request = self[options.path.length < 3 ? 'simplePost' : 'simpleGet'](url, data, {
+      silenceErrors: true,  // Error message would be handled in errorCallback because of workaround for MHUE-302
       successCallback: function (response) {
         if (options.path.length === 1) {
           if (response.data) {
@@ -1439,7 +1440,24 @@ var ApiHelper = (function () {
           deferred.resolve(response)
         }
       },
-      errorCallback: deferred.reject
+      errorCallback: function(errorMessage, errorResponse) {
+        /*
+         * MHUE-302 Prettify "Page not found" error message for requests like "/drill/api/table/<database>/<table>"
+         */
+
+        if (errorMessage.indexOf('Page not found') != -1) {
+          errorMessage = 'Unable to fetch table stats, as this operation is not supported in Hue for a current data source.';
+        }
+
+        if (!options || !options.silenceErrors) {
+          hueUtils.logError(errorResponse);
+          if (errorMessage && errorMessage.indexOf('AuthorizationException') === -1) {
+            $(document).trigger("error", errorMessage);
+          }
+        }
+
+        return deferred.reject(errorMessage);
+      }
     });
 
     return new CancellablePromise(deferred, request);
