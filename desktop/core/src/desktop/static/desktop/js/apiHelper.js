@@ -1445,7 +1445,7 @@ var ApiHelper = (function () {
          * MHUE-302 Prettify "Page not found" error message for requests like "/drill/api/table/<database>/<table>"
          */
 
-        if (errorMessage.indexOf('Page not found') != -1) {
+        if (errorResponse.status == 404) {
           errorMessage = 'Unable to fetch table stats, as this operation is not supported in Hue for a current data source.';
         }
 
