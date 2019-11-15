@@ -309,7 +309,7 @@ def connect_to_thrift(conf):
   if conf.transport_mode == 'http':
     if conf.use_sasl and conf.mechanism in ('GSSAPI', ):
       mode.set_kerberos_auth()
-    if conf.use_sasl and conf.mechanism in ('MAPR-SECURITY',):
+    elif conf.use_sasl and conf.mechanism in ('MAPR-SECURITY',):
       mode.set_mapr_auth()
     else:
       mode.set_basic_auth(conf.username, conf.password)
