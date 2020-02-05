@@ -80,7 +80,39 @@ def patch_desktop_conf():
 @synchronized
 @run_once
 def patch_lib_conf():
-  pass
+  #
+  # hadoop.conf
+  #
+  from hadoop import conf as hadoop_conf
+
+  # hadoop.hdfs_clusters
+  hadoop_conf.HDFS_CLUSTERS.each.members['FS_DEFAULTFS'].default_value = 'maprfs:///'
+  hadoop_conf.HDFS_CLUSTERS.each.members['WEBHDFS_URL'].default_value = 'http://localhost:14000/webhdfs/v1'
+  hadoop_conf.HDFS_CLUSTERS.each.members['SECURITY_ENABLED'].help = "Is running with Kerberos or MapR-Securtity authentication."
+
+  hadoop_conf.HDFS_CLUSTERS.each.update_members({
+    'MECHANISM': conf_lib.Config(
+      key='mechanism',
+      help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+      default='none',
+    ),
+    'MUTUAL_SSL_AUTH': conf_lib.Config(
+      key='mutual_ssl_auth',
+      help="Enable mutual SSL authentication",
+      type=conf_lib.coerce_bool,
+      default=False,
+    ),
+    'SSL_CERT': conf_lib.Config(
+      key='ssl_cert',
+      help="Certificate for SSL connection",
+      default='keys/cert.pem',
+    ),
+    'SSL_KEY': conf_lib.Config(
+      key='ssl_key',
+      help="Private key for SSL connection",
+      default='keys/hue_private_keystore.pem',
+    ),
+  })
 
 @synchronized
 @run_once
