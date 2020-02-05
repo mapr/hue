@@ -38,6 +38,9 @@ if sys.version_info[0] > 2:
 else:
   open_file = file
 
+# MAPR IMPORTS
+from desktop.mapr import utils as mapr_utils
+
 LOG = logging.getLogger(__name__)
 
 _HIVE_SITE_PATH = None                  # Path to hive-site.xml
@@ -100,11 +103,11 @@ def get_metastore():
   """
   global _METASTORE_LOC_CACHE
   if not _METASTORE_LOC_CACHE:
-    thrift_uris = get_conf().get(_CNF_METASTORE_URIS)
+    thrift_uris = get_conf().get(_CNF_METASTORE_URIS, "thrift://localhost:9083")
     is_local = thrift_uris is None or thrift_uris == ''
 
     if not is_local:
-      use_sasl = str(get_conf().get(_CNF_METASTORE_SASL, 'false')).lower() == 'true'
+      use_sasl = mapr_utils.get_hive_mechanism() in ('KERBEROS', 'NONE', 'LDAP', 'PAM', 'MAPRSASL')
       thrift_uri = thrift_uris.split(",")[0] # First URI
       host = socket.getfqdn()
       match = _THRIFT_URI_RE.match(thrift_uri)
@@ -173,6 +176,9 @@ def hiveserver2_jdbc_url():
   if is_transport_mode_http:
     urlbase += ';transportMode=http'
     urlbase += ';httpPath=%s' % hiveserver2_thrift_http_path()
+
+  if mapr_utils.get_hive_mechanism() == 'MAPRSASL':
+    urlbase += ';auth=%s' % 'maprsasl'
 
   return urlbase
 

@@ -44,6 +44,9 @@ if sys.version_info[0] > 2:
 else:
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from desktop.mapr import utils as mapr_utils
+
 
 LOG = logging.getLogger(__name__)
 IMPALA_RESULTSET_CACHE_SIZE = 'impala.resultset.cache.size'
@@ -545,6 +548,7 @@ class HiveServerClient(object):
       'KERBEROS': 'GSSAPI',
       'NONE': 'PLAIN',
       'NOSASL': 'NOSASL',
+      'MAPRSASL': 'MAPR-SECURITY',
       'LDAP': 'PLAIN',
       'PAM': 'PLAIN',
       'CUSTOM': 'PLAIN',
@@ -648,7 +652,7 @@ class HiveServerClient(object):
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      hive_mechanism = hive_site.get_hiveserver2_authentication()
+      hive_mechanism = mapr_utils.get_hive_mechanism()
       if hive_mechanism not in HiveServerClient.HS2_MECHANISMS:
         raise Exception(
           _('%s server authentication not supported. Valid are %s.') % (hive_mechanism, list(HiveServerClient.HS2_MECHANISMS.keys()))
