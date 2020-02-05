@@ -126,4 +126,13 @@ def patch_lib_conf():
 @synchronized
 @run_once
 def patch_app_conf():
-  pass
+  #
+  # beeswax.conf
+  #
+  from beeswax import conf as beeswax_conf
+
+  beeswax_conf.MECHANISM = conf_lib.Config(
+    key='mechanism',
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+    default='none',
+  )
