@@ -503,6 +503,7 @@ class HiveServerClient(object):
       'KERBEROS': 'GSSAPI',
       'NONE': 'PLAIN',
       'NOSASL': 'NOSASL',
+      'MAPRSASL': 'MAPR-SECURITY',
       'LDAP': 'PLAIN',
       'PAM': 'PLAIN',
       'CUSTOM': 'PLAIN',
@@ -601,7 +602,7 @@ class HiveServerClient(object):
         mechanism = HiveServerClient.HS2_MECHANISMS['KERBEROS']
       impersonation_enabled = self.query_server['impersonation_enabled']
     else:
-      hive_mechanism = hive_site.get_hiveserver2_authentication()
+      hive_mechanism = beeswax_conf.HIVE_MECHANISM.get()
       if hive_mechanism not in HiveServerClient.HS2_MECHANISMS:
         raise Exception(_('%s server authentication not supported. Valid are %s.') % (hive_mechanism, list(HiveServerClient.HS2_MECHANISMS.keys())))
       mechanism = HiveServerClient.HS2_MECHANISMS[hive_mechanism]
