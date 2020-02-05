@@ -202,7 +202,7 @@ INSTALL_CORE_FILES = \
 	VERS* LICENSE* README*
 
 .PHONY: install
-install: virtual-env install-check install-core-structure install-desktop install-apps install-env
+install: virtual-env install-core-structure install-desktop install-apps install-env
 
 .PHONY: install-check
 install-check:
