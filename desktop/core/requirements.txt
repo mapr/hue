@@ -6,3 +6,4 @@ lxml==4.9.1
 
 # ADDED BY MAPR
 mysql-connector-python==8.0.33
+pure-sasl==0.6.2
