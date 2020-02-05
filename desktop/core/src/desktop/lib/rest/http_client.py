@@ -33,6 +33,9 @@ from urllib3.contrib import pyopenssl
 
 from desktop import conf
 
+from desktop.lib.maprsasl import HttpMaprAuth
+
+
 if sys.version_info[0] > 2:
   import urllib.request, urllib.error
   from urllib.parse import quote as urllib_quote, urlparse as lib_urlparse
@@ -143,6 +146,10 @@ class HttpClient(object):
 
   def set_digest_auth(self, username, password):
     self._session.auth = HTTPDigestAuth(username, password)
+    return self
+
+  def set_mapr_auth(self):
+    self._session.auth = HttpMaprAuth()
     return self
 
   def set_bearer_auth(self, token):

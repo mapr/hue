@@ -51,6 +51,8 @@ from desktop.lib.thrift_.TSSLSocketWithWildcardSAN import TSSLSocketWithWildcard
 from desktop.lib.thrift_sasl import TSaslClientTransport
 from desktop.lib.exceptions import StructuredException, StructuredThriftTransportException
 
+import maprsasl
+
 if sys.version_info[0] > 2:
   from past.builtins import long
 
@@ -315,14 +317,19 @@ def connect_to_thrift(conf):
     mode.setTimeout(conf.timeout_seconds * 1000.0)
 
   if conf.transport_mode == 'http':
-    if conf.use_sasl and conf.mechanism != 'PLAIN':
+    if conf.use_sasl and conf.mechanism in ('GSSAPI', ):
       mode.set_kerberos_auth(service=conf.kerberos_principal)
+    elif conf.use_sasl and conf.mechanism in ('MAPR-SECURITY',):
+      mode.set_mapr_auth()
     else:
       mode.set_basic_auth(conf.username, conf.password)
 
   if conf.transport_mode == 'socket' and conf.use_sasl:
     def sasl_factory():
-      saslc = sasl.Client()
+      if conf.mechanism in ('MAPR-SECURITY', ):
+        saslc = maprsasl.MaprSasl()
+      else:
+        saslc = sasl.Client()
       saslc.setAttr("host", str(conf.host))
       saslc.setAttr("service", str(conf.kerberos_principal))
       if conf.mechanism == 'PLAIN':
