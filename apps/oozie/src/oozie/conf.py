@@ -56,7 +56,7 @@ LOCAL_SAMPLE_DATA_DIR = Config(
 
 REMOTE_SAMPLE_DIR = Config(
   key="remote_data_dir",
-  default="/user/hue/oozie/workspaces",
+  default="/oozie/workspaces",
   help=_t("Location on HDFS where the Oozie workflows are stored. Parameters are $TIME and $USER, e.g. /user/$USER/hue/workspaces/workflow-$TIME")
 )
 
@@ -88,7 +88,7 @@ ENABLE_CRON_SCHEDULING = Config( # Until Hue 3.8
 
 ENABLE_OOZIE_BACKEND_FILTERING = Config(
   key='enable_oozie_backend_filtering',
-  default=True,
+  default=False,
   type=coerce_bool,
   help=_t('Flag to enable Oozie backend filtering instead of doing it at the page level in Javascript. Requires Oozie 4.3+.')
 )
