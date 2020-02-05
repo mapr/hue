@@ -114,6 +114,15 @@ def patch_lib_conf():
     ),
   })
 
+  # hadoop.yarn_clusters
+  hadoop_conf.YARN_CLUSTERS.each.update_members({
+    'MECHANISM': conf_lib.Config(
+      key='mechanism',
+      help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+      default='none',
+    ),
+  })
+
 @synchronized
 @run_once
 def patch_app_conf():
