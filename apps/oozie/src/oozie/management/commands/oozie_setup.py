@@ -119,7 +119,7 @@ class Command(BaseCommand):
       doc2 = Document2.objects.get(owner=self.user, name=name, type='query-mapreduce', is_history=False)
     else:
       snippet_properties = {
-        'app_jar': '/user/hue/oozie/workspaces/lib/hadoop-examples.jar',
+        'app_jar': '/oozie/workspaces/lib/hadoop-examples.jar',
         'hadoopProperties': ['mapred.mapper.class=org.apache.hadoop.examples.SleepJob',
           'mapred.reducer.class=org.apache.hadoop.examples.SleepJob',
           'mapred.mapoutput.key.class=org.apache.hadoop.io.IntWritable',
@@ -174,7 +174,7 @@ class Command(BaseCommand):
       doc2 = Document2.objects.get(owner=self.user, name=name, type='query-java', is_history=False)
     else:
       snippet_properties = {
-        'app_jar': '/user/hue/oozie/workspaces/lib/hadoop-examples.jar',
+        'app_jar': '/oozie/workspaces/lib/hadoop-examples.jar',
         'class': 'org.apache.hadoop.examples.terasort.TeraGen',
         'java_opts': '',
         'hadoopProperties': [],
@@ -226,12 +226,12 @@ class Command(BaseCommand):
       doc2 = Document2.objects.get(owner=self.user, name=name, type='query-spark2', is_history=False)
     else:
       snippet_properties = {
-        'jars': ['/user/hue/oozie/workspaces/workflows/spark-scala/lib/oozie-examples.jar'],
+        'jars': ['/oozie/workspaces/workflows/spark-scala/lib/oozie-examples.jar'],
         'class': 'org.apache.oozie.example.SparkFileCopy',
         'app_name': '',
         'spark_opts': [],
         'spark_arguments': [
-          "/user/hue/oozie/workspaces/data/sonnets.txt",
+          "/oozie/workspaces/data/sonnets.txt",
           "sonnets"
         ],
         'files': []
@@ -280,7 +280,7 @@ class Command(BaseCommand):
       doc2 = Document2.objects.get(owner=self.user, name=name, type='query-spark2', is_history=False)
     else:
       snippet_properties = {
-        'jars': ['/user/hue/oozie/workspaces/lib/pi.py'],
+        'jars': ['/oozie/workspaces/lib/pi.py'],
         'class': '',
         'app_name': '',
         'spark_opts': [],
