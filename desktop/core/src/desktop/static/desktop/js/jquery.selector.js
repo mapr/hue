@@ -52,6 +52,7 @@
       selectorContainer.width(this.options.width);
     }
     $(_this.element).hide();
+    var readonly = $(_this.element).attr('readonly');
     $(_this.element).find("option").each(function (cnt, opt) {
       var initial = $(opt).text().substr(0, 1).toLowerCase();
       if (addressBook[initial] == null) {
@@ -96,6 +97,10 @@
           if (opt.is(":selected")) {
             chk.attr("checked", "checked");
           }
+          if (readonly) {
+            lbl.addClass('jHueSelectorReadonly');
+            chk.click(function() { return false });
+          }
           lbl.appendTo(li);
           li.appendTo(ul);
         });
@@ -109,7 +114,7 @@
 
       if (this.options.showSelectAll) {
         selectAll.text(this.options.selectAllLabel);
-        $("<input>").attr("type", "checkbox").change(function () {
+        var chk = $("<input>").attr("type", "checkbox").change(function () {
           var isChecked = $(this).is(":checked");
           selectorContainer.find("input.selector:visible").each(function () {
             if (isChecked) {
@@ -126,6 +131,10 @@
           }
           _this.options.onChange();
         }).prependTo(selectAll);
+        if (readonly) {
+          selectAll.addClass('jHueSelectorReadonly');
+          chk.click(function() { return false });
+        }
       }
 
       selectAll.appendTo(header);
