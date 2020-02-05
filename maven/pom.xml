@@ -116,6 +116,10 @@
 
   <repositories>
     <repository>
+      <id>mapr-public</id>
+      <url>http://repository.mapr.com/maven/</url>
+    </repository>
+    <repository>
       <id>cdh.releases.repo</id>
       <url>https://repository.cloudera.com/content/groups/cdh-releases-rcs</url>
       <name>Cloudera Public Repositories</name>
