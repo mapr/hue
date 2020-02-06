@@ -136,3 +136,14 @@ def patch_app_conf():
     help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
     default='none',
   )
+
+  #
+  # spark.conf
+  #
+  from spark import conf as spark_conf
+
+  spark_conf.MECHANISM = conf_lib.Config(
+    key='mechanism',
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+    default='none',
+  )
