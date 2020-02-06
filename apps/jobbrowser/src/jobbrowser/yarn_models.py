@@ -45,6 +45,9 @@ if sys.version_info[0] > 2:
 else:
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from hadoop.yarn.resource_manager_api import get_resource_manager
+
 LOG = logging.getLogger(__name__)
 
 
@@ -594,7 +597,13 @@ class Attempt(object):
 
         # Replace log path tokens with actual attempt properties if available
         if hasattr(self, 'nodeHttpAddress') and 'nodeId' in attempt:
-          node_url = '%s:%s' % (self.nodeHttpAddress.split(':')[0], attempt['nodeId'].split(':')[1])
+          task_node = self.nodeHttpAddress.split(':')[0]
+          job_node = attempt['nodeId'].split(':')[0]
+          if task_node != job_node:
+            rm_api = get_resource_manager(self.task.job.api.username)
+            nodes = rm_api.nodes(healthy=True)['nodes']['node']
+            node = next(node for node in nodes if node['nodeHostName'] == task_node)
+            node_url = node['id']
         container_id = self.assignedContainerId if hasattr(self, 'assignedContainerId') else container_id
         attempt_id = self.attemptId if hasattr(self, 'attemptId') else attempt_id
 
