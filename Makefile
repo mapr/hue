@@ -167,6 +167,7 @@ INSTALL_CORE_FILES = \
 	tools/virtual-bootstrap \
 	tools/enable-python27.sh \
 	tools/relocatable.sh \
+	tools/ops \
 	VERS* LICENSE* README* NOTICE* webpack-stats*.json \
 	bin \
 	desktop/conf.dist
