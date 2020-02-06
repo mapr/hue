@@ -58,6 +58,11 @@ SECURITY_ENABLED = Config(
   default=False,
   type=coerce_bool)
 
+MECHANISM = Config(
+  key="mechanism",
+  help=_t("Security mechanism of authentication none/GSSAPI/MAPR-SECURITY."),
+  default="none")
+
 CSRF_ENABLED = Config(
   key="csrf_enabled",
   help=_t("Whether Livy requres client to have CSRF enabled."),

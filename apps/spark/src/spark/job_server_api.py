@@ -25,6 +25,7 @@ from desktop.lib.rest.http_client import HttpClient
 from desktop.lib.rest.resource import Resource
 
 from spark.conf import get_livy_server_url, SECURITY_ENABLED, SSL_CERT_CA_VERIFY, CSRF_ENABLED
+from spark.conf import MECHANISM
 
 
 LOG = logging.getLogger(__name__)
@@ -59,11 +60,14 @@ class JobServerApi(object):
     self._client = HttpClient(self._url, logger=LOG)
     self._root = Resource(self._client)
     self._security_enabled = SECURITY_ENABLED.get()
+    self._mechanism = MECHANISM.get()
     self._csrf_enabled = CSRF_ENABLED.get()
     self._thread_local = threading.local()
 
-    if self.security_enabled:
+    if self.security_enabled and self._mechanism == 'GSSAPI':
       self._client.set_kerberos_auth()
+    if self.security_enabled and self._mechanism == 'MAPR-SECURITY':
+      self._client.set_mapr_auth()
 
     if self.csrf_enabled:
       self._client.set_headers({'X-Requested-By' : 'hue'})
