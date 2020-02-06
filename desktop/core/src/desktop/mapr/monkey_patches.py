@@ -147,3 +147,14 @@ def patch_app_conf():
     help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
     default='none',
   )
+
+  #
+  # hbase.conf
+  #
+  from hbase import conf as hbase_conf
+
+  hbase_conf.MECHANISM = conf_lib.Config(
+    key='mechanism',
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+    default='none',
+  )

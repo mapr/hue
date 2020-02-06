@@ -104,6 +104,7 @@ class HbaseApi(object):
         service_name="Hue HBase Thrift Client for %s" % name,
         kerberos_principal=_security['kerberos_principal_short_name'],
         use_sasl=_security['use_sasl'],
+        mechanism=_security['mechanism'],
         timeout_seconds=30,
         transport=get_thrift_transport(),
         transport_mode='http' if is_using_thrift_http() else 'socket',
@@ -120,14 +121,16 @@ class HbaseApi(object):
       kerberos_principal_short_name = principal.split('/', 1)[0]
     else:
       kerberos_principal_short_name = None
-    use_sasl = get_server_authentication() == 'KERBEROS'
+    mechanism = conf.MECHANISM.get().upper()
+    use_sasl = mechanism in ('GSSAPI', 'MAPR-SECURITY', )
 
-    if use_sasl and kerberos_principal_short_name is None:
+    if mechanism == 'GSSAPI' and kerberos_principal_short_name is None:
       raise PopupException(_("The kerberos principal name is missing from the hbase-site.xml configuration file."))
 
     return {
         'kerberos_principal_short_name': kerberos_principal_short_name,
         'use_sasl': use_sasl,
+        'mechanism': mechanism,
     }
 
   def get(self, cluster, tableName, row, column, attributes):
