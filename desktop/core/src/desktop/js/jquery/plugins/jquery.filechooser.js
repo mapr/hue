@@ -668,7 +668,7 @@ Plugin.prototype.navigateTo = function (path) {
         _createFolderBtn.appendTo(_actions);
         _showActions = true;
         const _createFolderDetails = $('<form>')
-          .css({ 'margin-top': '10px', position: 'fixed' })
+          .css({ 'margin-top': '10px'})
           .addClass('form-inline');
         _createFolderDetails.hide();
         const _folderName = $('<input>')
