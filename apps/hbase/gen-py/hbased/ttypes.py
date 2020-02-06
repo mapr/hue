@@ -6,8 +6,6 @@
 #  options string: py:new_style
 #
 
-from builtins import range
-from builtins import object
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
 
 from thrift.transport import TTransport
@@ -93,7 +91,7 @@ class TCell(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -130,7 +128,7 @@ class ColumnDescriptor(object):
     (6, TType.I32, 'bloomFilterVectorSize', None, 0, ), # 6
     (7, TType.I32, 'bloomFilterNbHashes', None, 0, ), # 7
     (8, TType.BOOL, 'blockCacheEnabled', None, False, ), # 8
-    (9, TType.I32, 'timeToLive', None, -1, ), # 9
+    (9, TType.I32, 'timeToLive', None, 2147483647, ), # 9
   )
 
   def __init__(self, name=None, maxVersions=thrift_spec[2][4], compression=thrift_spec[3][4], inMemory=thrift_spec[4][4], bloomFilterType=thrift_spec[5][4], bloomFilterVectorSize=thrift_spec[6][4], bloomFilterNbHashes=thrift_spec[7][4], blockCacheEnabled=thrift_spec[8][4], timeToLive=thrift_spec[9][4],):
@@ -266,7 +264,7 @@ class ColumnDescriptor(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -411,7 +409,7 @@ class TRegionInfo(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -517,7 +515,7 @@ class Mutation(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -563,7 +561,7 @@ class BatchMutation(object):
         if ftype == TType.LIST:
           self.mutations = []
           (_etype3, _size0) = iprot.readListBegin()
-          for _i4 in range(_size0):
+          for _i4 in xrange(_size0):
             _elem5 = Mutation()
             _elem5.read(iprot)
             self.mutations.append(_elem5)
@@ -606,7 +604,7 @@ class BatchMutation(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -713,7 +711,88 @@ class TIncrement(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class TColumn(object):
+  """
+  Holds column name and the cell.
+
+  Attributes:
+   - columnName
+   - cell
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'columnName', None, None, ), # 1
+    (2, TType.STRUCT, 'cell', (TCell, TCell.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, columnName=None, cell=None,):
+    self.columnName = columnName
+    self.cell = cell
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.columnName = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.cell = TCell()
+          self.cell.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('TColumn')
+    if self.columnName is not None:
+      oprot.writeFieldBegin('columnName', TType.STRING, 1)
+      oprot.writeString(self.columnName)
+      oprot.writeFieldEnd()
+    if self.cell is not None:
+      oprot.writeFieldBegin('cell', TType.STRUCT, 2)
+      self.cell.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.columnName)
+    value = (value * 31) ^ hash(self.cell)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -729,17 +808,20 @@ class TRowResult(object):
   Attributes:
    - row
    - columns
+   - sortedColumns
   """
 
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'row', None, None, ), # 1
     (2, TType.MAP, 'columns', (TType.STRING,None,TType.STRUCT,(TCell, TCell.thrift_spec)), None, ), # 2
+    (3, TType.LIST, 'sortedColumns', (TType.STRUCT,(TColumn, TColumn.thrift_spec)), None, ), # 3
   )
 
-  def __init__(self, row=None, columns=None,):
+  def __init__(self, row=None, columns=None, sortedColumns=None,):
     self.row = row
     self.columns = columns
+    self.sortedColumns = sortedColumns
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -759,12 +841,23 @@ class TRowResult(object):
         if ftype == TType.MAP:
           self.columns = {}
           (_ktype8, _vtype9, _size7 ) = iprot.readMapBegin()
-          for _i11 in range(_size7):
+          for _i11 in xrange(_size7):
             _key12 = iprot.readString()
             _val13 = TCell()
             _val13.read(iprot)
             self.columns[_key12] = _val13
           iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.sortedColumns = []
+          (_etype17, _size14) = iprot.readListBegin()
+          for _i18 in xrange(_size14):
+            _elem19 = TColumn()
+            _elem19.read(iprot)
+            self.sortedColumns.append(_elem19)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -784,10 +877,17 @@ class TRowResult(object):
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.MAP, 2)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.columns))
-      for kiter14,viter15 in list(self.columns.items()):
-        oprot.writeString(kiter14)
-        viter15.write(oprot)
+      for kiter20,viter21 in self.columns.items():
+        oprot.writeString(kiter20)
+        viter21.write(oprot)
       oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.sortedColumns is not None:
+      oprot.writeFieldBegin('sortedColumns', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRUCT, len(self.sortedColumns))
+      for iter22 in self.sortedColumns:
+        iter22.write(oprot)
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -800,11 +900,12 @@ class TRowResult(object):
     value = 17
     value = (value * 31) ^ hash(self.row)
     value = (value * 31) ^ hash(self.columns)
+    value = (value * 31) ^ hash(self.sortedColumns)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -825,6 +926,8 @@ class TScan(object):
    - caching
    - filterString
    - batchSize
+   - sortColumns
+   - reversed
   """
 
   thrift_spec = (
@@ -836,9 +939,11 @@ class TScan(object):
     (5, TType.I32, 'caching', None, None, ), # 5
     (6, TType.STRING, 'filterString', None, None, ), # 6
     (7, TType.I32, 'batchSize', None, None, ), # 7
+    (8, TType.BOOL, 'sortColumns', None, None, ), # 8
+    (9, TType.BOOL, 'reversed', None, None, ), # 9
   )
 
-  def __init__(self, startRow=None, stopRow=None, timestamp=None, columns=None, caching=None, filterString=None, batchSize=None,):
+  def __init__(self, startRow=None, stopRow=None, timestamp=None, columns=None, caching=None, filterString=None, batchSize=None, sortColumns=None, reversed=None,):
     self.startRow = startRow
     self.stopRow = stopRow
     self.timestamp = timestamp
@@ -846,6 +951,8 @@ class TScan(object):
     self.caching = caching
     self.filterString = filterString
     self.batchSize = batchSize
+    self.sortColumns = sortColumns
+    self.reversed = reversed
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -874,10 +981,10 @@ class TScan(object):
       elif fid == 4:
         if ftype == TType.LIST:
           self.columns = []
-          (_etype19, _size16) = iprot.readListBegin()
-          for _i20 in range(_size16):
-            _elem21 = iprot.readString()
-            self.columns.append(_elem21)
+          (_etype26, _size23) = iprot.readListBegin()
+          for _i27 in xrange(_size23):
+            _elem28 = iprot.readString()
+            self.columns.append(_elem28)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -894,6 +1001,16 @@ class TScan(object):
       elif fid == 7:
         if ftype == TType.I32:
           self.batchSize = iprot.readI32()
+        else:
+          iprot.skip(ftype)
+      elif fid == 8:
+        if ftype == TType.BOOL:
+          self.sortColumns = iprot.readBool()
+        else:
+          iprot.skip(ftype)
+      elif fid == 9:
+        if ftype == TType.BOOL:
+          self.reversed = iprot.readBool()
         else:
           iprot.skip(ftype)
       else:
@@ -921,8 +1038,8 @@ class TScan(object):
     if self.columns is not None:
       oprot.writeFieldBegin('columns', TType.LIST, 4)
       oprot.writeListBegin(TType.STRING, len(self.columns))
-      for iter22 in self.columns:
-        oprot.writeString(iter22)
+      for iter29 in self.columns:
+        oprot.writeString(iter29)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.caching is not None:
@@ -936,6 +1053,14 @@ class TScan(object):
     if self.batchSize is not None:
       oprot.writeFieldBegin('batchSize', TType.I32, 7)
       oprot.writeI32(self.batchSize)
+      oprot.writeFieldEnd()
+    if self.sortColumns is not None:
+      oprot.writeFieldBegin('sortColumns', TType.BOOL, 8)
+      oprot.writeBool(self.sortColumns)
+      oprot.writeFieldEnd()
+    if self.reversed is not None:
+      oprot.writeFieldBegin('reversed', TType.BOOL, 9)
+      oprot.writeBool(self.reversed)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -953,11 +1078,135 @@ class TScan(object):
     value = (value * 31) ^ hash(self.caching)
     value = (value * 31) ^ hash(self.filterString)
     value = (value * 31) ^ hash(self.batchSize)
+    value = (value * 31) ^ hash(self.sortColumns)
+    value = (value * 31) ^ hash(self.reversed)
     return value
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class TAppend(object):
+  """
+  An Append object is used to specify the parameters for performing the append operation.
+
+  Attributes:
+   - table
+   - row
+   - columns
+   - values
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'table', None, None, ), # 1
+    (2, TType.STRING, 'row', None, None, ), # 2
+    (3, TType.LIST, 'columns', (TType.STRING,None), None, ), # 3
+    (4, TType.LIST, 'values', (TType.STRING,None), None, ), # 4
+  )
+
+  def __init__(self, table=None, row=None, columns=None, values=None,):
+    self.table = table
+    self.row = row
+    self.columns = columns
+    self.values = values
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.table = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.row = iprot.readString()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.columns = []
+          (_etype33, _size30) = iprot.readListBegin()
+          for _i34 in xrange(_size30):
+            _elem35 = iprot.readString()
+            self.columns.append(_elem35)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.LIST:
+          self.values = []
+          (_etype39, _size36) = iprot.readListBegin()
+          for _i40 in xrange(_size36):
+            _elem41 = iprot.readString()
+            self.values.append(_elem41)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('TAppend')
+    if self.table is not None:
+      oprot.writeFieldBegin('table', TType.STRING, 1)
+      oprot.writeString(self.table)
+      oprot.writeFieldEnd()
+    if self.row is not None:
+      oprot.writeFieldBegin('row', TType.STRING, 2)
+      oprot.writeString(self.row)
+      oprot.writeFieldEnd()
+    if self.columns is not None:
+      oprot.writeFieldBegin('columns', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRING, len(self.columns))
+      for iter42 in self.columns:
+        oprot.writeString(iter42)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.values is not None:
+      oprot.writeFieldBegin('values', TType.LIST, 4)
+      oprot.writeListBegin(TType.STRING, len(self.values))
+      for iter43 in self.values:
+        oprot.writeString(iter43)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.table)
+    value = (value * 31) ^ hash(self.row)
+    value = (value * 31) ^ hash(self.columns)
+    value = (value * 31) ^ hash(self.values)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1029,7 +1278,7 @@ class IOError(TException):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1100,7 +1349,7 @@ class IllegalArgument(TException):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1171,7 +1420,7 @@ class AlreadyExists(TException):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.items()]
+      for key, value in self.__dict__.iteritems()]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
