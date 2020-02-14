@@ -134,6 +134,43 @@ def patch_lib_conf():
     ),
   })
 
+  #
+  # librdbms.conf
+  #
+  from librdbms import conf as librdbms_conf
+
+  librdbms_conf.DATABASES.each.update_members({
+    'CONNECTION_TYPE': conf_lib.Config(
+      key='connection_type',
+      help=("Connection type. This can be:\n"
+            "1. direct\n"
+            "2. zookeeper\n"),
+      default='direct',
+    ),
+    'DRILLBITS': conf_lib.Config(
+      key='drillbits',
+      help="Drillbit address for direct connection.",
+      type=conf_lib.coerce_string,
+      default='localhost:31010',
+    ),
+    'ZK_QUORUM': conf_lib.Config(
+      key='zk_quorum',
+      help="ZooKeeper quorum for connection through ZooKeeper.",
+      type=conf_lib.coerce_string,
+      default='localhost:5181',
+    ),
+    'ZK_CLUSTER_ID': conf_lib.Config(
+      key='zk_cluster_id',
+      help="Set ZKClusterID to the name of the Drillbit cluster to use.",
+      default='',
+    ),
+    'MECHANISM': conf_lib.Config(
+      key='mechanism',
+      help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+      default='none',
+    ),
+  })
+
 @synchronized
 @run_once
 def patch_app_conf():
