@@ -2643,6 +2643,23 @@ var $jstreeMapr = $('#jstree_mapr');
         data.node.needRefresh = false;
       }
     });
+
+  /*
+   * MHUE-117 Error while open maprdb table via File Browser
+   */
+  // Assistant panel open files by doing huePubSub.publish('open.link', ...), which is not trigger routie:
+  huePubSub.subscribe('open.link', function(link) {
+    routie.reload();
+  });
+
+  $jstreeMapr
+    .on('activate_node.jstree', function(e, data) {
+      if(jstreeInst.is_leaf(data.node)) {
+        var route = window.hbaseApp.cluster() + '/' + data.node.id;
+        var url = window.location.pathname + '#' + route;
+        huePubSub.publish('open.link', url);
+      }
+    });
 });
 </script>
 
