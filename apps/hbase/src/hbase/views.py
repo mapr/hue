@@ -179,8 +179,7 @@ def get_list(request):
       resp.append({
         'id': path + table,
         'text': table,
-        'icon': False,
-        'li_attr': {'onClick': 'referToTable(this)'},
+        'children': False
       })
 
     return JsonResponse(resp, safe=False)
