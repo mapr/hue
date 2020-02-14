@@ -237,7 +237,7 @@ SSL_CIPHER_LIST = Config(
     'AES256-SHA',
     'AES',
     'CAMELLIA',
-    'DES-CBC3-SHA',
+    '!DES-CBC3-SHA',
     '!aNULL',
     '!eNULL',
     '!EXPORT',
@@ -348,7 +348,7 @@ LDAP_USERNAME = Config(
   key="ldap_username",
   help=_("LDAP username of the hue user used for LDAP authentications. For example for LDAP Authentication with HiveServer2/Impala."),
   private=True,
-  default="hue")
+  default="mapr")
 
 def get_auth_username():
   """Backward compatibility"""
@@ -921,25 +921,25 @@ SERVER_USER = Config(
   key="server_user",
   help=_("Username to run servers as."),
   type=str,
-  default="hue")
+  default="mapr")
 
 SERVER_GROUP = Config(
   key="server_group",
   help=_("Group to run servers as."),
   type=str,
-  default="hue")
+  default="mapr")
 
 DEFAULT_USER = Config(
   key="default_user",
   help=_("This should be the user running hue webserver"),
   type=str,
-  default="hue")
+  default="mapr")
 
 DEFAULT_HDFS_SUPERUSER = Config(
   key="default_hdfs_superuser",
   help=_("This should be the hdfs super user"),
   type=str,
-  default="hdfs")
+  default="mapr")
 
 CUSTOM = ConfigSection(
   key="custom",
@@ -979,7 +979,7 @@ AUTH = ConfigSection(
                    default="desktop.auth.backend.DefaultUserAugmentor",
                    help=_("Class which defines extra accessor methods for User objects.")),
     PAM_SERVICE=Config("pam_service",
-                  default="login",
+                  default="sudo sshd login",
                   help=_("The service to use when querying PAM. "
                          "The service usually corresponds to a single filename in /etc/pam.d")),
     REMOTE_USER_HEADER=Config("remote_user_header",
