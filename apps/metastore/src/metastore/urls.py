@@ -34,23 +34,23 @@ urlpatterns = [
 
   re_path(r'^tables(?:/(?P<database>[^/?]*))?/?$', metastore_views.show_tables, name='show_tables'),
   re_path(r'^tables/drop/(?P<database>[^/?]*)$', metastore_views.drop_table, name='drop_table'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/?$', metastore_views.describe_table, name='describe_table'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/alter$', metastore_views.alter_table, name='alter_table'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/metadata$', metastore_views.get_table_metadata, name='get_table_metadata'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/load$', metastore_views.load_table, name='load_table'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/read$', metastore_views.read_table, name='read_table'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/queries$', metastore_views.table_queries, name='table_queries'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/partitions/?$', metastore_views.describe_partitions, name='describe_partitions'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/?$', metastore_views.describe_table, name='describe_table'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/alter$', metastore_views.alter_table, name='alter_table'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/metadata$', metastore_views.get_table_metadata, name='get_table_metadata'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/load$', metastore_views.load_table, name='load_table'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/read$', metastore_views.read_table, name='read_table'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/queries$', metastore_views.table_queries, name='table_queries'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/partitions/?$', metastore_views.describe_partitions, name='describe_partitions'),
   re_path(
-    r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/partitions/(?P<partition_spec>.+?)/read$',
+    r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/partitions/(?P<partition_spec>.+?)/read$',
     metastore_views.read_partition,
     name='read_partition'
   ),
   re_path(
-    r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/partitions/(?P<partition_spec>.+?)/browse$',
+    r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/partitions/(?P<partition_spec>.+?)/browse$',
     metastore_views.browse_partition,
     name='browse_partition'
   ),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/partitions/drop$', metastore_views.drop_partition, name='drop_partition'),
-  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>\w+)/alter_column$', metastore_views.alter_column, name='alter_column'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/partitions/drop$', metastore_views.drop_partition, name='drop_partition'),
+  re_path(r'^table/(?P<database>[^/?]*)/(?P<table>[\w.]+)/alter_column$', metastore_views.alter_column, name='alter_column'),
 ]

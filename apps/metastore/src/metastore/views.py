@@ -320,32 +320,33 @@ def describe_table(request, database, table):
 
   db = _get_db(user=request.user, source_type=source_type, cluster=cluster)
 
-  try:
-    table = db.get_table(database, table)
-  except Exception as e:
-    LOG.exception("Describe table error")
-    raise PopupException(_("DB Error"), detail=e.message if hasattr(e, 'message') and e.message else e)
+  if request.POST.get("format", request.GET.get("format", "html")) == "json":
+    try:
+      table_obj = db.get_table(database, table)
+    except Exception as e:
+      LOG.exception("Describe table error")
+      raise PopupException(_("DB Error"), detail=e.message if hasattr(e, 'message') and e.message else e)
 
   if request.POST.get("format", "html") == "json":
     return JsonResponse({
         'status': 0,
-        'name': table.name,
-        'partition_keys': [{'name': part.name, 'type': part.type} for part in table.partition_keys],
-        'cols': [{'name': col.name, 'type': col.type, 'comment': col.comment} for col in table.cols],
-        'path_location': table.path_location,
-        'hdfs_link': table.hdfs_link,
-        'comment': table.comment,
-        'is_view': table.is_view,
-        'properties': table.properties,
-        'details': table.details,
-        'stats': table.stats
+        'name': table_obj.name,
+        'partition_keys': [{'name': part.name, 'type': part.type} for part in table_obj.partition_keys],
+        'cols': [{'name': col.name, 'type': col.type, 'comment': col.comment} for col in table_obj.cols],
+        'path_location': table_obj.path_location,
+        'hdfs_link': table_obj.hdfs_link,
+        'comment': table_obj.comment,
+        'is_view': table_obj.is_view,
+        'properties': table_obj.properties,
+        'details': table_obj.details,
+        'stats': table_obj.stats
     })
   else:  # Render HTML
     renderable = "metastore.mako"
     apps_list = _get_apps(request.user, '')
 
     partitions = None
-    if app_name != 'impala' and table.partition_keys:
+    if app_name not in ('impala', 'drill', ) and source_type not in ('impala', 'drill', ):
       try:
         partitions = [_massage_partition(database, table, partition) for partition in db.get_partitions(database, table)]
       except:
@@ -357,11 +358,11 @@ def describe_table(request, database, table):
           'name': database,
           'url': reverse('metastore:show_tables', kwargs={'database': database})
         }, {
-          'name': str(table.name),
-          'url': reverse('metastore:describe_table', kwargs={'database': database, 'table': table.name})
+          'name': str(table),
+          'url': reverse('metastore:describe_table', kwargs={'database': database, 'table': table})
         },
       ],
-      'table': table,
+      # 'table': table_obj, # Seems like this variable is never used in ag template code.
       'partitions': partitions,
       'database': database,
       'has_write_access': has_write_access(request.user),
