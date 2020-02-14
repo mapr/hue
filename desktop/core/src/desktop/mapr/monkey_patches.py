@@ -77,6 +77,16 @@ def patch_desktop_conf():
     ),
   })
 
+  desktop_conf.SECURE_CONTENT_SECURITY_POLICY.default_value = (
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.google-analytics.com *.doubleclick.net data:;"
+    "img-src 'self' *.google-analytics.com *.doubleclick.net http://*.tile.osm.org *.tile.osm.org *.gstatic.com data:;"
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com;"
+    "connect-src 'self';"
+    "frame-src *;"
+    "child-src 'self' data: blob: *.vimeo.com;"
+    "object-src 'none'"
+  )
+
 @synchronized
 @run_once
 def patch_lib_conf():
