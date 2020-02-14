@@ -1981,7 +1981,7 @@ class ClusterConfig(object):
       hdfs_connectors = [
         connector['nice_name'] for connector in _get_installed_connectors(category='browsers', dialect='hdfs', interface='rest')
       ]
-    elif 'filebrowser' in self.apps and fsmanager.is_enabled_and_has_access('hdfs', self.user):
+    elif 'filebrowser' in self.apps and fsmanager.is_enabled_and_has_access('maprfs', self.user):
       hdfs_connectors.append(_('Files'))
 
 

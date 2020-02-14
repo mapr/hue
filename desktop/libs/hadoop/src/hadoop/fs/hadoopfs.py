@@ -54,6 +54,9 @@ else:
   from urlparse import urlsplit as lib_urlsplit
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+import re
+
 LOG = logging.getLogger(__name__)
 
 DEFAULT_USER = "webui"
@@ -134,7 +137,10 @@ class Hdfs(object):
 
   @staticmethod
   def normpath(path):
-    res = posixpath.normpath(path)
+    # Remove schema if it was passed here by some reasons
+    res = re.sub(r'^\w*:', '', path)
+
+    res = posixpath.normpath(res)
     # Python normpath() doesn't eliminate leading double slashes
     if res.startswith('//'):
       return res[1:]
@@ -150,21 +156,10 @@ class Hdfs(object):
     Take an HDFS path (hdfs://nn:port/foo) or just (/foo) and split it into
     the standard urlsplit's 5-tuple.
     """
-    i = url.find('://')
-    if i == -1:
-      # Not found. Treat the entire argument as an HDFS path
-      return ('hdfs', '', normpath(url), '', '')
-    schema = url[:i]
-    if schema not in ('hdfs', 'viewfs'):
-      # Default to standard for non-hdfs
-      return lib_urlsplit(url)
-    url = url[i+3:]
-    i = url.find('/')
-    if i == -1:
-      # Everything is netloc. Assume path is root.
-      return (schema, url, '/', '', '')
-    netloc = url[:i]
-    path = url[i:]
+    (schema, netloc, path, query, fragment) = lib_urlsplit(url)
+    if not schema:
+      # Not found. Treat the entire argument as an MapR-FS path.
+      schema = 'maprfs'
     return (schema, netloc, normpath(path), '', '')
 
   def listdir_recursive(self, path, glob=None):
