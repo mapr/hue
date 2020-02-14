@@ -37,6 +37,9 @@ if sys.version_info[0] > 2:
 else:
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from ast import literal_eval
+
 LOG = logging.getLogger(__name__)
 
 
@@ -150,6 +153,10 @@ class HbaseApi(object):
     client = self.connectCluster(cluster)
     return [{'name': name, 'enabled': client.isTableEnabled(name, doas=self.user.username)} for name in client.getTableNames(doas=self.user.username)]
 
+  def getTableListByPath(self, cluster, path):
+    client = self.connectCluster(cluster)
+    return client.getTableNamesByPath(path, doas=self.user.username)
+
   def getRows(self, cluster, tableName, columns, startRowKey, numRows, prefix=False):
     client = self.connectCluster(cluster)
     if prefix == False:
@@ -210,6 +217,7 @@ class HbaseApi(object):
     client = self.connectCluster(cluster)
     mutations = []
     Mutation = get_thrift_type('Mutation')
+    data = literal_eval(str(data))
     for column in list(data.keys()):
       value = smart_str(data[column]) if data[column] is not None else None
       mutations.append(Mutation(column=smart_str(column), value=value)) # must use str for API, does thrift coerce by itself?

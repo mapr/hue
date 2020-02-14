@@ -89,7 +89,7 @@ def config_validator(user):
       cluster_name = api.getClusters()[0]['name'] # Currently pick first configured cluster
       # Check connectivity
       api.connectCluster(cluster_name)
-      api.getTableList(cluster_name)
+      api.getTableListByPath(cluster_name, '/')
   except Exception as e:
     print(e)
     if 'Could not connect' in str(e):

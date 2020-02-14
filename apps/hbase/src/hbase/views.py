@@ -42,6 +42,9 @@ else:
   from avro import datafile, io
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from desktop.lib.exceptions_renderable import PopupException
+
 
 LOG = logging.getLogger(__name__)
 
@@ -137,6 +140,50 @@ def api_dump(response):
     'truncated': True,
     'limit': trunc_limit,
     })
+
+
+def get_list(request):
+    dirs = []
+    tables = []
+    resp = []
+
+    if request.GET['id'] == "#":
+        resp = {'id': '/', 'text': '/', 'children': True}
+        return JsonResponse(resp, safe=False)
+
+    path = request.GET['id']
+
+    #http-fs request
+    try:
+        if not request.fs.isdir(path):
+            raise PopupException("Not a directory: %s" % (path,))
+        stats = request.fs.listdir_stats(path)
+        dirs = [dirs.name for dirs in stats if dirs.type == 'DIRECTORY']
+    except Exception as e:
+        LOG.exception(e)
+
+    #tables request
+    try:
+        tables = HbaseApi(request.user).getTableListByPath(str(request.GET['cluster']), path + ".*")
+    except Exception as e:
+        LOG.exception(e)
+
+    for directory in dirs:
+      resp.append({
+        'id': path + directory + '/',
+        'text': directory,
+        'children': True
+      })
+    for table in tables:
+      table = table.split('/')[-1]
+      resp.append({
+        'id': path + table,
+        'text': table,
+        'icon': False,
+        'li_attr': {'onClick': 'referToTable(this)'},
+      })
+
+    return JsonResponse(resp, safe=False)
 
 
 def install_examples(request):

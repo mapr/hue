@@ -30,6 +30,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 %endif
 <div id="hbaseComponents">
 <link href="${ static('hbase/css/hbase.css') }" rel="stylesheet" type="text/css" />
+<link href="${ static('hbase/css/jstree.css') }" rel="stylesheet" type="text/css" />
 
 <div class="navbar hue-title-bar nokids">
     <div class="navbar-inner">
@@ -190,6 +191,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
       </tr>
     </script>
 
+    <div id="jstree_mapr"></div>
     <!-- New Table Modal -->
     <form id="new_table_modal" action="createTable" method="POST" class="modal hide fade ajaxSubmit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       ${ csrf_token(request) | n,unicode }
@@ -732,7 +734,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
           data.content.history.reload();
 
           if (data.content.parent) {
-            var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
+            var path = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/"' + data.content.parent.row + '"/"' + data.content.name + '"';
             var uploader = new qq.FileUploaderBasic({
               button: document.getElementById("file-upload-btn"),
               action: path,
@@ -767,7 +769,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
               }
             },
             onSubmit: function () {
-              uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
+              uploader._handler._options.action = '/hbase/api/putUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"/' + prepForTransport(data.row) + '/"' + element.find('#new_column_name').val() + '"';
             }
           });
           break;
@@ -2101,7 +2103,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 
         var bulkUploader = new qq.FileUploaderBasic({
           button: document.getElementById("bulk-upload-btn"),
-          action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + app.views.tabledata.name() + '"',
+          action: '/hbase/api/bulkUpload/"' + app.cluster() + '"/"' + encodeURIComponent(app.views.tabledata.name()) + '"',
           fileFieldLabel: 'hbase_file',
           multiple: false,
           onComplete: function (id, fileName, response) {
@@ -2392,6 +2394,32 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
           resetElements();
           routed = true;
         },
+        ':cluster/*/query': function(cluster, table) {
+            routie(cluster + '/' + table);
+        },
+        ':cluster/*/query/:query': function(cluster, table, query) {
+          hueAnalytics.log('hbase', 'query_maprdb_table');
+          hueUtils.hueLocalStorage('hbase_cluster', cluster);
+          app.station('table');
+          app.search.cur_input(query);
+          Router.setTable(cluster, table);
+          resetElements();
+          Views.render('dataview');
+          app.views.tabledata._reloadcfs(function(){
+            app.search.evaluate();
+            app.views.tabledata.searchQuery(query);
+          });
+          routed = true;
+        },
+        ':cluster/*': function(cluster, maprtable){
+          hueUtils.hueLocalStorage('hbase_cluster', cluster);
+          Router.setTable(cluster, maprtable);
+          resetSearch();
+          resetElements();
+          app.station('table');
+          Views.render('dataview');
+          routed = true;
+        },
         'error': function () {
           hueAnalytics.log('hbase', 'error');
           routed = true;
@@ -2569,6 +2597,53 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 <script src="${ static('desktop/js/hue.routie.js') }" type="text/javascript" charset="utf-8"></script>
 <script>
   routie.setPathname('/hbase');
+</script>
+
+<script src="${ static('hbase/js/jstree.min.js') }" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+/*
+ * MAPR-14065 Hue Mapr-DB tables
+ */
+$(document).ready(() => {
+var $jstreeMapr = $('#jstree_mapr');
+  $jstreeMapr
+    .jstree({
+      'core': {
+        'data': {
+          'url': '/hbase/api/getlist/'
+          , 'data': function(node) {
+            return {'id': node.id, 'cluster': window.hbaseApp.cluster()};
+          }
+        }
+      }
+    });
+
+  var jstreeInst = $jstreeMapr.jstree(true);
+
+  $jstreeMapr
+    .on('open_node.jstree', function(e, data) {
+      data.node.children.forEach(function(child) {
+        if(jstreeInst.is_leaf(child)) {
+          jstreeInst.hide_icon(child);
+        }
+      });
+    });
+
+
+  /*
+   * MAPR-18650 [hbase] Mapr-db table browser doesn't update with new table
+   */
+  $jstreeMapr
+    .on('close_node.jstree', function(e, data) {
+      data.node.needRefresh = true;
+    })
+    .on('open_node.jstree', function(e, data) {
+      if (data.node.needRefresh) {
+        jstreeInst.refresh_node(data.node);
+        data.node.needRefresh = false;
+      }
+    });
+});
 </script>
 
 %if not is_embeddable:

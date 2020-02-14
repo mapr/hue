@@ -26,6 +26,7 @@ else:
 
 urlpatterns = [
   re_path(r'^$', hbase_views.app, name='index'),
+  re_path(r'^api/getlist/$', hbase_views.get_list, name='getlist'),
   re_path(r'api/(?P<url>.+)$', hbase_views.api_router),
 
   re_path(r'^install_examples$', hbase_views.install_examples, name='install_examples'),
