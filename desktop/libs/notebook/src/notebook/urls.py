@@ -81,14 +81,14 @@ urlpatterns += [
 
 # Assist API
 urlpatterns += [
-  # HS2, RDBMS, JDBC
+  # HS2, RDBMS, JDBC, DRILL
   url(r'^api/autocomplete/?$', notebook_api.autocomplete, name='api_autocomplete_databases'),
-  url(r'^api/autocomplete/(?P<database>\w+)/?$', notebook_api.autocomplete, name='api_autocomplete_tables'),
-  url(r'^api/autocomplete/(?P<database>\w+)/(?P<table>[\w_\-]+)/?$', notebook_api.autocomplete, name='api_autocomplete_columns'),
-  url(r'^api/autocomplete/(?P<database>\w+)/(?P<table>[\w_\-]+)/(?P<column>\w+)/?$', notebook_api.autocomplete, name='api_autocomplete_column'),
-  url(r'^api/autocomplete/(?P<database>\w+)/(?P<table>[\w_\-]+)/(?P<column>\w+)/(?P<nested>.+)/?$', notebook_api.autocomplete, name='api_autocomplete_nested'),
-  url(r'^api/sample/(?P<database>\w+)/(?P<table>[\w_\-]+)/?$', notebook_api.get_sample_data, name='api_sample_data'),
-  url(r'^api/sample/(?P<database>\w+)/(?P<table>[\w_\-]+)/(?P<column>\w+)/?$', notebook_api.get_sample_data, name='api_sample_data_column'),
+  url(r'^api/autocomplete/(?P<database>[\w.]+)/?$', notebook_api.autocomplete, name='api_autocomplete_tables'),
+  url(r'^api/autocomplete/(?P<database>[\w.]+)/(?P<table>[\w_\-.]+)/?$', notebook_api.autocomplete, name='api_autocomplete_columns'),
+  url(r'^api/autocomplete/(?P<database>[\w.]+)/(?P<table>[\w_\-.]+)/(?P<column>[\w_\-.]+)/?$', notebook_api.autocomplete, name='api_autocomplete_column'),
+  url(r'^api/autocomplete/(?P<database>[\w.]+)/(?P<table>[\w_\-.]+)/(?P<column>[\w_\-.]+)/(?P<nested>.+)/?$', notebook_api.autocomplete, name='api_autocomplete_nested'),
+  url(r'^api/sample/(?P<database>[\w.]+)/(?P<table>[\w_\-.]+)/?$', notebook_api.get_sample_data, name='api_sample_data'),
+  url(r'^api/sample/(?P<database>[\w.]+)/(?P<table>[\w_\-.]+)/(?P<column>\w+)/?$', notebook_api.get_sample_data, name='api_sample_data_column'),
 
   # SQLite
   url(r'^api/autocomplete//?(?P<server>[\w_\-/]+)/(?P<database>[\w._\-0-9]+)/?$', notebook_api.autocomplete, name='api_autocomplete_tables'),
@@ -100,7 +100,7 @@ urlpatterns += [
 
 # Table API
 urlpatterns += [
-  url(r'^api/describe/(?P<database>\w+)/?$', notebook_api.describe, name='api_describe_database'),
-  url(r'^api/describe/(?P<database>\w+)/(?P<table>[\w_\-]+)/?$', notebook_api.describe, name='api_describe_table'),
-  url(r'^api/describe/(?P<database>\w+)/(?P<table>\w+)/stats(?:/(?P<column>\w+))?/?$', notebook_api.describe, name='api_describe_column'),
+  url(r'^api/describe/(?P<database>[\w.]+)/?$', notebook_api.describe, name='api_describe_database'),
+  url(r'^api/describe/(?P<database>[\w.]+)/(?P<table>[\w.]+)/?$', notebook_api.describe, name='api_describe_table'),
+  url(r'^api/describe/(?P<database>[\w.]+)/(?P<table>[\w.]+)/stats(?:/(?P<column>[\w.]+))?/?$', notebook_api.describe, name='api_describe_column'),
 ]
