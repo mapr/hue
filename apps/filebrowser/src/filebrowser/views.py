@@ -74,6 +74,14 @@ from filebrowser.forms import RenameForm, UploadFileForm, UploadArchiveForm, MkD
     RenameFormSet, RmTreeFormSet, ChmodFormSet, ChownFormSet, CopyFormSet, RestoreFormSet,\
     TrashPurgeForm, SetReplicationFactorForm
 
+try:
+  from hbase.api import HbaseApi
+  from desktop.conf import DEFAULT_USER
+  HBASE_CLUSTER = HbaseApi(DEFAULT_USER.get()).getClusters()[0]['name']
+except AttributeError:
+  # HBase app is blacklisted
+  HBASE_CLUSTER = None
+
 if sys.version_info[0] > 2:
   import io
   from io import StringIO as string_io
@@ -576,6 +584,11 @@ def _massage_stats(request, stats):
     """
     path = stats['path']
     normalized = request.fs.normpath(path)
+    is_table = getattr(stats, 'isTable', False)
+    if is_table and HBASE_CLUSTER:
+      url = reverse('hbase:index') + '#{}/{}'.format(HBASE_CLUSTER, urllib.quote(path, safe=''))
+    else:
+      url = '/filebrowser/view=' + urllib_quote(normalized.encode('utf-8'), safe=SAFE_CHARACTERS_URI_COMPONENTS)
     return {
         'path': normalized, # Normally this should be quoted, but we only use this in POST request so we're ok. Changing this to quoted causes many issues.
         'name': stats['name'],
@@ -585,7 +598,7 @@ def _massage_stats(request, stats):
         'type': filetype(stats['mode']),
         'rwx': rwx(stats['mode'], stats['aclBit']),
         'mode': stringformat(stats['mode'], "o"),
-        'url': '/filebrowser/view=' + urllib_quote(normalized.encode('utf-8'), safe=SAFE_CHARACTERS_URI_COMPONENTS),
+        'url': url,
         'is_sentry_managed': request.fs.is_sentry_managed(path)
     }
 
