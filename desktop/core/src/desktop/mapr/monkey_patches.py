@@ -53,6 +53,7 @@ def patch_desktop_conf():
   desktop_conf.SERVER_GROUP.devault_value = MAPR_USER
   desktop_conf.DEFAULT_USER.devault_value = MAPR_USER
   desktop_conf.DEFAULT_HDFS_SUPERUSER.devault_value = MAPR_USER
+  desktop_conf.DEFAULT_HDFS_SUPERUSER.help = "This should be the hadoop cluster admin, defaults to owner of maprfs:///var"
 
   # desktop.kerberos.ccache_path
   desktop_conf.KERBEROS.members['CCACHE_PATH'].default_value = '/tmp/hue_krb5_ccache'

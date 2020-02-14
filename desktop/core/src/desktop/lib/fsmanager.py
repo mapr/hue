@@ -38,7 +38,7 @@ from hadoop.cluster import get_hdfs, _make_filesystem
 from hadoop.conf import has_hdfs_enabled
 
 
-SUPPORTED_FS = ['hdfs', 's3a', 'adl', 'abfs', 'gs']
+SUPPORTED_FS = ['maprfs', 's3a', 'adl', 'abfs', 'gs']
 CLIENT_CACHE = None
 _DEFAULT_USER = DEFAULT_USER.get()
 
@@ -55,7 +55,7 @@ def clear_cache():
 
 
 def has_access(fs=None, user=None):
-  if fs == 'hdfs':
+  if fs == 'maprfs':
     return True
   elif fs == 'adl':
     return has_adls_access(user)
@@ -68,7 +68,7 @@ def has_access(fs=None, user=None):
 
 
 def is_enabled(fs):
-  if fs == 'hdfs':
+  if fs == 'maprfs':
     return has_hdfs_enabled()
   elif fs == 'adl':
     return is_adls_enabled()
@@ -85,7 +85,7 @@ def is_enabled_and_has_access(fs=None, user=None):
 
 
 def _make_client(fs, name, user):
-  if fs == 'hdfs':
+  if fs == 'maprfs':
     return _make_filesystem(name)
   elif fs == 's3a':
     return aws.client._make_client(name, user)
@@ -99,7 +99,7 @@ def _make_client(fs, name, user):
 
 
 def _get_client(fs=None):
-  if fs == 'hdfs':
+  if fs == 'maprfs':
     return get_hdfs
   elif fs in ['s3a', 'adl', 'abfs', 'gs']:
     return partial(_get_client_cached, fs)

@@ -110,11 +110,11 @@ def location_to_url(location, strict=True, is_embeddable=False):
   if location is None:
     return None
   split_path = Hdfs.urlsplit(location)
-  if strict and not split_path[1] or not split_path[2]:
+  if not split_path[2]:
     # No netloc not full url or no URL
     return None
   path = location
-  if split_path[0] == 'hdfs':
+  if split_path[0] in ('hdfs', 'maprfs'):
     path = split_path[2]
 
   try:
