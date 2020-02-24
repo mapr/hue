@@ -1,0 +1,13 @@
+#!/bin/sh
+
+HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
+
+if [ -e "$HUE_SECURE_FILE" ] && [ $(cat "$HUE_SECURE_FILE") = "true" ] ; then
+  export mechanism=${mechanism:-"MAPR-SECURITY"}
+  export security_enabled=${security_enabled:-"true"}
+  export ssl_cacerts=${ssl_cacerts:-"${MAPR_HOME}/conf/ssl_truststore.pem"}
+  export ssl_validate=${ssl_validate:-"true"}
+  export ssl_certificate=${ssl_certificate:-"${MAPR_HOME}/conf/ssl_keystore.pem"}
+  export ssl_private_key=${ssl_private_key:-"${MAPR_HOME}/conf/ssl_keystore.pem"}
+  export ssl_password=${ssl_password:-"mapr123"}
+fi

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. "${MAPR_HOME}/conf/env.sh"
+
+# Add path to libjvm.so into LD_LIBRARY_PATH
+# Find JRE directory using MapR env.sh script
+if [ -e "${JAVA_HOME}/jre/lib/amd64/server" ]; then
+    # java_directory points to JDK
+    libjvm_path="${JAVA_HOME}/jre/lib/amd64/server"
+elif [ -e "${JAVA_HOME}/lib/amd64/server" ]; then
+    # java_directory points to JRE (MapR env.sh can return JAVA_HOME pointing to JRE_HOME)
+    libjvm_path="${JAVA_HOME}/lib/amd64/server"
+fi
+export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path}:${LD_LIBRARY_PATH}"
+
+# Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
+export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
+
+# MEP-28 Adapt all ecosystems to use the runtime library from /opt/mapr/lib.
+# Simba Drill JDBC driver needs to get hadoop-auth, hadoop-common and maprfs jars.
+export CLASSPATH=$(mapr classpath)

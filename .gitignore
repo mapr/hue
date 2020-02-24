@@ -116,3 +116,9 @@ desktop/core/src/desktop/static/desktop/js/bundles/
 
 # Hugo generated files
 docs/docs-site/public/
+
+
+# Files specific to MapR distribution
+keys/
+desktop/conf/.isSecure
+desktop/conf/.not_configured_yet
