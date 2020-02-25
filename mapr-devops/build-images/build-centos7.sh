@@ -11,4 +11,4 @@ pushd centos7/setupfiles
 popd
 cp -rfv cross-linux/* centos7/cross-linux/
 
-docker build --rm -t="maprdocker.lab/${IMAGE_TAG}" $@ centos7
+docker build --no-cache --rm -t="docker.artifactory.lab/${IMAGE_TAG}" $@ centos7

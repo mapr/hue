@@ -32,6 +32,7 @@ apt-get install -y \
 /tmp/cross-linux/java8-install.sh
 cp -fv /tmp/cross-linux/java8-profile.sh /etc/profile.d/.
 /tmp/cross-linux/maven-install.sh
+/tmp/cross-linux/node-install.sh
 /tmp/cross-linux/snappy-install.sh
 
 

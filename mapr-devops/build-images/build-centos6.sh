@@ -7,4 +7,4 @@ IMAGE_TAG="centos6-java7-hue:${GIT_BRANCH}"
 mkdir -pv centos6/{setupfiles,cross-linux}
 cp -rfv cross-linux/* centos6/cross-linux/
 
-docker build --rm -t="maprdocker.lab/${IMAGE_TAG}" $@ centos6
+docker build --rm -t="docker.artifactory.lab/${IMAGE_TAG}" $@ centos6
