@@ -57,6 +57,16 @@ def patch_desktop_conf():
   # desktop.kerberos.ccache_path
   desktop_conf.KERBEROS.members['CCACHE_PATH'].default_value = '/tmp/hue_krb5_ccache'
 
+  # desktop.ssl_cipher_list
+  desktop_conf.SSL_CIPHER_LIST.default_value = ':'.join([
+      desktop_conf.SSL_CIPHER_LIST.default_value,
+      '!SSLv2',
+      '!SSLv3',
+      '!TLSv1',
+      '!TLSv1.1',
+      'TLSv1.2',
+    ])
+
 @synchronized
 @run_once
 def patch_lib_conf():
