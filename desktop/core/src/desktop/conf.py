@@ -245,6 +245,11 @@ SSL_CIPHER_LIST = Config(
     '!EDH-DSS-DES-CBC3-SHA',
     '!EDH-RSA-DES-CBC3-SHA',
     '!KRB5-DES-CBC3-SHA',
+    '!SSLv2',
+    '!SSLv3',
+    '!TLSv1',
+    '!TLSv1.1',
+    'TLSv1.2',
   ]))
 
 SSL_PASSWORD = Config(
