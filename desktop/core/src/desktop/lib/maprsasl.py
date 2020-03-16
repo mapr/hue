@@ -56,10 +56,11 @@ class MaprSasl(object):
         self.ticket_and_key.ParseFromString(server_key_bytes)
 
         self.random_number = maprsecurity.GenerateRandomNumber()
+        # By some reason GenerateRandomNumber returns long, while should return unsigned long
+        self.random_number &= 0xffffffffffffffff
+
         encrypted_random_secret = maprsecurity.Encrypt(self.ticket_and_key.userKey.key,
-                                                       struct.pack('l', self.random_number)[::-1])
-        if self.random_number < 0:
-            self.random_number += (1 << 64)
+                                                       struct.pack('L', self.random_number)[::-1])
 
         auth_req = security_pb2.AuthenticationReqFull()
         auth_req.encryptedRandomSecret = encrypted_random_secret
