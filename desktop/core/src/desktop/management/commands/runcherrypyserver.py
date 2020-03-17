@@ -25,7 +25,6 @@ from django.core.management.base import BaseCommand
 
 from desktop import conf
 from desktop.lib.daemon_utils import drop_privileges_if_necessary
-from django.utils.translation import ugettext as _
 
 
 CPSERVER_HELP = r"""
@@ -50,7 +49,7 @@ CPSERVER_OPTIONS = {
 
 
 class Command(BaseCommand):
-    help = _("CherryPy Server for Desktop.")
+    help = "CherryPy Server for Desktop."
     args = ""
 
     def handle(self, *args, **options):
@@ -67,7 +66,7 @@ class Command(BaseCommand):
         except AttributeError:
             pass
         runcpserver(args)
-        
+
     def usage(self, subcommand):
         return CPSERVER_HELP
 
@@ -82,7 +81,7 @@ def start_server(options):
     server = Server(
         (options['host'], int(options['port'])),
         WSGIHandler(),
-        int(options['threads']), 
+        int(options['threads']),
         options['server_name']
     )
     if options['ssl_certificate'] and options['ssl_private_key']:
@@ -102,7 +101,7 @@ def start_server(options):
 
         if isinstance(server.socket, SSLConnection):
           ciphers = server.socket.get_cipher_list()
-          logging.info(_("List of enabled ciphers: {}").format(':'.join(ciphers)))
+          logging.info("List of enabled ciphers: {}".format(':'.join(ciphers)))
 
         server.listen_and_loop()
     except KeyboardInterrupt:
@@ -119,13 +118,13 @@ def runcpserver(argset=[], **kwargs):
         else:
             k, v = x, True
         options[k.lower()] = v
-    
+
     if "help" in options:
         print(CPSERVER_HELP)
         return
 
     # Start the webserver
-    logging.info(_("Starting server with options:\n{}").format(pprint.pformat(options)))
+    logging.info("Starting server with options:\n{}".format(pprint.pformat(options)))
 
     start_server(options)
 
