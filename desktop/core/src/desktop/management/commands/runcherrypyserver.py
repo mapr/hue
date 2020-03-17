@@ -75,6 +75,7 @@ def start_server(options):
     Start CherryPy server
     """
     from desktop.lib.wsgiserver import CherryPyWSGIServer as Server
+    from desktop.lib.wsgiserver import SSLConnection
     from django.core.handlers.wsgi import WSGIHandler
     # Translogger wraps a WSGI app with Apache-style combined logging.
     server = Server(
@@ -97,6 +98,11 @@ def start_server(options):
     try:
         server.bind_server()
         drop_privileges_if_necessary(options)
+
+        if isinstance(server.socket, SSLConnection):
+          ciphers = server.socket.get_cipher_list()
+          logging.info(_("List of enabled ciphers: {}").format(':'.join(ciphers)))
+
         server.listen_and_loop()
     except KeyboardInterrupt:
         server.stop()
@@ -118,8 +124,7 @@ def runcpserver(argset=[], **kwargs):
         return
 
     # Start the webserver
-    print _('starting server with options:')
-    pprint.pprint(options)
+    logging.info(_("Starting server with options:\n{}").format(pprint.pformat(options)))
 
     start_server(options)
 
