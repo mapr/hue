@@ -134,7 +134,7 @@ HIVE_METASTORE_PORT = Config(
 HIVE_CONF_DIR = Config(
   key='hive_conf_dir',
   help=_t('Hive configuration directory, where hive-site.xml is located.'),
-  default=os.environ.get("HIVE_CONF_DIR", os.path.join(os.environ.get("MAPR_HOME", "/opt/mapr"), 'hive/hive-2.3/conf')))
+  default=os.environ.get("HIVE_CONF_DIR", '/etc/hive/conf'))
 
 HIVE_SERVER_BIN = Config(
   key="hive_server_bin",

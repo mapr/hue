@@ -7,6 +7,6 @@ export HUE_HOME=${HUE_HOME:-"${MAPR_HOME}/hue/hue-${HUE_VERSION}"}
 # Activate virtualenv
 . "${HUE_HOME}/build/env/bin/activate"
 
-for envfile in ${HUE_HOME}/bin/env.d/* ; do
+for envfile in ${HUE_HOME}/bin/env.d/*; do
     . "$envfile"
 done

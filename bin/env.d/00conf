@@ -3,3 +3,10 @@
 # Disable annoying warning that we are connecting to some service (like HttP-FS),
 # without verifying its certificates.
 export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+
+
+if [ -e "${MAPR_HOME}/hive/hiveversion" ]; then
+    HIVE_VERSION=${HIVE_VERSION:-$(cat "${MAPR_HOME}/hive/hiveversion")}
+    HIVE_HOME=${HIVE_HOME:-"${MAPR_HOME}/hive/hive-${HIVE_VERSION}"}
+    export HIVE_CONF_DIR=${HIVE_CONF_DIR:-"${HIVE_HOME}/conf"}
+fi
