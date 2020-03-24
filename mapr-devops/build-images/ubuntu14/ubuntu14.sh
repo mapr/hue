@@ -53,3 +53,6 @@ apt-get install -y \
     libldap2-dev \
     libgmp3-dev \
     libz-dev
+
+# MHUE-327 Install dependency to build pyodbc
+apt-get install -y unixodbc-dev

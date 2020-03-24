@@ -65,3 +65,6 @@ yum install -y \
     openssl-devel \
     sqlite-devel \
     gmp-devel
+
+# MHUE-327 Install dependency to build pyodbc
+yum install -y unixODBC-devel
