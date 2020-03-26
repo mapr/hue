@@ -173,7 +173,7 @@ INSTALL_CORE_FILES = \
 	desktop/conf.dist
 
 .PHONY: install
-install: virtual-env install-core-structure install-desktop install-apps install-env
+install: virtual-env install-core-structure install-desktop install-apps install-env remove-ext-eggs
 
 .PHONY: install-check
 install-check:
@@ -220,6 +220,12 @@ install-env:
 	@if [ "$(MAKECMDGOALS)" = "install" ]; then \
 	  $(MAKE) -C $(INSTALL_DIR) create-static; \
 	fi
+
+.PHONY: remove-ext-eggs
+remove-ext-eggs:
+	@echo --- Remove desktop/core/ext-eggs to reduce installation size
+	@# As those EGGs were already installed in virtualenv.
+	rm -rf $(INSTALL_DIR)/desktop/core/ext-eggs
 
 
 ###################################
