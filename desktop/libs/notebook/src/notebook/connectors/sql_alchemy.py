@@ -137,6 +137,10 @@ class SqlAlchemyApi(Api):
 
     engine = self._create_engine()
     connection = engine.connect()
+
+    if not engine.url.database and engine.url.drivername in [ 'mysql', 'postgresql', 'oracle' ]:
+      connection.execute('USE %s' % snippet['database'])
+
     statement = snippet['statement'].strip().strip(';')
     result = connection.execution_options(stream_results=True).execute(statement)
 
