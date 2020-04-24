@@ -169,8 +169,16 @@ class Hdfs(object):
           self.setuser(self.superuser)
           self.mkdir(home_path)
           self.chmod(home_path, mode)
-          self.chown(home_path, user, user)
-        except IOError:
+          self.chown(home_path, user)
+          try:
+            # Handle cases when there is no group with the same name as the user,
+            # for example on clusters with LDAP authentication.
+            self.chown(home_path, group=user)
+          except Exception:
+            LOG.error('Failed to change the group of "{}" to "{}" when creating a home directory '
+                      'for user "{}"'.format(home_path, user, user))
+        # except IOError:  # Use "Exception" instead, as our HTTP-FS returns wrong error response here which is not become wrapped in "IOError".
+        except Exception:
           msg = 'Failed to create home dir ("%s") as superuser %s' % (home_path, self.superuser)
           LOG.exception(msg)
           raise
