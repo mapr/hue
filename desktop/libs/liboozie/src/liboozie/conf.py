@@ -50,7 +50,9 @@ REMOTE_DEPLOYMENT_DIR = Config(
   key="remote_deployement_dir",
   default="/oozie/deployments/_$USER_-oozie-$JOBID-$TIME",
   help=_t("Location on HDFS where the workflows/coordinators are deployed when submitted by a non-owner."
-          " Parameters are $TIME, $USER and $JOBID, e.g. /user/$USER/hue/deployments/$JOBID-$TIME"))
+          " Parameters are $TIME, $USER and $JOBID, e.g. /user/$USER/hue/deployments/$JOBID-$TIME"),
+  preserve_subs=['JOBID', 'TIME', 'USER']
+)
 
 MECHANISM=Config("mechanism",
   default='none',

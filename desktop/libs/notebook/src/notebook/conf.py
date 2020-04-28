@@ -126,7 +126,8 @@ INTERPRETERS = UnspecifiedConfigSection(
         key='options',
         help=_t('Specific options for connecting to the server.'),
         type=coerce_json_dict,
-        default='{}'
+        default='{}',
+        preserve_subs=['USER', 'PASSWORD'],
       )
     )
   )

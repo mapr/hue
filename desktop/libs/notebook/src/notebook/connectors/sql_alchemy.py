@@ -107,13 +107,18 @@ class SqlAlchemyApi(Api):
     self.backticks = '"' if re.match('^(postgresql://|awsathena|elasticsearch)', self.options.get('url', '')) else '`'
 
   def _create_engine(self):
-    if '${' in self.options['url']: # URL parameters substitution
+    # Ask for user credentials if ${PASSWORD} is in url, otherwise replace only ${USER} to do the impersonation.
+    if '${PASSWORD}' in self.options['url']:  # Replace PASSWORD and USER from DB authentication pop-up.
       vars = {'user': self.user.username}
       for _prop in self.options['session']['properties']:
         if _prop['name'] == 'user':
           vars['USER'] = _prop['value']
         if _prop['name'] == 'password':
           vars['PASSWORD'] = _prop['value']
+      raw_url = Template(self.options['url'])
+      url = raw_url.safe_substitute(**vars)
+    elif '${USER}' in self.options['url']:  # Replace USER in URL (typically to do the impersonation).
+      vars = {'USER': self.user.username}
       raw_url = Template(self.options['url'])
       url = raw_url.safe_substitute(**vars)
     else:
