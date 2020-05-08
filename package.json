@@ -177,6 +177,14 @@
     "test-dev": "jest --watch",
     "test-clearCache": "jest --clearCache",
     "check-license": "node ./tools/license/checkLicenses.js",
-    "check-absolute-paths": "node ./tools/detect-absolute-paths/detectAbsolutePaths.js"
+    "check-absolute-paths": "node ./tools/detect-absolute-paths/detectAbsolutePaths.js",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "fresh": ">=0.5.2",
+    "js-yaml": ">=3.13.1",
+    "kind-of": ">6.0.2",
+    "minimatch": ">=3.0.2",
+    "minimist": ">=1.2.2"
   }
 }
