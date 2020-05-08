@@ -118,7 +118,16 @@
     "test": "jest",
     "test-coverage": "jest --coverage",
     "test-dev": "jest --watch",
-    "test-clearCache": "jest --clearCache"
+    "test-clearCache": "jest --clearCache",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "lodash": ">=4.17.12",
+    "js-yaml": ">=3.13.1",
+    "minimist": ">=1.2.2",
+    "fresh": ">=0.5.2",
+    "minimatch": ">=3.0.2",
+    "kind-of": ">6.0.2"
   },
   "files": []
 }
