@@ -34,8 +34,7 @@ PYPI_MIRROR ?= https://pypi.python.org/simple/
 $(DEVTOOLS):
 	@echo "--- Installing development tool: $@"
 	$(ENV_EASY_INSTALL) -i $(PYPI_MIRROR) \
-	   -f http://package.mapr.com/tools/desktop-sdk-python-packages/ \
-	   -H package.mapr.com  $(SETUPTOOLS_OPTS) $(subst ],,$(subst [,==,$@))
+	   -H *.cloudera.com,pypi.python.org,files.pythonhosted.org $(SETUPTOOLS_OPTS) $(subst ],,$(subst [,==,$@))
 
 $(BLD_DIR):
 	@mkdir -p $@
