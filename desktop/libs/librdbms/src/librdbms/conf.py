@@ -18,6 +18,7 @@
 from django.utils.translation import ugettext_lazy as _t, ugettext as _
 from desktop.lib.conf import Config, UnspecifiedConfigSection,\
                              ConfigSection, coerce_json_dict,\
+                             coerce_string,\
                              coerce_password_from_script
 from desktop.conf import coerce_database
 
@@ -87,13 +88,13 @@ DATABASES = UnspecifiedConfigSection(
       DRILLBITS=Config(
         key='drillbits',
         help=_t('Drillbit address for direct connection.'),
-        type=str,
+        type=coerce_string,
         default='localhost:31010',
       ),
       ZK_QUORUM=Config(
         key='zk_quorum',
         help=_t('ZooKeeper quorum for connection through ZooKeeper.'),
-        type=str,
+        type=coerce_string,
         default='localhost:5181',
       ),
       ZK_CLUSTER_ID=Config(
