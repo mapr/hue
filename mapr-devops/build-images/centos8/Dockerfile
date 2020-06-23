@@ -1,4 +1,4 @@
-FROM docker.artifactory.lab/centos7vault-java11-gcc7
+FROM docker.artifactory.lab/centos8vault-java11-gcc8
 
 # https://github.com/cloudera/hue/blob/release-4.6.0/docs/admin-manual/manual.md#centosrhel
 # RUN yum install -y ant # from cross-linux/ant-install.sh
@@ -21,10 +21,10 @@ RUN yum install -y sqlite-devel
 RUN yum install -y gmp-devel
 
 # libmysqlclient_r.a is needed to build MySQL-Python statically linked to native MySQL drivers.
-# Replace "gcc -dumpversion" with "gcc -dumpfullversion" to fix build on GCC 7.
-RUN yum remove -y mariadb-devel mariadb-libs && \
+# Replace "gcc -dumpversion" with "gcc -dumpfullversion" to fix build on GCC 7 and newer.
+RUN yum remove -y mysql-devel && \
     yum install -y ncurses-devel && \
-    curl -L https://downloads.mariadb.org/f/mariadb-5.5.68/source/mariadb-5.5.68.tar.gz | tar xz -C /opt && \
+    curl -sL https://downloads.mariadb.org/f/mariadb-5.5.68/source/mariadb-5.5.68.tar.gz | tar xz -C /opt && \
     ln -s /opt/mariadb-5.5.68 /opt/mariadb && \
     cd /opt/mariadb && \
     sed -i "s/-dumpversion/-dumpfullversion/g" ./BUILD/check-cpu && \
