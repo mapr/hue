@@ -10,6 +10,9 @@ if [ -e "${JAVA_HOME}/jre/lib/amd64/server" ]; then
 elif [ -e "${JAVA_HOME}/lib/amd64/server" ]; then
     # java_directory points to JRE (MapR env.sh can return JAVA_HOME pointing to JRE_HOME)
     libjvm_path="${JAVA_HOME}/lib/amd64/server"
+elif [ -e "${JAVA_HOME}/lib/server" ]; then
+    # Java 11
+    libjvm_path="${JAVA_HOME}/lib/server"
 fi
 export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path}:${LD_LIBRARY_PATH}"
 
