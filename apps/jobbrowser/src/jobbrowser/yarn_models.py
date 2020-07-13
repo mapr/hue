@@ -314,6 +314,7 @@ class Job(object):
   def full_job_conf(self):
     if not hasattr(self, '_full_job_conf'):
       try:
+        # ResourceManager API will always return empty dict (stub)
         conf = self.api.conf(self.id)
         self._full_job_conf = conf['conf']
       except TypeError as e:
