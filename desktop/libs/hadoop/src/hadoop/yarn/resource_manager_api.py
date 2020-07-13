@@ -185,3 +185,7 @@ class ResourceManagerApi(object):
     except Exception as e:
       raise PopupException(_('YARN RM returned a failed response: %s') % e)
     return response
+
+  # Return empty dict in order not to break Job API
+  def conf(self, job_id):
+    return {'conf': {'property': []}}
