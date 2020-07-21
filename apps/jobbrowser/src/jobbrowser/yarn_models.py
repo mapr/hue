@@ -557,9 +557,9 @@ class Attempt(object):
     if not log_link:
       return log_link, None
 
-    log_link_scheme = urlparse.urlparse(log_link).scheme
+    log_link_scheme = urllib.parse.urlparse(log_link).scheme
     if not log_link_scheme:
-      log_link_scheme = urlparse.urlparse(self.task.job.api.url).scheme
+      log_link_scheme = urllib.parse.urlparse(self.task.job.api.url).scheme
       log_link = '{}:{}'.format(log_link_scheme, log_link)
 
     # Generate actual task log link from logsLink url
