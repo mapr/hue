@@ -154,29 +154,25 @@ SERVER_CONN_TIMEOUT = Config(
   help=_t('Timeout in seconds for Thrift calls.'))
 
 MECHANISM=Config('mechanism',
-  default='none',
+  default='',
   help='Security mechanism of authentication none/GSSAPI/MAPR-SECURITY',
   type=str)
 
 def get_hive_mechanism():
   """
-  Point of this method is to convert `mechanism` property that used in `hue.ini` (none/GSSAPI/MAPR-SECURITY/LDAP)
-  to `hive.server2.authentication` that used in `hive-site.xml` (KERBEROS/NONE/NOSASL/MAPRSASL/LDAP/PAM/CUSTOM)
+  This method converts `mechanism` property value from `hue.ini` (''/GSSAPI/MAPR-SECURITY/LDAP)
+  to `hive.server2.authentication` property value used in `hive-site.xml` (KERBEROS/NONE/NOSASL/MAPRSASL/LDAP/PAM/CUSTOM)
   """
 
   mechanism = str(MECHANISM.get()).upper()
 
-  HUE_INI_TO_HS2_MECHANIMS = {
+  HUE_INI_TO_HS2_MECHANISM = {
+    '': 'NONE',
     'GSSAPI': 'KERBEROS',
     'MAPR-SECURITY': 'MAPRSASL',
   }
 
-  return HUE_INI_TO_HS2_MECHANIMS.get(mechanism, mechanism)
-
-HIVE_MECHANISM=Config("hive_mechanism",
-  dynamic_default=get_hive_mechanism,
-  help='Security mechanism of HS2 authentication: KERBEROS/NONE/NOSASL/MAPRSASL/LDAP/PAM/CUSTOM',
-  type=str)
+  return HUE_INI_TO_HS2_MECHANISM.get(mechanism, mechanism)
 
 USE_GET_LOG_API = Config( # To remove in Hue 4
   key='use_get_log_api',

@@ -260,6 +260,8 @@ class Config(object):
     """
     return BoundConfig(config=self, bind_to=conf, grab_key=self.key, prefix=prefix)
 
+  _substitute_pattern = re.compile(r'\$\{(\w+?)\}')
+
   def _substitute(self, mo):
     key = mo.group(1)
     if key in self.preserve_subs:
@@ -292,7 +294,7 @@ class Config(object):
 
     # Substitute environment variables in string values like ${env_var_name}
     if isinstance(raw_val, string_types):
-      raw_val = re.sub(r'\$\{(\w+?)\}', self._substitute, raw_val)
+      raw_val = self._substitute_pattern.sub(self._substitute, raw_val)
 
     if coerce_type:
       return self._coerce_type(raw_val, prefix)
