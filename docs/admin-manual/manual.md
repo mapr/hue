@@ -925,6 +925,44 @@ beeswax_server_host::
 hive_conf_dir::
   The directory containing your `hive-site.xml` Hive
   configuration file.
+  
+### LLAP
+    LLAP is added by enabling the following settings:
+        [notebook]
+            [[interpreters]]
+                [[[llap]]]
+                #   name=LLAP
+                #   interface=hiveserver2
+        
+        [beeswax]
+        # When the LLAP interpreter is added, there are 2 ways to enable connectivity (direct configuration or service discovery)
+            # Direct Configuration
+            ## llap_server_host = localhost
+            ## llap_server_port = 10500
+            ## llap_server_thrift_port = 10501
+        
+            # Service Discovery
+            ## hive_discovery_llap = true
+            ## hive_discovery_llap_ha = false
+            # Shortcuts to finding LLAP znode Key
+            # Non-HA - hiveserver-interactive-site - hive.server2.zookeeper.namespace ex hive2 = /hive2
+            # HA-NonKerberized - <llap_app_name>_llap ex app name llap0 = /llap0_llap
+            # HA-Kerberized - <llap_app_name>_llap-sasl ex app name llap0 = /llap0_llap-sasl
+            ## hive_discovery_llap_znode = /hiveserver2-hive2
+
+**Service Discovery**
+
+When setup, Hue will query zookeeper to find an enabled hiveserver2 or llap endpoint.
+
+        [beeswax]
+            ## hive_discovery_llap = true
+            ## hive_discovery_hs2 = true
+
+In order to prevent spamming zookeeper, HiveServer2 is cached for the life of the process and llap is cached based on the following setting:
+
+        [beeswax]
+            cache_timeout = 60
+
 
 ### JDBC
 

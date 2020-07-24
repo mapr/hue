@@ -361,9 +361,14 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', # TODO: Parameterize here for all the caches
         'LOCATION': 'unique-hue'
     }
+}
+CACHES_HIVE_DISCOVERY_KEY = 'hive_discovery'
+CACHES[CACHES_HIVE_DISCOVERY_KEY] = {
+    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    'LOCATION': CACHES_HIVE_DISCOVERY_KEY
 }
 
 # Configure sessions

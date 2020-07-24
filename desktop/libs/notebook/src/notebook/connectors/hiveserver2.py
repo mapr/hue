@@ -163,7 +163,7 @@ class HS2Api(Api):
 
   @query_error_handler
   def create_session(self, lang='hive', properties=None):
-    application = 'beeswax' if lang == 'hive' else lang
+    application = 'beeswax' if lang == 'hive' or lang == 'llap' else lang
 
     session = Session.objects.get_session(self.user, application=application)
 
@@ -784,6 +784,8 @@ DROP TABLE IF EXISTS `%(table)s`;
       name = 'hive'
     elif snippet['type'] == 'impala':
       name = 'impala'
+    elif snippet['type'] == 'llap':
+      name = 'llap'
     else:
       name = 'sparksql'
 
