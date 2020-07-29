@@ -28,7 +28,7 @@ from pig.settings import NICE_NAME
 
 LOCAL_SAMPLE_DIR = Config(
   key="local_sample_dir",
-  default=os.path.join(os.environ.get("MAPR_HOME", "/opt/mapr"), "pig/pig-0.16/contrib/piggybank/java"),
+  default=os.path.join(os.environ.get("MAPR_HOME", "/opt/mapr"), "pig/pig-0.17/contrib/piggybank/java"),
   help=_t("Path to directory with piggybank.jar on local filesystem."),
   private=True)
 
