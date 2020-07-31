@@ -66,7 +66,7 @@ _CNF_HIVESERVER2_THRIFT_HTTP_PORT = 'hive.server2.thrift.http.port'
 _CNF_HIVESERVER2_THRIFT_HTTP_PATH = 'hive.server2.thrift.http.path'
 _CNF_HIVESERVER2_THRIFT_SASL_QOP = 'hive.server2.thrift.sasl.qop'
 
-_CNF_HIVESERVER2_USE_SASL = 'hive.metastore.sasl.enabled'
+_CNF_HIVESERVER2_USE_SASL = 'hive.server2.authentication'
 
 _CNF_HIVE_SUPPORT_CONCURRENCY = 'hive.support.concurrency'
 _CNF_HIVE_HOOK_PROTO_BASE_DIR = 'hive.hook.proto.base-directory'
