@@ -890,21 +890,21 @@
     #   options='{"url": "mysql://root:secret@database:3306/hue"}'
     #   ## options='{"url": "mysql://${USER}:${PASSWORD}@localhost:3306/hue"}'
 
-    # [[[hive]]]
-    #   name=Hive
-    #   interface=hiveserver2
+     [[[hive]]]
+       name=Hive
+       interface=hiveserver2
 
     # [[[llap]]]
     #   name=LLAP
     #   interface=hiveserver2
 
-    # [[[impala]]]
-    #   name=Impala
-    #   interface=hiveserver2
+     [[[impala]]]
+       name=Impala
+       interface=hiveserver2
 
-    # [[[drill]]]
-    #   name=Drill
-    #   interface=rdbms
+     [[[drill]]]
+       name=Drill
+       interface=rdbms
 
     # [[[postgresql]]]
     #   name = postgresql
@@ -920,41 +920,41 @@
     #   name=SparkSql
     #   interface=livy
 
-    # [[[spark]]]
-    #   name=Scala
-    #   interface=livy
+     [[[spark]]]
+       name=Scala
+       interface=livy
 
-    # [[[pyspark]]]
-    #   name=PySpark
-    #   interface=livy
+     [[[pyspark]]]
+       name=PySpark
+       interface=livy
 
-    # [[[r]]]
-    #   name=R
-    #   interface=livy
+     [[[r]]]
+       name=R
+       interface=livy
 
-    # [[jar]]]
-    #   name=Spark Submit Jar
-    #   interface=livy-batch
+     [[[jar]]]
+       name=Spark Submit Jar
+       interface=livy-batch
 
-    # [[[py]]]
-    #   name=Spark Submit Python
-    #   interface=livy-batch
+     [[[py]]]
+       name=Spark Submit Python
+       interface=livy-batch
 
-    # [[[text]]]
-    #   name=Text
-    #   interface=text
+     [[[text]]]
+       name=Text
+       interface=text
 
-    # [[[markdown]]]
-    #   name=Markdown
-    #   interface=text
+     [[[markdown]]]
+       name=Markdown
+       interface=text
 
-    # [[[sqlite]]]
-    #   name = SQLite
-    #   interface=rdbms
+     [[[sqlite]]]
+       name = SQLite
+       interface=rdbms
 
-    # [[[oracle]]]
-    #   name = Oracle
-    #   interface=rdbms
+     [[[oracle]]]
+       name = Oracle
+       interface=rdbms
 
     # [[[solr]]]
     #   name = Solr SQL
@@ -962,33 +962,33 @@
     #   ## Name of the collection handler
     #   options='{"collection": "default"}'
 
-    # [[[pig]]]
-    #   name=Pig
-    #   interface=oozie
+     [[[pig]]]
+       name=Pig
+       interface=oozie
 
-    # [[[java]]]
-    #   name=Java
-    #   interface=oozie
+     [[[java]]]
+       name=Java
+       interface=oozie
 
-    # [[[spark2]]]
-    #   name=Spark
-    #   interface=oozie
+     [[[spark2]]]
+       name=Spark
+       interface=oozie
 
-    # [[[mapreduce]]]
-    #   name=MapReduce
-    #   interface=oozie
+     [[[mapreduce]]]
+       name=MapReduce
+       interface=oozie
 
-    # [[[sqoop1]]]
-    #   name=Sqoop1
-    #   interface=oozie
+     [[[sqoop1]]]
+       name=Sqoop1
+       interface=oozie
 
-    # [[[distcp]]]
-    #   name=Distcp
-    #   interface=oozie
+     [[[distcp]]]
+       name=Distcp
+       interface=oozie
 
-    # [[[shell]]]
-    #   name=Shell
-    #   interface=oozie
+     [[[shell]]]
+       name=Shell
+       interface=oozie
 
     # [[[presto]]]
     #   name=Presto SQL
@@ -1643,8 +1643,8 @@
 
     [[[default]]]
       # Zookeeper ensemble. Comma separated list of Host/Port.
-      # e.g. localhost:2181,localhost:2182,localhost:2183
-      ## host_ports=localhost:2181
+      # e.g. localhost:5181,localhost:5182,localhost:5183
+      ## host_ports=localhost:5181
 
       # The URL of the REST contrib service (required for znode browsing).
       ## rest_url=http://localhost:9998
