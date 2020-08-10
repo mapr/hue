@@ -672,7 +672,7 @@ function impalaDagre(id) {
 
   function renderGraph() {
     var plan = _impalaDagree._plan;
-    if (!plan || !plan.plan_json.plan_nodes || !plan.plan_json.plan_nodes.length) return;
+    if (!plan || !plan.plan_json || !plan.plan_json.plan_nodes || !plan.plan_json.plan_nodes.length) return;
     var states = [];
     var edges = [];
     var colour_idx = 0;
