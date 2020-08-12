@@ -1793,32 +1793,32 @@ ${ sqlSyntaxDropdown.sqlSyntaxDropdown() }
 
     <!-- ko if: isSqlDialect && ! $root.isPresentationMode() -->
     <div class="inactive-action dropdown hover-actions pointer" data-bind="css: {'disabled': ! isReady() || status() === 'running' || status() === 'loading' }">
-      <a class="snippet-side-btn" style="padding-right:0; padding-left: 2px;" href="javascript: void(0)" data-bind="click: explain, css: {'disabled': ! isReady() || status() === 'running' || status() === 'loading', 'blue': currentQueryTab() == 'queryExplain' }" title="${ _('Explain the current SQL query') }">
+      <a class="snippet-side-btn" style="padding-right:0; padding-left: 2px;" href="javascript: void(0)" data-bind="click: explain, css: {'disabled': ! hasExplain() || ! isReady() || status() === 'running' || status() === 'loading', 'blue': currentQueryTab() == 'queryExplain' }" title="${ _('Explain the current SQL query') }">
         <i class="fa fa-fw fa-map-o"></i>
       </a>
       <a class="dropdown-toggle snippet-side-btn" style="padding:0" data-toggle="dropdown" href="javascript: void(0)" data-bind="css: {'disabled': ! isReady(), 'blue': currentQueryTab() == 'queryExplain' }">
         <i class="fa fa-caret-down"></i>
       </a>
       <ul class="dropdown-menu less-padding">
-        <li>
-          <a href="javascript:void(0)" data-bind="click: explain, style: { color: ! isReady() || status() === 'running' || status() === 'loading' ? '#999' : ''}, css: {'disabled': ! isReady() || status() === 'running' || status() === 'loading' }" title="${ _('Explain the current SQL query') }">
+        <li data-bind="css: {'disabled': ! hasExplain() || ! isReady() || status() === 'running' || status() === 'loading' }">
+          <a href="javascript:void(0)" data-bind="click: explain, style: { color: ! isReady() || status() === 'running' || status() === 'loading' ? '#999' : ''}" title="${ _('Explain the current SQL query') }">
             <i class="fa fa-fw fa-map-o"></i> ${_('Explain')}
           </a>
         </li>
-        <li>
-          <a href="javascript:void(0)" data-bind="click: createGist, css: {'disabled': ! isReady() }" title="${ _('Share the query selection via a link') }">
+        <li data-bind="css: {'disabled': ! isReady() }">
+          <a href="javascript:void(0)" data-bind="click: createGist" title="${ _('Share the query selection via a link') }">
             <i class="fa fa-fw fa-link"></i> ${_('Share link')}
           </a>
         </li>
         <!-- ko if: formatEnabled -->
-        <li>
-          <a href="javascript:void(0)" data-bind="click: format, css: {'disabled': ! isReady() }" title="${ _('Format the current SQL query') }">
+        <li data-bind="css: {'disabled': ! isReady() }">
+          <a href="javascript:void(0)" data-bind="click: format" title="${ _('Format the current SQL query') }">
             <i class="fa fa-fw fa-indent"></i> ${_('Format')}
           </a>
         </li>
         <!-- /ko -->
-        <li>
-          <a href="javascript:void(0)" data-bind="click: clear, css: {'disabled': ! isReady() }" title="${ _('Clear the current editor') }">
+        <li data-bind="css: {'disabled': ! isReady() }">
+          <a href="javascript:void(0)" data-bind="click: clear" title="${ _('Clear the current editor') }">
             <i class="fa fa-fw fa-eraser"></i> ${_('Clear')}
           </a>
         </li>

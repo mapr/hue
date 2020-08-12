@@ -250,6 +250,12 @@ class Snippet {
       return vm.getSnippetViewSettings(self.type()).placeHolder;
     };
 
+    self.hasExplain = ko.pureComputed(() => {
+      return $.grep(vm.availableLanguages, language => {
+        return language.type == self.type() && language.hasExplain;
+      }).length > 0;
+    });
+
     // namespace and compute might be initialized as empty object {}
     self.namespace = ko.observable(
       snippet.namespace && snippet.namespace.id ? snippet.namespace : undefined
@@ -1976,7 +1982,7 @@ class Snippet {
     self.explain = function() {
       hueAnalytics.log('notebook', 'explain');
 
-      if (self.statement() == '' || self.status() == 'running' || self.status() === 'loading') {
+      if (!self.hasExplain() || self.statement() == '' || self.status() == 'running' || self.status() === 'loading') {
         return;
       }
 

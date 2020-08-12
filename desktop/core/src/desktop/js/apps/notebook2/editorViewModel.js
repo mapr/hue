@@ -110,7 +110,8 @@ class EditorViewModel {
         this.availableLanguages.push({
           type: language.type,
           name: language.name,
-          interface: language.interface
+          interface: language.interface,
+          hasExplain: language.has_explain
         });
         const viewSettings = this.snippetViewSettings[language.type];
         if (viewSettings && viewSettings.sqlDialect) {
