@@ -18,14 +18,14 @@ RETURN_ERR_MAPRCLUSTER=3
 # Initialize API and globals
 MAPR_HOME=${MAPR_HOME:-/opt/mapr}
 
-. ${MAPR_HOME}/server/common-ecosystem.sh  2> /dev/null
+. ${MAPR_HOME}/server/common-ecosystem.sh 2> /dev/null
 
 if [ $? -ne 0 ] ; then
   echo '[ERROR] MAPR_HOME seems to not be set correctly or mapr-core not installed.'
   exit $RETURN_ERR_MAPR_HOME
 fi
 
-{ set +x; } 2>/dev/null
+{ set +x; } 2> /dev/null
 
 initCfgEnv
 
@@ -243,16 +243,17 @@ if [ "$isOnlyRoles" == 1 ] ; then
     write_secure "$isSecure"
   fi
 
-  chown_component
-  sudo -u "$MAPR_USER" mkdir -p "$HUE_LOG_DIR"
+  mkdir -p "$HUE_LOG_DIR"
 
   logInfo "Syncing database."
-  initdb_out=$(init_db_and_user 2>&1)
+  echo "$(date) Syncing database." >> "$HUE_LOG_INITIAL_DB_MIGRATION"
+  init_db_and_user >> "$HUE_LOG_INITIAL_DB_MIGRATION" 2>&1
   initdb_res=$?
   if [ $initdb_res -ne 0 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
-  echo "$initdb_out" | sudo -u "$MAPR_USER" tee -a "$HUE_LOG_INITIAL_DB_MIGRATION" >/dev/null
+
+  chown_component
 
   setup_warden_conf
 
