@@ -1621,7 +1621,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
           <div data-bind="visible:properties.plan && properties.plan().plan_json && properties.plan().plan_json.plan_nodes.length">
             <div class="query-plan" id="queries-page-plan-graph${ SUFFIX }" data-bind="impalaDagre: { value: properties.plan && properties.plan(), height:$root.isMini() ? 535 : 600 }">
               <svg style="width:100%;height:100%;position:relative;" id="queries-page-plan-svg${ SUFFIX }">
-                <g/>
+                <g></g>
               </svg>
             </div>
           </div>
@@ -1631,16 +1631,16 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
           <pre data-bind="text: (properties.plan && properties.plan().stmt) || _('The selected tab has no data')"/>
         </div>
         <div class="tab-pane" id="queries-page-plan-text${ SUFFIX }" data-profile="plan">
-          <pre data-bind="text: (properties.plan && properties.plan().plan) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.plan && properties.plan().plan) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-summary${ SUFFIX }" data-profile="plan">
-          <pre data-bind="text: (properties.plan && properties.plan().summary) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.plan && properties.plan().summary) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-profile${ SUFFIX }" data-profile="profile">
-          <pre data-bind="text: (properties.profile && properties.profile().profile) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.profile && properties.profile().profile) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-memory${ SUFFIX }" data-profile="mem_usage">
-          <pre data-bind="text: (properties.memory && properties.memory().mem_usage) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.memory && properties.memory().mem_usage) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-backends${ SUFFIX }" data-profile="backends">
           <!-- ko if: properties.backends && properties.backends().backend_states -->
@@ -1664,7 +1664,7 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
           </div>
           <!-- /ko -->
           <!-- ko if: !properties.backends || !properties.backends().backend_states -->
-          <pre data-bind="text: _('The selected tab has no data')"/>
+          <pre data-bind="text: _('The selected tab has no data')"></pre>
           <!-- /ko -->
         </div>
         <div class="tab-pane" id="queries-page-finstances${ SUFFIX }" data-profile="finstances">
@@ -1689,20 +1689,20 @@ ${ commonheader("Job Browser", "jobbrowser", user, request) | n,unicode }
           </div>
           <!-- /ko -->
           <!-- ko if: !properties.finstances || !properties.finstances().backend_instances -->
-          <pre data-bind="text: _('The selected tab has no data')"/>
+          <pre data-bind="text: _('The selected tab has no data')"></pre>
           <!-- /ko -->
         </div>
         <!-- /ko -->
 
         <!-- ko if: $root.job().mainType() == 'queries-hive' -->
         <div class="tab-pane active" id="queries-page-hive-plan-text${ SUFFIX }" data-profile="plan">
-          <pre data-bind="text: (properties.plan && properties.plan().plan && JSON.stringify(ko.toJS(properties.plan().plan), null, 2)) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.plan && properties.plan().plan && JSON.stringify(ko.toJS(properties.plan().plan), null, 2)) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-hive-stmt${ SUFFIX }" data-profile="stmt">
-          <pre data-bind="text: (properties.plan && properties.plan().stmt) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.plan && properties.plan().stmt) || _('The selected tab has no data')"></pre>
         </div>
         <div class="tab-pane" id="queries-page-hive-perf${ SUFFIX }" data-profile="perf">
-          <pre data-bind="text: (properties.plan && properties.plan().perf && properties.plan().perf && JSON.stringify(JSON.parse(properties.plan().perf), null, 2)) || _('The selected tab has no data')"/>
+          <pre data-bind="text: (properties.plan && properties.plan().perf && properties.plan().perf && JSON.stringify(JSON.parse(properties.plan().perf), null, 2)) || _('The selected tab has no data')"></pre>
         </div>
         <!-- /ko -->
       </div>
