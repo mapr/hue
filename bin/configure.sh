@@ -245,6 +245,8 @@ if [ "$isOnlyRoles" == 1 ] ; then
 
   mkdir -p "$HUE_LOG_DIR"
 
+  chown_component
+
   logInfo "Syncing database."
   echo "$(date) Syncing database." >> "$HUE_LOG_INITIAL_DB_MIGRATION"
   init_db_and_user >> "$HUE_LOG_INITIAL_DB_MIGRATION" 2>&1
@@ -252,8 +254,6 @@ if [ "$isOnlyRoles" == 1 ] ; then
   if [ $initdb_res -ne 0 ] ; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
-
-  chown_component
 
   setup_warden_conf
 
