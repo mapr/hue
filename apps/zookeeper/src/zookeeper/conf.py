@@ -27,8 +27,8 @@ CLUSTERS = UnspecifiedConfigSection(
     members=dict(
       HOST_PORTS=Config(
           "host_ports",
-          help="Zookeeper ensemble. Comma separated list of Host/Port, e.g. localhost:2181,localhost:2182,localhost:2183",
-          default="localhost:2181",
+          help="Zookeeper ensemble. Comma separated list of Host/Port, e.g. localhost:5181,localhost:5182,localhost:5183",
+          default="localhost:5181",
           type=coerce_string,
       ),
       REST_URL=Config(
