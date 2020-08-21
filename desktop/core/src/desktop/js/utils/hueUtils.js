@@ -159,7 +159,7 @@ export const changeURL = (newURL, params) => {
     url += (url.indexOf('?') === -1 ? '?' : '&') + extraSearch;
   }
   if (hashSplit.length > 1) {
-    url += '#' + hashSplit[1];
+    url += '#' + hashSplit.slice(1, hashSplit.length).join('#');
   } else if (window.location.hash) {
     url += window.location.hash;
   }

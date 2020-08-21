@@ -1155,8 +1155,6 @@ def generic_op(form_class, request, op, parameter_names, piggyback=None, templat
 def rename(request):
     def smart_rename(src_path, dest_path):
         """If dest_path doesn't have a directory specified, use same dir."""
-        if "#" in dest_path:
-          raise PopupException(_("Could not rename folder \"%s\" to \"%s\": Hashes are not allowed in filenames." % (src_path, dest_path)))
         if "/" not in dest_path:
             src_dir = os.path.dirname(src_path)
             dest_path = request.fs.join(urllib_unquote(src_dir), urllib_unquote(dest_path))
@@ -1179,8 +1177,8 @@ def mkdir(request):
     def smart_mkdir(path, name):
         # Make sure only one directory is specified at a time.
         # No absolute directory specification allowed.
-        if posixpath.sep in name or "#" in name:
-            raise PopupException(_("Could not name folder \"%s\": Slashes or hashes are not allowed in filenames." % name))
+        if posixpath.sep in name:
+            raise PopupException(_("Could not name folder \"%s\": Slashes are not allowed in filenames." % name))
         request.fs.mkdir(request.fs.join(urllib_unquote(path), urllib_unquote(name)))
 
     return generic_op(MkDirForm, request, smart_mkdir, ["path", "name"], "path")
