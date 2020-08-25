@@ -20,7 +20,7 @@ MAPR_HOME=${MAPR_HOME:-/opt/mapr}
 
 . ${MAPR_HOME}/server/common-ecosystem.sh 2> /dev/null
 
-if [ $? -ne 0 ] ; then
+if [ $? -ne 0 ]; then
   echo '[ERROR] MAPR_HOME seems to not be set correctly or mapr-core not installed.'
   exit $RETURN_ERR_MAPR_HOME
 fi
@@ -69,7 +69,7 @@ HUE_LOG_INITIAL_DB_MIGRATION="${HUE_LOG_DIR}/initial-db-migration.log"
 
 USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--customSecure] [-EC <options>]"
 
-while [ ${#} -gt 0 ] ; do
+while [ ${#} -gt 0 ]; do
   case "$1" in
     --secure)
       isSecure="true";
@@ -202,8 +202,8 @@ write_secure() {
 init_db_and_user() {
   oldpwd="$PWD"
   cd "$HUE_HOME"
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" migrate --run-syncdb --fake-initial &&
-  sudo -u "$MAPR_USER" "${HUE_HOME}/bin/hue" shell <<EOF
+  "${HUE_HOME}/bin/hue" migrate --run-syncdb --fake-initial &&
+  "${HUE_HOME}/bin/hue" shell <<EOF
 from django.contrib.auth import get_user_model
 from useradmin.models import get_default_user_group
 User = get_user_model()
@@ -228,39 +228,39 @@ EOF
 
 # Main part
 
-if [ "$isOnlyRoles" == 1 ] ; then
+if [ "$isOnlyRoles" == 1 ]; then
   # Configure security
   oldSecure=$(read_secure)
   updSecure="false"
-  if [ -n "$isSecure" ] && [ "$isSecure" != "$oldSecure" ] ; then
+  if [ -n "$isSecure" ] && [ "$isSecure" != "$oldSecure" ]; then
     updSecure="true"
   fi
 
   perm_scripts
   perm_confs
 
-  if [ "$updSecure" = "true" ] ; then
+  if [ "$updSecure" = "true" ]; then
     write_secure "$isSecure"
   fi
 
   mkdir -p "$HUE_LOG_DIR"
 
-  chown_component
-
   logInfo "Syncing database."
   echo "$(date) Syncing database." >> "$HUE_LOG_INITIAL_DB_MIGRATION"
   init_db_and_user >> "$HUE_LOG_INITIAL_DB_MIGRATION" 2>&1
   initdb_res=$?
-  if [ $initdb_res -ne 0 ] ; then
+  if [ $initdb_res -ne 0 ]; then
     logErr "Failed to perform database sync or failed to set '$MAPR_USER' to be Hue admin."
   fi
+
+  chown_component
 
   setup_warden_conf
 
   # remove state file
-  if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ] ; then
+  if [ -f "$HUE_HOME/desktop/conf/.not_configured_yet" ]; then
     rm -f "$HUE_HOME/desktop/conf/.not_configured_yet"
-  elif [ "$updSecure" = "true" ] ; then
+  elif [ "$updSecure" = "true" ]; then
     create_restart_file
   fi
 fi
