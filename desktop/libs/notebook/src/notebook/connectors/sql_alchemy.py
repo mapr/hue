@@ -126,8 +126,12 @@ class SqlAlchemyApi(Api):
 
     if interpreter.get('dialect_properties'):
       self.backticks = interpreter['dialect_properties']['sql_identifier_quote']
+      self._has_use_statement = interpreter['dialect_properties']['has_use_statement']
+      self._sql_identifier_quote = self.interpreter['dialect_properties']['sql_identifier_quote']
     else:
       self.backticks = '"' if re.match('^(postgresql://|awsathena|elasticsearch|phoenix|trino)', self.options.get('url', '')) else '`'
+      self._has_use_statement = re.match('^(drill.*://)', self.options.get('url', ''))
+      self._sql_identifier_quote = '`' if re.match('^(drill.*://)', self.options.get('url', '')) else ''
 
   def _get_engine_key(self):
     return ENGINE_KEY % {
@@ -246,10 +250,10 @@ class SqlAlchemyApi(Api):
     current_statement = self._get_current_statement(notebook, snippet)
     statement = current_statement['statement']
 
-    if self.interpreter['dialect_properties'].get('has_use_statement') and snippet.get('database'):
+    if self._has_use_statement and snippet.get('database'):
       connection.execute(
         'USE %(sql_identifier_quote)s%(database)s%(sql_identifier_quote)s' % {
-          'sql_identifier_quote': self.interpreter['dialect_properties']['sql_identifier_quote'],
+          'sql_identifier_quote': self._sql_identifier_quote,
           'database': snippet['database'],
         }
       )
