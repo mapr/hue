@@ -143,8 +143,16 @@ class SqlAlchemyApi(Api):
     engine = self._create_engine()
     connection = engine.connect()
 
-    if not engine.url.database and engine.url.drivername in [ 'mysql', 'postgresql', 'oracle' ]:
-      connection.execute('USE %s' % snippet['database'])
+    if not engine.url.database:
+      use_statements = {
+        'mysql': 'USE {}',
+        'oracle': 'USE {}',
+        'drill+odbc': 'USE {}',
+        'postgresql': 'SET search_path = {}',
+      }
+      use_statement = use_statements.get(engine.url.drivername)
+      if use_statement:
+        connection.execute(use_statement.format(snippet['database']))
 
     statement = snippet['statement'].strip().strip(';')
     result = connection.execution_options(stream_results=True).execute(statement)
