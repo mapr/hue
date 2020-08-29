@@ -19,8 +19,9 @@ DEFAULT_USERNAME = 'example'
 DEFAULT_PASSWORD = 'example'
 DEFAULT_IMPERSONATION = True
 DEFAULT_PRINCIPAL = 'mapr/localhost@REALM'
-DEFAULT_CLASSPATH = paths.get_desktop_root("libs/librdbms/drill-lib/*")
-DEFAULT_JDBC_DRIVER = 'com.mapr.drill.jdbc41.Driver'
+DEFAULT_CLASSPATH = os.environ.get('DRILL_CLASSPATH', '')
+DEFAULT_JAVA_OPTS = os.environ.get('DRILL_JAVA_OPTS', '')
+DEFAULT_JDBC_DRIVER = os.environ.get('DRILL_DRIVER', 'org.apache.drill.jdbc.Driver')
 DEFAULT_ZK_DIRECTORY = '/drill/'
 
 
@@ -77,6 +78,8 @@ class DrillClient(BaseRDMSClient):
       os.environ.get('CLASSPATH', ''),
     ])
 
+    java_opts = query_server['options'].get('java_opts', DEFAULT_JAVA_OPTS)
+
     jdbc_driver = query_server['options'].get('jdbc_driver', DEFAULT_JDBC_DRIVER)
 
     if connection_type == 'direct':
@@ -101,7 +104,7 @@ class DrillClient(BaseRDMSClient):
     self.password = password
     self.jdbc_driver = jdbc_driver
 
-    javaopts = shlex.split(os.environ.get('MAPR_ECOSYSTEM_LOGIN_OPTS', ''))
+    javaopts = shlex.split(java_opts)
     self.gateway = get_java_gateway(classpath=classpath, javaopts=javaopts)
 
     self.connect()
