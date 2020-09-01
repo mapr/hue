@@ -597,7 +597,7 @@ class ApiHelper {
     }
     let url =
       HDFS_API_PREFIX +
-      encodeURI(options.pathParts.join('/')) +
+      encodeURIComponent(options.pathParts.join('/')) +
       '?format=json&sortby=name&descending=false&pagesize=' +
       (options.pageSize || 500) +
       '&pagenum=' +
