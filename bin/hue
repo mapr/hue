@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
 export HUE_VERSION=${HUE_VERSION:-$(cat "${MAPR_HOME}/hue/hueversion")}
