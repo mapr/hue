@@ -59,11 +59,11 @@ def jobs(request, interface=None):
 
   jobs = get_api(request.user, interface, cluster=cluster).apps(filters)
 
-  response['apps'] = jobs['apps']
+  response['apps'] = jobs
   response['total'] = jobs.get('total')
   response['status'] = 0
 
-  return JsonResponse(response)
+  return JsonResponse(response['apps'])
 
 
 @api_error_handler
@@ -72,7 +72,7 @@ def job(request, interface=None):
 
   cluster = json.loads(request.POST.get('cluster', '{}'))
   interface = interface or json.loads(request.POST.get('interface'))
-  app_id = json.loads(request.POST.get('app_id'))
+  app_id = json.loads(request.body)['queryId']
 
   if interface == 'schedules':
     offset = json.loads(request.POST.get('pagination', '{"offset": 1}')).get('offset')
@@ -86,7 +86,7 @@ def job(request, interface=None):
     response['app'] = response_app
     response['status'] = 0
 
-  return JsonResponse(response)
+  return JsonResponse(response['app'])
 
 
 @api_error_handler

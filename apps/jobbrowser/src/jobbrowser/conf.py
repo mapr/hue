@@ -85,3 +85,9 @@ ENABLE_HISTORY_V2 = Config(
   type=coerce_bool,
   default=False
 )
+
+DAS_SERVER_URL = Config(
+  key="das_server_url",
+  default='http://localhost:8080/',
+  help=_("URL of DAS SERVER.")
+)

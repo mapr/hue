@@ -25,8 +25,12 @@ from django.utils.translation import ugettext as _
 from desktop.lib.exceptions_renderable import PopupException
 from desktop.lib.python_util import current_ms_from_utc
 
+from desktop.lib.rest.http_client import HttpClient
+from desktop.lib.rest.resource import Resource
+
 from jobbrowser.apis.base_api import Api
 from jobbrowser.models import HiveQuery
+from jobbrowser.conf import DAS_SERVER_URL
 
 
 LOG = logging.getLogger(__name__)
@@ -38,28 +42,55 @@ class HiveQueryApi(Api):
     self.user = user
     self.cluster = cluster
     self.api = HiveQueryClient()
+    self.headers = {'X-Requested-By': 'das'}
 
   def apps(self, filters):
     queries = self.api.get_queries(limit=100)
 
     apps = {
-      'apps': [{
-          'id': query.query_id,
-          'name': query.query.replace('\r\n', ' ')[:60] + ('...' if len(query.query) > 60 else ''),
-          'status': query.status,
-          'apiStatus': self._api_status(query.status),
-          'type': 'LLAP' if query.llap_app_id else 'Tez',
-          'user': query.request_user,
-          'queue': query.queue_name,
-          'progress': '100',
-          'isRunning': False,
-          'canWrite': True,
-          'duration': query.elapsed_time,
-          'submitted': query.start_time,
+      "queries": [{
+          "details": None,
+          "dags": [],
+          "id": query.query_id,
+          "queryId": query.query_id,
+          "startTime": query.start_time,
+          "query": query.query.replace('\r\n', ' ')[:60] + ('...' if len(query.query) > 60 else ''),
+          "highlightedQuery": None,
+          "endTime": query.end_time,
+          "elapsedTime": query.elapsed_time,
+          "status": query.status,
+          "queueName": query.queue_name,
+          "userId": query.user_id,
+          "requestUser": query.request_user,
+          "cpuTime": query.cpu_time,
+          "physicalMemory": query.physical_memory,
+          "virtualMemory": query.virtual_memory,
+          "dataRead": query.data_read,
+          "dataWritten": query.data_written,
+          "operationId": query.operation_id,
+          "clientIpAddress": query.client_ip_address,
+          "hiveInstanceAddress": query.hive_instance_address,
+          "hiveInstanceType": query.hive_instance_type,
+          "sessionId": query.session_id,
+          "logId": query.log_id,
+          "threadId": query.thread_id,
+          "executionMode": query.execution_mode,
+          "tablesRead": query.tables_read,
+          "tablesWritten": query.tables_written,
+          "databasesUsed": query.databases_used,
+          "domainId": query.domain_id,
+          "llapAppId": query.llap_app_id,
+          "usedCBO": query.used_cbo,
+          "processed": query.processed,
+          "createdAt": query.created_at
         }
         for query in queries
       ],
-      'total': self.api.get_query_count()
+      "meta": {
+          "limit": 25,
+          "offset": 0,
+          "size": self.api.get_query_count()
+        }
     }
 
     return apps
@@ -70,45 +101,14 @@ class HiveQueryApi(Api):
     if not query:
       raise PopupException(_('Could not find query id %s' % appid))
 
-    app = {
-      'id': query.query_id,
-      'name': query.query[:60] + ('...' if len(query.query) > 60 else ''),
-      'status': query.status,
-      'apiStatus': self._api_status(query.status),
-      'type': 'hive-query',
-      'user': query.request_user,
-      'queue': query.queue_name,
-      'progress': '100',
-      'isRunning': False,
-      'canWrite': True,
-      'duration': query.elapsed_time,
-      'submitted': query.start_time,
-      'properties': {
-        'plan': {
-          'stmt': query.query,
-          'plan': '''Explain
-OPTIMIZED SQL: %(text_query)s
-STAGE DEPENDENCIES:
-Stage-0 is a root stage
-STAGE PLANS:
-Stage: Stage-0
-Fetch Operator
-limit: 100
-Processor Tree:
-TableScan
-alias: business_unit
-GatherStats: false
-Select Operator
-expressions: id (type: int), head (type: int), creator (type: string), created_date (type: date)
-outputColumnNames: _col0, _col1, _col2, _col3
-Limit
-Number of rows: 100
-ListSink
-''' % {'text_query': query.query},
-          'perf': ''
-        }
-      }
+    params = {
+      'extended': 'true',
+      'queryId': query.query_id
     }
+
+    client = HttpClient(DAS_SERVER_URL.get())
+    resource  = Resource(client)
+    app = resource.get('api/hive/query', params=params, headers=self.headers)
 
     return app
 

@@ -32,6 +32,8 @@ from useradmin.models import User
 from jobbrowser.apis.hive_query_api import HiveQueryApi, HiveQueryClient
 from jobbrowser.models import HiveQuery
 
+from django.db import connection
+
 if sys.version_info[0] > 2:
   from unittest.mock import patch, Mock
 else:
@@ -39,6 +41,29 @@ else:
 
 
 LOG = logging.getLogger(__name__)
+
+
+class ModelsTestCase():
+  def setUp(self):
+
+    self.client = make_logged_in_client(username="test", groupname="default", recreate=True, is_superuser=False)
+    self.user = rewrite_user(User.objects.get(username="test"))
+
+    with connection.schema_editor() as schema_editor:
+      schema_editor.create_model(HiveQuery)
+
+      if HiveQuery._meta.db_table not in connection.introspection.table_names():
+          raise ValueError("Table `{table_name}` is missing in test database.".format(table_name=HiveQuery._meta.db_table))
+
+  def tearDown(self):
+
+    with connection.schema_editor() as schema_editor:
+      schema_editor.delete_model(HiveQuery)
+
+  def test_apps(self):
+    response = self.client.post("/jobbrowser/api/jobs/queries-hive")
+    data = json.loads(response.content)
+    assert_equal({}, data['queries'])
 
 
 class TestHiveQueryApi():
