@@ -237,11 +237,11 @@ class Collection(models.Model):
       help_text=_t('Hue properties (e.g. results by pages number)')
   )
 
-  facets = models.ForeignKey(Facet)
-  result = models.ForeignKey(Result)
-  sorting = models.ForeignKey(Sorting)
+  facets = models.ForeignKey(Facet, on_delete=models.CASCADE)
+  result = models.ForeignKey(Result, on_delete=models.CASCADE)
+  sorting = models.ForeignKey(Sorting, on_delete=models.CASCADE)
 
-  owner = models.ForeignKey(User, db_index=True, verbose_name=_t('Owner'), help_text=_t('User who created the job.'), default=None, null=True)
+  owner = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True, verbose_name=_t('Owner'), help_text=_t('User who created the job.'), default=None, null=True)
 
   _ATTRIBUTES = ['collection', 'layout', 'autocomplete']
   ICON = 'search/art/icon_search_48.png'

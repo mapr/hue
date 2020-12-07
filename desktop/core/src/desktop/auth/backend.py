@@ -37,24 +37,24 @@ LOG = logging.getLogger(__name__)
 try:
   import ldap
 except ImportError:
-  LOG.warn('ldap module not found')
+  LOG.warning('ldap module not found')
 try:
   import pam
 except ImportError:
-  LOG.warn('pam module not found')
+  LOG.warning('pam module not found')
 import requests
 
 import django.contrib.auth.backends
 from django.contrib import auth
-from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import HttpResponseRedirect
 from django.forms import ValidationError
+from django.urls import reverse
 try:
   from django_auth_ldap.backend import LDAPBackend
   from django_auth_ldap.config import LDAPSearch
 except ImportError:
-  LOG.warn('django_auth_ldap module not found')
+  LOG.warning('django_auth_ldap module not found')
   class LDAPSearch: pass
   class LDAPSearch: pass
 from liboauth.metrics import oauth_authentication_time
@@ -62,7 +62,7 @@ try:
   from mozilla_django_oidc.auth import OIDCAuthenticationBackend, default_username_algo
   from mozilla_django_oidc.utils import absolutify, import_from_settings
 except ImportError:
-  LOG.warn('mozilla_django_oidc module not found')
+  LOG.warning('mozilla_django_oidc module not found')
   class OIDCAuthenticationBackend: pass
 
 from desktop import metrics

@@ -35,7 +35,7 @@ try:
   from simple_salesforce.api import Salesforce
   from simple_salesforce.exceptions import SalesforceRefusedRequest
 except ImportError:
-  LOG.warn('simple_salesforce module not found')
+  LOG.warning('simple_salesforce module not found')
 
 from desktop.lib.django_util import JsonResponse
 from desktop.lib.exceptions_renderable import PopupException

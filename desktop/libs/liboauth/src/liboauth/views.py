@@ -26,14 +26,14 @@ import urllib.request, urllib.parse, urllib.error
 try:
   import httplib2
 except ImportError:
-  LOG.warn('httplib2 module not found')
+  LOG.warning('httplib2 module not found')
 
 import django.contrib.auth.views
-from django.core import urlresolvers
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.auth import login, get_backends, authenticate
 from django.contrib.sessions.models import Session
 from django.http import HttpResponseRedirect
+from django.urls import resolvers
 from django.utils.translation import ugettext as _
 from hadoop.fs.exceptions import WebHdfsException
 from useradmin.models import User

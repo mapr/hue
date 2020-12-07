@@ -31,9 +31,9 @@ import re
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, urlparse, urlunparse
 
-from django.core import urlresolvers
 from django.http import HttpResponse
 from desktop.lib.exceptions import MessageException
+from django.urls import resolvers
 
 from proxy import conf
 

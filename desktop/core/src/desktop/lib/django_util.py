@@ -25,7 +25,7 @@ import socket
 import datetime
 
 from django.conf import settings
-from django.core import urlresolvers, serializers
+from django.core import serializers
 from django.template import context as django_template_context
 from django.template.context_processors import csrf
 from django.core.serializers.json import DjangoJSONEncoder
@@ -34,6 +34,7 @@ from django.http import QueryDict, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response as django_render_to_response
 from django.template.context import RequestContext
 from django.template.loader import render_to_string as django_render_to_string
+from django.urls import resolvers
 from django.utils.http import urlencode # this version is unicode-friendly
 from django.utils.translation import ungettext, ugettext
 from django.utils.timezone import get_current_timezone

@@ -30,11 +30,11 @@ from datetime import datetime
 
 from axes.decorators import watch_login
 import django.contrib.auth.views
-from django.core import urlresolvers
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.auth import login, get_backends, authenticate
 from django.contrib.sessions.models import Session
 from django.http import HttpResponseRedirect
+from django.urls import resolvers
 from django.utils.translation import ugettext as _
 
 from hadoop.fs.exceptions import WebHdfsException

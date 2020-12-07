@@ -38,9 +38,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, BACKEND_SESSION_KEY, authenticate, load_backend, login
 from django.contrib.auth.middleware import RemoteUserMiddleware
-from django.core import exceptions, urlresolvers
+from django.core import exceptions
 from django.http import HttpResponseNotAllowed, HttpResponseForbidden
-from django.urls import resolve
+from django.urls import resolve, resolvers
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.translation import ugettext as _
 from django.utils.http import urlquote, is_safe_url

@@ -37,15 +37,15 @@ class LdapGroup(models.Model):
   Groups that come from LDAP originally will have an LdapGroup
   record generated at creation time.
   """
-  group = models.ForeignKey(Group, related_name="group")
+  group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="group")
 
 
 class GroupPermission(models.Model):
   """
   Represents the permissions a group has.
   """
-  group = models.ForeignKey(Group)
-  hue_permission = models.ForeignKey("HuePermission")
+  group = models.ForeignKey(Group, on_delete=models.CASCADE)
+  hue_permission = models.ForeignKey("HuePermission", on_delete=models.CASCADE)
 
 
 class BasePermission(models.Model):
@@ -74,7 +74,7 @@ class BasePermission(models.Model):
 
 
 class ConnectorPermission(BasePermission):
-  connector = models.ForeignKey(Connector)
+  connector = models.ForeignKey(Connector, on_delete=models.CASCADE)
 
   class Meta(object):
     abstract = True

@@ -120,7 +120,7 @@ class Job(models.Model):
   """
   Base class for Oozie Workflows, Coordinators and Bundles.
   """
-  owner = models.ForeignKey(User, db_index=True, verbose_name=_t('Owner'), help_text=_t('Person who can modify the job.')) # Deprecated
+  owner = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True, verbose_name=_t('Owner'), help_text=_t('Person who can modify the job.')) # Deprecated
   name = models.CharField(max_length=255, blank=False, validators=[name_validator], # Deprecated
       help_text=_t('Name of the job, which must be unique per user.'), verbose_name=_t('Name'))
   description = models.CharField(max_length=1024, blank=True, verbose_name=_t('Description'), # Deprecated
@@ -340,8 +340,8 @@ class WorkflowManager(models.Manager):
 
 class Workflow(Job):
   is_single = models.BooleanField(default=False)
-  start = models.ForeignKey('Start', related_name='start_workflow', blank=True, null=True)
-  end  = models.ForeignKey('End', related_name='end_workflow',  blank=True, null=True)
+  start = models.ForeignKey('Start', on_delete=models.CASCADE, related_name='start_workflow', blank=True, null=True)
+  end  = models.ForeignKey('End', on_delete=models.CASCADE, related_name='end_workflow',  blank=True, null=True)
   job_xml = models.CharField(max_length=PATH_MAX, default='', blank=True, verbose_name=_t('Job XML'),
                              help_text=_t('Refer to a Hadoop JobConf job.xml file bundled in the workflow deployment directory. '
                                           'Properties specified in the Job Properties element override properties specified in the '
@@ -630,8 +630,8 @@ class Link(models.Model):
   # Links to exclude when using get_children_link(), get_parent_links() in the API
   META_LINKS = ('related',)
 
-  parent = models.ForeignKey('Node', related_name='child_node')
-  child = models.ForeignKey('Node', related_name='parent_node', verbose_name='')
+  parent = models.ForeignKey('Node', on_delete=models.CASCADE, related_name='child_node')
+  child = models.ForeignKey('Node', on_delete=models.CASCADE, related_name='parent_node', verbose_name='')
 
   name = models.CharField(max_length=40)
   comment = models.CharField(max_length=1024, default='', blank=True)
@@ -662,7 +662,7 @@ class Node(models.Model):
                                  help_text=_t('The purpose of the action.'))
   node_type = models.CharField(max_length=64, blank=False, verbose_name=_t('Type'),
                                help_text=_t('The type of action (e.g. MapReduce, Pig...)'))
-  workflow = models.ForeignKey(Workflow)
+  workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
   children = models.ManyToManyField('self', related_name='parents', symmetrical=False, through=Link)
   data = models.TextField(blank=True, default=json.dumps({}))
 
@@ -1225,7 +1225,7 @@ class SubWorkflow(Action):
   PARAM_FIELDS = ('subworkflow', 'propagate_configuration', 'job_properties', 'sla', 'credentials')
   node_type = 'subworkflow'
 
-  sub_workflow = models.ForeignKey(Workflow, default=None, db_index=True, blank=True, null=True, verbose_name=_t('Sub-workflow'),
+  sub_workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE,  default=None, db_index=True, blank=True, null=True, verbose_name=_t('Sub-workflow'),
                             help_text=_t('The sub-workflow application to include. You must own all the sub-workflows.'))
   propagate_configuration = models.BooleanField(default=True, verbose_name=_t('Propagate configuration'), blank=True,
                             help_text=_t('If the workflow job configuration should be propagated to the child workflow.'))
@@ -1417,7 +1417,7 @@ class Coordinator(Job):
                                help_text=_t('When to start the first workflow.'))
   end = models.DateTimeField(auto_now=True, verbose_name=_t('End'),
                              help_text=_t('When to start the last workflow.'))
-  coordinatorworkflow = models.ForeignKey(Workflow, null=True, verbose_name=_t('Workflow'),
+  coordinatorworkflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, null=True, verbose_name=_t('Workflow'),
                                help_text=_t('The workflow to schedule repeatedly.'))
   timeout = models.SmallIntegerField(null=True, blank=True, verbose_name=_t('Timeout'),
                                      help_text=_t('Number of minutes the coordinator action will be in '
@@ -1694,7 +1694,7 @@ class Dataset(models.Model):
                                help_text=_t('The done file for the data set. If the Done flag is not specified, then Oozie '
                                             'configures Hadoop to create a _SUCCESS file in the output directory. If Done '
                                             'flag is set to empty, then Coordinator looks for the existence of the directory itself.'))
-  coordinator = models.ForeignKey(Coordinator, verbose_name=_t('Coordinator'),
+  coordinator = models.ForeignKey(Coordinator, on_delete=models.CASCADE, verbose_name=_t('Coordinator'),
                                   help_text=_t('The coordinator associated with this data.'))
   instance_choice = models.CharField(max_length=10, default='default', verbose_name=_t('Instance type'),
                                help_text=_t('Customize the date instance(s), e.g. define a range of dates, use EL functions...'))
@@ -1753,23 +1753,23 @@ class Dataset(models.Model):
 class DataInput(models.Model):
   name = models.CharField(max_length=40, validators=[name_validator], verbose_name=_t('Name of an input variable in the workflow.'),
                           help_text=_t('The name of the variable of the workflow to automatically fill up.'))
-  dataset = models.OneToOneField(Dataset, verbose_name=_t('The dataset representing format of the data input.'),
+  dataset = models.OneToOneField(Dataset, on_delete=models.CASCADE, verbose_name=_t('The dataset representing format of the data input.'),
                                  help_text=_t('The pattern of the input data we want to process.'))
-  coordinator = models.ForeignKey(Coordinator)
+  coordinator = models.ForeignKey(Coordinator, on_delete=models.CASCADE)
 
 
 class DataOutput(models.Model):
   name = models.CharField(max_length=40, validators=[name_validator], verbose_name=_t('Name of an output variable in the workflow'),
                           help_text=_t('The name of the variable of the workflow to automatically filled up.'))
-  dataset = models.OneToOneField(Dataset, verbose_name=_t('The dataset representing the format of the data output.'),
+  dataset = models.OneToOneField(Dataset, on_delete=models.CASCADE, verbose_name=_t('The dataset representing the format of the data output.'),
                                  help_text=_t('The pattern of the output data we want to generate.'))
-  coordinator = models.ForeignKey(Coordinator)
+  coordinator = models.ForeignKey(Coordinator, on_delete=models.CASCADE)
 
 
 class BundledCoordinator(models.Model):
-  bundle = models.ForeignKey('Bundle', verbose_name=_t('Bundle'),
+  bundle = models.ForeignKey('Bundle', on_delete=models.CASCADE, verbose_name=_t('Bundle'),
                              help_text=_t('The bundle regrouping all the coordinators.'))
-  coordinator = models.ForeignKey(Coordinator, verbose_name=_t('Coordinator'),
+  coordinator = models.ForeignKey(Coordinator, on_delete=models.CASCADE, verbose_name=_t('Coordinator'),
                                   help_text=_t('The coordinator to batch with other coordinators.'))
 
   parameters = models.TextField(default='[{"name":"oozie.use.system.libpath","value":"true"}]', verbose_name=_t('Parameters'),
@@ -1901,10 +1901,10 @@ class History(models.Model):
   """
   Contains information on submitted workflows/coordinators.
   """
-  submitter = models.ForeignKey(User, db_index=True)
+  submitter = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
   submission_date = models.DateTimeField(auto_now=True, db_index=True)
   oozie_job_id = models.CharField(max_length=128)
-  job = models.ForeignKey(Job, db_index=True)
+  job = models.ForeignKey(Job, on_delete=models.CASCADE, db_index=True)
   properties = models.TextField()
 
   objects = HistoryManager()
