@@ -391,11 +391,17 @@ class JsonMessage(object):
 class AuditLoggingMiddleware(object):
 
   def __init__(self, get_response=None):
+    self.get_response = get_response
     self.impersonator = SERVER_USER.get()
 
     if not AUDIT_EVENT_LOG_DIR.get():
       LOG.info('Unloading AuditLoggingMiddleware')
       raise exceptions.MiddlewareNotUsed
+
+  def __call__(self, request):  
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response
 
   def process_response(self, request, response):
     response['audited'] = False
@@ -459,7 +465,8 @@ class HtmlValidationMiddleware(object):
   """
   If configured, validate output html for every response.
   """
-  def __init__(self):
+  def __init__(self, get_response=None):
+    self.get_response = get_response
     self._logger = logging.getLogger('HtmlValidationMiddleware')
 
     if not _has_tidylib:
@@ -494,6 +501,10 @@ class HtmlValidationMiddleware(object):
       'wrap': 0,
     }
 
+  def __call__(self, request):
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response  
 
   def process_response(self, request, response):
     if not _has_tidylib or not self._is_html(request, response):
@@ -553,9 +564,16 @@ class HtmlValidationMiddleware(object):
 class ProxyMiddleware(object):
 
   def __init__(self, get_response=None):
+    self.get_response = get_response
     if not 'desktop.auth.backend.AllowAllBackend' in AUTH.BACKEND.get():
       LOG.info('Unloading ProxyMiddleware')
       raise exceptions.MiddlewareNotUsed
+
+  def __call__(self, request):
+    self.process_request(request)
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response
 
   def process_response(self, request, response):
     return response
@@ -615,11 +633,18 @@ class SpnegoMiddleware(object):
   """
 
   def __init__(self, get_response=None):
+    self.get_response = get_response
     if not set(AUTH.BACKEND.get()).intersection(
         set(['desktop.auth.backend.SpnegoDjangoBackend', 'desktop.auth.backend.KnoxSpnegoDjangoBackend'])
       ):
       LOG.info('Unloading SpnegoMiddleware')
       raise exceptions.MiddlewareNotUsed
+
+  def __call__(self, request):
+    self.process_request(request)
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response 
 
   def process_response(self, request, response):
     if 'GSS-String' in request.META:
@@ -848,10 +873,16 @@ class MetricsMiddleware(MiddlewareMixin):
 
 class ContentSecurityPolicyMiddleware(object):
   def __init__(self, get_response=None):
+    self.get_response = get_response
     self.secure_content_security_policy = SECURE_CONTENT_SECURITY_POLICY.get()
     if not self.secure_content_security_policy:
       LOG.info('Unloading ContentSecurityPolicyMiddleware')
       raise exceptions.MiddlewareNotUsed
+
+  def __call__(self, request):
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response
 
   def process_response(self, request, response):
     if self.secure_content_security_policy and not 'Content-Security-Policy' in response:
@@ -867,10 +898,16 @@ class MimeTypeJSFileFixStreamingMiddleware(object):
   execute javascript file.
   """
   def __init__(self, get_response=None):
+    self.get_response = get_response
     jsmimetypes = ['application/javascript', 'application/ecmascript']
     if mimetypes.guess_type("dummy.js")[0] in jsmimetypes:
       LOG.info('Unloading MimeTypeJSFileFixStreamingMiddleware')
       raise exceptions.MiddlewareNotUsed
+
+  def __call__(self, request):
+    response = self.get_response(request)
+    self.process_response(request, response)
+    return response
 
   def process_response(self, request, response):
     if request.path_info.endswith('.js'):
