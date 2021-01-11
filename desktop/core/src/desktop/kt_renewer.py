@@ -38,10 +38,17 @@ def renew_from_kt():
   while retries < max_retries:
      LOG.info("Reinitting kerberos retry attempt %s from keytab %s" % (retries, " ".join(cmdv)))
 
+     # MHUE-437
+     import os
+     env = os.environ.copy()
+     del env['LD_LIBRARY_PATH']
+     del env['SASL_PATH']
+
      subp = subprocess.Popen(cmdv,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
                           close_fds=True,
+                          env=env,
                           bufsize=-1)
      subp.wait()
      if subp.returncode != 0:
