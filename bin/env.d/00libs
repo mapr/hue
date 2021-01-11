@@ -13,6 +13,9 @@ elif [ -e "${JAVA_HOME}/lib/amd64/server" ]; then
 fi
 export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path}:${LD_LIBRARY_PATH}"
 
+# Explicitly set location of cyrus-sasl libraries 
+export SASL_PATH="${HUE_HOME}/build/env/lib/sasl2"
+
 # Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
 export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
 
