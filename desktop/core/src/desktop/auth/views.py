@@ -42,6 +42,7 @@ from desktop.lib.django_util import render
 from desktop.lib.django_util import login_notrequired
 from desktop.lib.django_util import JsonResponse
 from desktop.log.access import access_log, access_warn, last_access_map
+from desktop import conf as desktop_conf
 from desktop.conf import OAUTH
 from desktop.settings import LOAD_BALANCER_COOKIE
 
@@ -132,10 +133,11 @@ def dt_login(request, from_modal=False):
         if request.session.test_cookie_worked():
           request.session.delete_test_cookie()
 
-        try:
-          ensure_home_directory(request.fs, user)
-        except (IOError, WebHdfsException), e:
-          LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
+        if desktop_conf.AUTH.ENSURE_HOME_DIRECTORY.get():
+          try:
+            ensure_home_directory(request.fs, user)
+          except (IOError, WebHdfsException), e:
+            LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
 
         if require_change_password(userprofile):
           return HttpResponseRedirect(urlresolvers.reverse('useradmin.views.edit_user', kwargs={'username': user.username}))
@@ -163,7 +165,10 @@ def dt_login(request, from_modal=False):
     first_user_form = None
     auth_form = AuthenticationForm()
     # SAML/OIDC user is already authenticated in djangosaml2.views.login
-    if hasattr(request,'fs') and ('SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or 'SAML2Backend' in backend_names) and request.user.is_authenticated():
+    if (hasattr(request,'fs') and
+        ('SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or 'SAML2Backend' in backend_names) and
+        request.user.is_authenticated() and
+        desktop_conf.AUTH.ENSURE_HOME_DIRECTORY.get()):
       try:
         ensure_home_directory(request.fs, request.user)
       except (IOError, WebHdfsException), e:
