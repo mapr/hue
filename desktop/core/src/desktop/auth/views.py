@@ -60,6 +60,9 @@ else:
   from urllib import urlencode as urllib_urlencode
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from desktop.conf import AUTH as auth_conf
+
 
 LOG = logging.getLogger(__name__)
 
@@ -148,12 +151,13 @@ def dt_login(request, from_modal=False):
         # If Test cookie exists , it should be deleted
         if request.session.test_cookie_worked():
           request.session.delete_test_cookie()
-        if request.fs is None:
-          request.fs = fsmanager.get_filesystem(request.fs_ref)
-        try:
-          ensure_home_directory(request.fs, user)
-        except (IOError, WebHdfsException) as e:
-          LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
+        if auth_conf.ENSURE_HOME_DIRECTORY.get():
+          if request.fs is None:
+            request.fs = fsmanager.get_filesystem(request.fs_ref)
+          try:
+            ensure_home_directory(request.fs, user)
+          except (IOError, WebHdfsException) as e:
+            LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
 
         if require_change_password(userprofile):
           return HttpResponseRedirect('/hue' + reverse('useradmin:useradmin.views.edit_user', kwargs={'username': user.username}))
@@ -186,7 +190,7 @@ def dt_login(request, from_modal=False):
     if hasattr(request, 'fs') and (
         'KnoxSpnegoDjangoBackend' in backend_names or 'SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or
         'SAML2Backend' in backend_names
-      ) and request.user.is_authenticated:
+      ) and request.user.is_authenticated and auth_confg.ENSURE_HOME_DIRECTORY.get():
       if request.fs is None:
         request.fs = fsmanager.get_filesystem(request.fs_ref)
       try:

@@ -67,6 +67,16 @@ def patch_desktop_conf():
       'TLSv1.2',
     ])
 
+  # desktop.auth.ensure_home_directory
+  desktop_conf.AUTH.update_members({
+    'ENSURE_HOME_DIRECTORY': conf_lib.Config(
+      key='ensure_home_directory',
+      help="Ensure that users home directory exists in DFS on login.",
+      type=conf_lib.coerce_bool,
+      default=True,
+    ),
+  })
+
 @synchronized
 @run_once
 def patch_lib_conf():
