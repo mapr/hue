@@ -1079,7 +1079,13 @@ AUTH = ConfigSection(
       help=_("If behind_reverse_proxy is True, it will look for the IP address from this header. Default: HTTP_X_FORWARDED_FOR"),
       type=str,
       default="HTTP_X_FORWARDED_FOR",
-    )
+    ),
+    ENSURE_HOME_DIRECTORY = Config(
+      key="ensure_home_directory",
+      help=_("Ensure that users home directory exists in DFS on login."),
+      type=coerce_bool,
+      default=True
+    ),
 ))
 
 

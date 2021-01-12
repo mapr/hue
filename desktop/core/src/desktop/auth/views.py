@@ -141,10 +141,11 @@ def dt_login(request, from_modal=False):
         if request.session.test_cookie_worked():
           request.session.delete_test_cookie()
 
-        try:
-          ensure_home_directory(request.fs, user)
-        except (IOError, WebHdfsException) as e:
-          LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
+        if desktop.conf.AUTH.ENSURE_HOME_DIRECTORY.get():
+          try:
+            ensure_home_directory(request.fs, user)
+          except (IOError, WebHdfsException) as e:
+            LOG.error('Could not create home directory at login for %s.' % user, exc_info=e)
 
         if require_change_password(userprofile):
           return HttpResponseRedirect(urlresolvers.reverse('useradmin.views.edit_user', kwargs={'username': user.username}))
@@ -175,7 +176,10 @@ def dt_login(request, from_modal=False):
     first_user_form = None
     auth_form = AuthenticationForm()
     # SAML/OIDC user is already authenticated in djangosaml2.views.login
-    if hasattr(request,'fs') and ('KnoxSpnegoDjangoBackend' in backend_names or 'SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or 'SAML2Backend' in backend_names) and request.user.is_authenticated():
+    if (hasattr(request,'fs') and
+        ('KnoxSpnegoDjangoBackend' in backend_names or 'SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or 'SAML2Backend' in backend_names) and
+        request.user.is_authenticated() and
+        desktop.conf.AUTH.ENSURE_HOME_DIRECTORY.get()):
       try:
         ensure_home_directory(request.fs, request.user)
       except (IOError, WebHdfsException) as e:
