@@ -44,6 +44,7 @@ from useradmin.views import ensure_home_directory, require_change_password
 from desktop.auth import forms as auth_forms
 from desktop.auth.backend import OIDCBackend
 from desktop.auth.forms import ImpersonationAuthenticationForm, OrganizationUserCreationForm, OrganizationAuthenticationForm
+import desktop.conf as desktop_conf
 from desktop.conf import OAUTH, ENABLE_ORGANIZATIONS
 from desktop.lib.django_util import render, login_notrequired, JsonResponse
 from desktop.log.access import access_log, access_warn, last_access_map
@@ -141,7 +142,7 @@ def dt_login(request, from_modal=False):
         if request.session.test_cookie_worked():
           request.session.delete_test_cookie()
 
-        if desktop.conf.AUTH.ENSURE_HOME_DIRECTORY.get():
+        if desktop_conf.AUTH.ENSURE_HOME_DIRECTORY.get():
           try:
             ensure_home_directory(request.fs, user)
           except (IOError, WebHdfsException) as e:
@@ -179,7 +180,7 @@ def dt_login(request, from_modal=False):
     if (hasattr(request,'fs') and
         ('KnoxSpnegoDjangoBackend' in backend_names or 'SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or 'SAML2Backend' in backend_names) and
         request.user.is_authenticated() and
-        desktop.conf.AUTH.ENSURE_HOME_DIRECTORY.get()):
+        desktop_conf.AUTH.ENSURE_HOME_DIRECTORY.get()):
       try:
         ensure_home_directory(request.fs, request.user)
       except (IOError, WebHdfsException) as e:
