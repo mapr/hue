@@ -79,6 +79,11 @@ drill-java:
 	cp -r $(DRILL_JARS_DIR)/* $(DRILL_JAVA_LIB)
 	cd $(DRILL_JAVA_DIR) && mvn clean $(MAVEN_OPTIONS) ||:
 
+.PHONY: drill-java-deptree
+drill-java-deptree:
+	mvn clean dependency:tree -f $(DRILL_JAVA_DIR)/pom.xml $(MAVEN_OPTIONS)
+	mvn clean clean -f $(DRILL_JAVA_DIR)/pom.xml $(MAVEN_OPTIONS) || :
+
 .PHONY: clean
 clean::
 	rm -rf $(DRILL_JAVA_LIB)

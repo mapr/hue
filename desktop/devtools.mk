@@ -19,6 +19,7 @@
 
 # May require download from PyPI or whereever
 DEVTOOLS += \
+	traitlets[4.3.3] \
 	ipython[5.2.0] \
 	ipdb[0.10.3] \
 	nose[1.3.7] \
@@ -26,9 +27,9 @@ DEVTOOLS += \
 	nosetty[0.4] \
 	werkzeug[0.14.1] \
 	windmill[1.6] \
-        astroid[1.5.3] \
-        isort[4.2.5] \
-        six[1.10.0]
+	astroid[1.5.3] \
+	isort[4.2.5] \
+	six[1.10.0]
 
 PYPI_MIRROR ?= https://pypi.python.org/simple/
 
