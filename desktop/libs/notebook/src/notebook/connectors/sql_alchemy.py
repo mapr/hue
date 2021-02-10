@@ -254,6 +254,7 @@ class SqlAlchemyApi(Api):
     result = connection.execute(statement)
 
     cache = {
+      'logs': [message for message in result.cursor.fetch_logs()] if result.cursor and hasattr(result.cursor, 'fetch_logs') else [],
       'connection': connection,
       'result': result,
       'meta': [
@@ -394,8 +395,10 @@ class SqlAlchemyApi(Api):
 
   @query_error_handler
   def get_log(self, notebook, snippet, startFrom=None, size=None):
-    return ''
-
+    guid = snippet['result']['handle']['guid']
+    cache = CONNECTIONS.get(guid)
+    if cache:
+      return '\n'.join(cache['logs'])
 
   @query_error_handler
   def close_statement(self, notebook, snippet):
