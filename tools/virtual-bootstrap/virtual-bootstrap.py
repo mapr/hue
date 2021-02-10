@@ -664,6 +664,13 @@ def main():
     )
 
     parser.add_option(
+        '--relocatable_pth',
+        dest='relocatable_pth',
+        action='store_true',
+        help='Make an EXISTING virtualenv environment relocatable. '
+             'This fixes up scripts and makes all .pth files relative.')
+
+    parser.add_option(
         "--no-setuptools",
         dest="no_setuptools",
         action="store_true",
@@ -853,6 +860,10 @@ def main():
 
     if options.relocatable:
         make_environment_relocatable(home_dir)
+        return
+
+    if options.relocatable_pth:
+        make_pth_relocatable(home_dir)
         return
 
     with virtualenv_support_dirs() as search_dirs:
@@ -1916,6 +1927,15 @@ def make_environment_relocatable(home_dir):
     # FIXME: need to fix up distutils.cfg
 
 
+def make_pth_relocatable(home_dir):
+    """
+    Makes the already-existing environment use relative paths, and takes out
+    the #!-based environment selection in scripts.
+    """
+    home_dir, lib_dir, inc_dir, bin_dir = path_locations(home_dir)
+    fixup_pth_and_egg_link(home_dir)
+
+
 OK_ABS_SCRIPTS = [
     "python",
     PY_VERSION,
@@ -2054,6 +2074,9 @@ def fixup_egg_link(filename):
     if os.path.abspath(link) != link:
         logger.debug("Link in %s already relative", filename)
         return
+    # filename = /container.ubuntu1604/output/cdh/hue/hue-3.9.0+cdh6.x+0/build/env/local/lib/python2.7/site-packages/liboozie.egg-link
+    # link =     /container.ubuntu1604/output/cdh/hue/hue-3.9.0+cdh6.x+0/desktop/libs/liboozie/src
+    # new_link = ../../../../../../desktop/libs/liboozie/src
     new_link = make_relative_path(filename, link)
     logger.notify("Rewriting link {} in {} as {}".format(link, filename, new_link))
     with open(filename, "w") as f:
@@ -2087,7 +2110,11 @@ def make_relative_path(source, dest, dest_is_directory=True):
     while dest_parts and source_parts and dest_parts[0] == source_parts[0]:
         dest_parts.pop(0)
         source_parts.pop(0)
-    full_parts = [".."] * len(source_parts) + dest_parts
+    full_parts = ""
+    if '/local/' in source:
+        full_parts = ['..']*(len(source_parts)-1) + dest_parts
+    else:
+        full_parts = ['..']*len(source_parts) + dest_parts
     if not dest_is_directory and dest_filename is not None:
         full_parts.append(dest_filename)
     if not full_parts:
