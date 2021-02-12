@@ -3,3 +3,6 @@
 # Disable annoying warning that we are connecting to some service (like HttP-FS),
 # without verifying its certificates.
 export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+
+# Fix cryptography-2.9 issues with OpenSSL 1.0.1 (CentOS 7 and Ubuntu 14.04):
+export CRYPTOGRAPHY_ALLOW_OPENSSL_101=true
