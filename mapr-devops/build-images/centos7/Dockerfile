@@ -1,4 +1,4 @@
-FROM centos:centos7.2.1511
+FROM centos:centos7.4.1708
 MAINTAINER devops@mapr.com
 USER root
 
