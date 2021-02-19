@@ -22,3 +22,8 @@ export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
 # MEP-28 Adapt all ecosystems to use the runtime library from /opt/mapr/lib.
 # Simba Drill JDBC driver needs to get hadoop-auth, hadoop-common and maprfs jars.
 export CLASSPATH=$(mapr classpath)
+
+# Fix cryptography-2.9 issues with OpenSSL 1.0.1 on Ubuntu 14.04:
+if [ -e /etc/debian_version ]; then
+    export CRYPTOGRAPHY_ALLOW_OPENSSL_101=true
+fi
