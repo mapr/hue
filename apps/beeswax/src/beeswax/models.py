@@ -471,7 +471,17 @@ class Session(models.Model):
   objects = SessionManager()
 
   def get_handle(self):
-    secret, guid = HiveServerQueryHandle.get_decoded(secret=self.secret, guid=self.guid)
+    secret = self.secret
+    guid = self.guid
+    if sys.version_info[0] > 2:
+      # only for py3, after bytes saved, bytes wrapped in a string object
+      # a new guid/secret before saved, the eval() will throws exception
+      try:
+        secret = eval(secret)
+        guid = eval(guid)
+      except:
+        pass
+    secret, guid = HiveServerQueryHandle.get_decoded(secret=secret, guid=guid)
 
     handle_id = THandleIdentifier(secret=secret, guid=guid)
     return TSessionHandle(sessionId=handle_id)
