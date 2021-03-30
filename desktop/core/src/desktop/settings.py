@@ -143,7 +143,7 @@ GTEMPLATE_LOADERS = (
   'django.template.loaders.app_directories.Loader'
 )
 
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     # The order matters
     'desktop.middleware.MetricsMiddleware',
     'desktop.middleware.EnsureSafeMethodMiddleware',
@@ -155,7 +155,7 @@ MIDDLEWARE = [
     'desktop.middleware.SpnegoMiddleware',
     'desktop.middleware.HueRemoteUserMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'django_babel.middleware.LocaleMiddleware',
+    'babeldjango.middleware.LocaleMiddleware',
     'desktop.middleware.AjaxMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -176,7 +176,7 @@ MIDDLEWARE = [
 ]
 
 # if os.environ.get(ENV_DESKTOP_DEBUG):
-#   MIDDLEWARE.append('desktop.middleware.HtmlValidationMiddleware')
+#   MIDDLEWARE_CLASSES.append('desktop.middleware.HtmlValidationMiddleware')
 #   logging.debug("Will try to validate generated HTML.")
 
 ROOT_URLCONF = 'desktop.urls'
@@ -201,7 +201,7 @@ INSTALLED_APPS = [
     #'south', # database migration tool
 
     # i18n support
-    'django_babel',
+    'babeldjango',
 
     # Desktop injects all the other installed apps into here magically.
     'desktop',
@@ -557,7 +557,7 @@ if SAML_AUTHENTICATION:
 
 # Middleware classes.
 for middleware in desktop.conf.MIDDLEWARE.get():
-  MIDDLEWARE.append(middleware)
+  MIDDLEWARE_CLASSES.append(middleware)
 
 
 # OpenID Connect
@@ -570,7 +570,7 @@ if is_oidc_configured():
     # when multi-backend auth, standard login URL '/hue/accounts/login' is used.
     LOGIN_URL = '/oidc/authenticate/'
   SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-  MIDDLEWARE.append('mozilla_django_oidc.middleware.SessionRefresh')
+  MIDDLEWARE_CLASSES.append('mozilla_django_oidc.middleware.SessionRefresh')
   OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 15 * 60
   OIDC_RP_SIGN_ALGO = 'RS256'
   OIDC_RP_CLIENT_ID = desktop.conf.OIDC.OIDC_RP_CLIENT_ID.get()
@@ -599,7 +599,7 @@ if OAUTH_AUTHENTICATION:
 
 # URL Redirection white list.
 if desktop.conf.REDIRECT_WHITELIST.get():
-  MIDDLEWARE.append('desktop.middleware.EnsureSafeRedirectURLMiddleware')
+  MIDDLEWARE_CLASSES.append('desktop.middleware.EnsureSafeRedirectURLMiddleware')
 
 # Enable X-Forwarded-Host header if the load balancer requires it
 USE_X_FORWARDED_HOST = desktop.conf.USE_X_FORWARDED_HOST.get()
@@ -610,10 +610,10 @@ if desktop.conf.SECURE_PROXY_SSL_HEADER.get():
 
 # Add last activity tracking and idle session timeout
 if 'useradmin' in [app.name for app in appmanager.DESKTOP_APPS]:
-  MIDDLEWARE.append('useradmin.middleware.LastActivityMiddleware')
+  MIDDLEWARE_CLASSES.append('useradmin.middleware.LastActivityMiddleware')
 
 if desktop.conf.SESSION.CONCURRENT_USER_SESSION_LIMIT.get():
-  MIDDLEWARE.append('useradmin.middleware.ConcurrentUserSessionMiddleware')
+  MIDDLEWARE_CLASSES.append('useradmin.middleware.ConcurrentUserSessionMiddleware')
 
 LOAD_BALANCER_COOKIE = 'ROUTEID'
 
@@ -700,8 +700,8 @@ def show_toolbar(request):
   return DEBUG and desktop.conf.ENABLE_DJANGO_DEBUG_TOOL.get() and is_user_allowed
 
 if DEBUG and desktop.conf.ENABLE_DJANGO_DEBUG_TOOL.get():
-  idx = MIDDLEWARE.index('desktop.middleware.ClusterMiddleware')
-  MIDDLEWARE.insert(idx + 1, 'debug_panel.middleware.DebugPanelMiddleware')
+  idx = MIDDLEWARE_CLASSES.index('desktop.middleware.ClusterMiddleware')
+  MIDDLEWARE_CLASSES.insert(idx + 1, 'debug_panel.middleware.DebugPanelMiddleware')
 
   INSTALLED_APPS += (
       'debug_toolbar',
@@ -768,8 +768,8 @@ if desktop.conf.TASK_SERVER.ENABLED.get() or desktop.conf.TASK_SERVER.BEAT_ENABL
 
 PROMETHEUS_EXPORT_MIGRATIONS = False # Needs to be there even when enable_prometheus is not enabled
 if desktop.conf.ENABLE_PROMETHEUS.get():
-  MIDDLEWARE.insert(0, 'django_prometheus.middleware.PrometheusBeforeMiddleware')
-  MIDDLEWARE.append('django_prometheus.middleware.PrometheusAfterMiddleware')
+  MIDDLEWARE_CLASSES.insert(0, 'django_prometheus.middleware.PrometheusBeforeMiddleware')
+  MIDDLEWARE_CLASSES.append('django_prometheus.middleware.PrometheusAfterMiddleware')
 
   if 'mysql' in DATABASES['default']['ENGINE']:
     DATABASES['default']['ENGINE'] = DATABASES['default']['ENGINE'].replace('django.db.backends', 'django_prometheus.db.backends')
@@ -803,7 +803,7 @@ if desktop.conf.TRACING.ENABLED.get():
 
   OPENTRACING_TRACED_ATTRIBUTES = ['META']  # Only valid if OPENTRACING_TRACE_ALL == True
   if desktop.conf.TRACING.TRACE_ALL.get():
-    MIDDLEWARE.insert(0, 'django_opentracing.OpenTracingMiddleware')
+    MIDDLEWARE_CLASSES.insert(0, 'django_opentracing.OpenTracingMiddleware')
 
 MODULES_TO_PATCH = (
     'django.contrib.staticfiles.storage',

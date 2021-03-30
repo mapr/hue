@@ -44,7 +44,6 @@ from django.urls import resolve
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.translation import ugettext as _
 from django.utils.http import urlquote, is_safe_url
-from django.utils.deprecation import MiddlewareMixin
 
 from hadoop import cluster
 from dashboard.conf import IS_ENABLED as DASHBOARD_ENABLED
@@ -79,7 +78,7 @@ if ENABLE_PROMETHEUS.get():
   DJANGO_VIEW_AUTH_WHITELIST.append(django_prometheus.exports.ExportToDjangoView)
 
 
-class AjaxMiddleware(MiddlewareMixin):
+class AjaxMiddleware(object):
   """
   Middleware that augments request to set request.ajax
   for either is_ajax() (looks at HTTP headers) or ?format=json
@@ -90,7 +89,7 @@ class AjaxMiddleware(MiddlewareMixin):
     return None
 
 
-class ExceptionMiddleware(MiddlewareMixin):
+class ExceptionMiddleware(object):
   """
   If exceptions know how to render themselves, use that.
   """
@@ -120,7 +119,7 @@ class ExceptionMiddleware(MiddlewareMixin):
     return None
 
 
-class ClusterMiddleware(MiddlewareMixin):
+class ClusterMiddleware(object):
   """
   Manages setting request.fs and request.jt
   """
@@ -144,7 +143,7 @@ class ClusterMiddleware(MiddlewareMixin):
     request.jt = None
 
 
-class NotificationMiddleware(MiddlewareMixin):
+class NotificationMiddleware(object):
   """
   Manages setting request.info and request.error
   """
@@ -271,7 +270,7 @@ class AppSpecificMiddleware(object):
     return result
 
 
-class LoginAndPermissionMiddleware(MiddlewareMixin):
+class LoginAndPermissionMiddleware(object):
   """
   Middleware that forces all views (except those that opt out) through authentication.
   """
@@ -393,7 +392,7 @@ class JsonMessage(object):
 
 class AuditLoggingMiddleware(object):
 
-  def __init__(self, get_response=None):
+  def __init__(self):
     self.impersonator = SERVER_USER.get()
 
     if not AUDIT_EVENT_LOG_DIR.get():
@@ -555,7 +554,7 @@ class HtmlValidationMiddleware(object):
 
 class ProxyMiddleware(object):
 
-  def __init__(self, get_response=None):
+  def __init__(self):
     if not 'desktop.auth.backend.AllowAllBackend' in AUTH.BACKEND.get():
       LOG.info('Unloading ProxyMiddleware')
       raise exceptions.MiddlewareNotUsed
@@ -617,7 +616,7 @@ class SpnegoMiddleware(object):
   http://code.activestate.com/recipes/576992/
   """
 
-  def __init__(self, get_response=None):
+  def __init__(self):
     if not set(AUTH.BACKEND.get()).intersection(
         set(['desktop.auth.backend.SpnegoDjangoBackend', 'desktop.auth.backend.KnoxSpnegoDjangoBackend'])
       ):
@@ -798,14 +797,14 @@ class HueRemoteUserMiddleware(RemoteUserMiddleware):
   unload the middleware if the RemoteUserDjangoBackend is not currently
   in use.
   """
-  def __init__(self, get_respose=None):
+  def __init__(self):
     if not 'desktop.auth.backend.RemoteUserDjangoBackend' in AUTH.BACKEND.get():
       LOG.info('Unloading HueRemoteUserMiddleware')
       raise exceptions.MiddlewareNotUsed
     self.header = AUTH.REMOTE_USER_HEADER.get()
 
 
-class EnsureSafeMethodMiddleware(MiddlewareMixin):
+class EnsureSafeMethodMiddleware(object):
   """
   Middleware to white list configured HTTP request methods.
   """
@@ -814,7 +813,7 @@ class EnsureSafeMethodMiddleware(MiddlewareMixin):
       return HttpResponseNotAllowed(HTTP_ALLOWED_METHODS.get())
 
 
-class EnsureSafeRedirectURLMiddleware(MiddlewareMixin):
+class EnsureSafeRedirectURLMiddleware(object):
   """
   Middleware to white list configured redirect URLs.
   """
@@ -842,7 +841,7 @@ class EnsureSafeRedirectURLMiddleware(MiddlewareMixin):
       return response
 
 
-class MetricsMiddleware(MiddlewareMixin):
+class MetricsMiddleware(object):
   """
   Middleware to track the number of active requests.
   """
@@ -881,7 +880,7 @@ class MimeTypeJSFileFixStreamingMiddleware(object):
   as "text/x-js" and if strict X-Content-Type-Options=nosniff is set then browser fails to
   execute javascript file.
   """
-  def __init__(self, get_response=None):
+  def __init__(self):
     jsmimetypes = ['application/javascript', 'application/ecmascript']
     if mimetypes.guess_type("dummy.js")[0] in jsmimetypes:
       LOG.info('Unloading MimeTypeJSFileFixStreamingMiddleware')
