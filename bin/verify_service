@@ -1,0 +1,100 @@
+#!/bin/bash
+
+MAPR_HOME=${MAPR_HOME:-/opt/mapr}
+
+SERVICE="hue"
+
+HUE_VERSION=$(cat "${MAPR_HOME}/hue/hueversion")
+HUE_HOME="${MAPR_HOME}/hue/hue-${HUE_VERSION}"
+
+HUE_PID_FILE="${MAPR_HOME}/pid/hue.pid"
+
+HUE_HOST="localhost"
+HUE_PORT="8888"
+HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
+HUE_SECURE=$(test -e "$HUE_SECURE_FILE" && cat "$HUE_SECURE_FILE")
+
+LOG_FILE="${HUE_HOME}/logs/verify_service.log"
+
+EXIT_SUCCESS=0
+EXIT_NOT_RUNNING=1
+EXIT_RUNNING_NOT_RESPONDING=2
+
+timestamp() {
+    date +"[%Y-%m-%d %H:%M:%S]"
+}
+
+logInfo() {
+    message="$1"
+    echo "$(timestamp) [INFO] $message" >>"$LOG_FILE"
+}
+
+logError() {
+    message="$1"
+    echo "$(timestamp) [ERROR] $message" >>"$LOG_FILE"
+}
+
+check_running() {
+    if [ -e "$HUE_PID_FILE" ]; then
+        pid=$(cat "$HUE_PID_FILE")
+        if kill -0 "$pid" 2>/dev/null; then
+            return $EXIT_SUCCESS
+        else
+            echo "PID file for service ${SERVICE} found but no matching process was found"
+            return $EXIT_NOT_RUNNING
+        fi
+    else
+        echo "PID file for service ${SERVICE} does not exist"
+        return $EXIT_NOT_RUNNING
+    fi
+}
+
+check_liveness() {
+    if [ "$HUE_SECURE" = "true" ]; then
+        livy_url="https://${HUE_HOST}:${HUE_PORT}/boohoo"
+    else
+        livy_url="http://${HUE_HOST}:${HUE_PORT}/boohoo"
+    fi
+    livy_header_test="HTTP/1.* 200"
+
+    request_out=$(curl -s -k "$livy_url" -I)
+    request_exit=$?
+
+    if [ "$request_exit" -gt 0 ]; then
+        echo "${SERVICE} service is not responding"
+        return $EXIT_RUNNING_NOT_RESPONDING
+    fi
+
+    output_out=$(echo "$request_out" | grep -q "$livy_header_test")
+    output_exit=$?
+
+    if [ "$output_exit" -gt 0 ]; then
+        echo "${SERVICE} service is not responding properly"
+        return $EXIT_RUNNING_NOT_RESPONDING
+    fi
+
+    return $EXIT_SUCCESS
+}
+
+
+#
+# main
+#
+logInfo "Starting ${SERVICE} verification"
+
+running_out=$(check_running)
+running_exit=$?
+if [ "$running_exit" -ne 0 ]; then
+    logError "$running_out"
+    exit $running_exit
+fi
+
+liveness_out=$(check_liveness)
+liveness_exit=$?
+if [ "$liveness_exit" -ne 0 ]; then
+    logError "$liveness_out"
+    exit $liveness_exit
+fi
+
+logInfo "${SERVICE} is running and responding"
+exit $EXIT_SUCCESS
