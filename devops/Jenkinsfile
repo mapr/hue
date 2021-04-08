@@ -124,7 +124,7 @@ pipeline {
                   configFileProvider([configFile(fileId: 'maven_settings', variable: 'mvn_settings')]) {
                     sh "cat ${env.mvn_settings} > settings.xml"
                   }
-                  docker.image("docker.artifactory.lab/centos8vault-java11-hue:branch-4.6.0-mapr").inside (
+                  docker.image("docker.artifactory.lab/centos7-java8-hue:MHUE-459").inside (
                   "-e MAPR_MIRROR=${MAPR_MIRROR} \
                   -e MAPR_CENTRAL=${MAPR_CENTRAL} \
                   -e MAVEN_CENTRAL=${MAVEN_CENTRAL} \

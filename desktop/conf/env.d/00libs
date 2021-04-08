@@ -16,3 +16,8 @@ export LD_LIBRARY_PATH="${MAPR_HOME}/lib:${HUE_HOME}/build/env/lib:${libjvm_path
 
 # Add /opt/mapr/libexp/maprsecurity.so into PYTHONPATH
 export PYTHONPATH="${MAPR_HOME}/libexp:${PYTHONPATH}"
+
+# Explicitly set location of cyrus-sasl libraries when we package them
+if [ -d "${HUE_HOME}/build/env/lib/sasl2" ]; then
+    export SASL_PATH="${HUE_HOME}/build/env/lib/sasl2"
+fi
