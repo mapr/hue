@@ -38,7 +38,6 @@ popd
 /tmp/cross-linux/ant-install.sh
 /tmp/cross-linux/git-install.sh
 /tmp/cross-linux/java8-install.sh
-cp -fv /tmp/cross-linux/java8-profile.sh /etc/profile.d/.
 /tmp/cross-linux/maven-install.sh
 /tmp/cross-linux/snappy-install.sh
 

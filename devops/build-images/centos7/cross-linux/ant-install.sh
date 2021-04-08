@@ -7,4 +7,3 @@ wget http://artifactory.devops.lab/artifactory/buildmachine-files/cross-linux/ap
 tar -zxvf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt
 ln -svf /opt/apache-ant-${ANT_VERSION} /opt/ant
 rm -fv apache-ant-*.tar.gz
-cp -fv /tmp/cross-linux/ant-profile.sh /etc/profile.d/.

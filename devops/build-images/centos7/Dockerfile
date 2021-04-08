@@ -17,6 +17,15 @@ RUN chmod -f u+x /tmp/cross-linux/*.sh
 
 RUN /tmp/centos7.sh
 
+ENV ANT_HOME /opt/ant
+ENV ANT_BIN $ANT_HOME/bin
+ENV JAVA_HOME /opt/jdk-1.8.0
+ENV JAVA_BIN $JAVA_HOME/bin
+ENV M2_HOME /opt/maven
+ENV M2_BIN $M2_HOME/bin
+
+ENV PATH $PATH:$ANT_BIN:$JAVA_BIN:$M2_BIN
+
 
 RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
