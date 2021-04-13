@@ -8,3 +8,9 @@ if [ -e "${MAPR_HOME}/hive/hiveversion" ]; then
     HIVE_HOME=${HIVE_HOME:-"${MAPR_HOME}/hive/hive-${HIVE_VERSION}"}
     export HIVE_CONF_DIR=${HIVE_CONF_DIR:-"${HIVE_HOME}/conf"}
 fi
+
+if [ -e "${MAPR_HOME}/hbase/hbaseversion" ]; then
+    HBASE_VERSION=${HBASE_VERSION:-$(cat "${MAPR_HOME}/hbase/hbaseversion")}
+    HBASE_HOME=${HBASE_HOME:-"${MAPR_HOME}/hbase/hbase-${HBASE_VERSION}"}
+    export HBASE_CONF_DIR=${HBASE_CONF_DIR:-"${HBASE_HOME}/conf"}
+fi
