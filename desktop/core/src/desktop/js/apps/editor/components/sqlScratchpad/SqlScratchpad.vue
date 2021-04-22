@@ -43,7 +43,7 @@
       </div>
     </div>
     <div v-else-if="!loading && !executor">
-      Failed loading the SQL Scratchpad!
+      {{ errorMessage || 'Failed loading the SQL Scratchpad!' }}
     </div>
   </div>
 </template>
@@ -58,6 +58,7 @@
   import { SqlReferenceProvider } from 'sql/reference/types';
 
   import './SqlScratchpad.scss';
+  import { setBaseUrl } from 'api/utils';
   import AceEditor from '../aceEditor/AceEditor.vue';
   import { ActiveStatementChangedEventDetails } from '../aceEditor/types';
   import ExecutableProgressBar from '../ExecutableProgressBar.vue';
@@ -72,6 +73,7 @@
   import { findEditorConnector, getConfig } from 'config/hueConfig';
   import { Compute, Connector, Namespace } from 'config/types';
   import { UUID } from 'utils/hueUtils';
+  import { login } from './api';
 
   export default defineComponent({
     name: 'SqlScratchpad',
@@ -88,13 +90,30 @@
       dialect: {
         type: String as PropType<string | null>,
         default: null
+      },
+      jwt: {
+        type: Boolean,
+        default: true
+      },
+      user: {
+        type: String as PropType<string | null>,
+        default: null
+      },
+      password: {
+        type: String as PropType<string | null>,
+        default: null
+      },
+      apiUrl: {
+        type: String as PropType<string | null>,
+        default: null
       }
     },
     setup(props) {
-      const { dialect } = toRefs(props);
-      const activeExecutable = ref<SqlExecutable | null>(null);
-      const executor = ref<Executor | null>(null);
+      const { apiUrl, dialect, jwt, pass, user } = toRefs(props);
+      const activeExecutable = ref<SqlExecutable>(null);
+      const executor = ref<Executor>(null);
       const loading = ref<boolean>(true);
+      const errorMessage = ref<string>(null);
       const id = UUID();
 
       const sqlParserProvider: SqlParserProvider = {
@@ -116,11 +135,26 @@
         minLines: null
       };
 
-      const initializeExecutor = async (): Promise<void> => {
+      const initialize = async (): Promise<void> => {
+        if (apiUrl.value) {
+          setBaseUrl(apiUrl.value);
+        }
+
+        if (user.value !== null && pass.value !== null) {
+          try {
+            await login(user.value, pass.value, jwt.value);
+          } catch (err) {
+            errorMessage.value = 'Login failed!';
+            console.error(err);
+            return;
+          }
+        }
+
         try {
           await getConfig();
-        } catch {
-          console.warn('Failed loading Hue config!');
+        } catch (err) {
+          errorMessage.value = 'Failed loading the Hue config!';
+          console.error(err);
           return;
         }
 
@@ -128,7 +162,7 @@
           connector => !dialect.value || connector.dialect === dialect.value
         );
         if (!connector) {
-          console.warn('No connector found!');
+          errorMessage.value = 'No connector found!';
           return;
         }
 
@@ -136,7 +170,7 @@
           const { namespaces } = await contextCatalog.getNamespaces({ connector });
 
           if (!namespaces.length || !namespaces[0].computes.length) {
-            console.warn('No namespaces or computes found!');
+            errorMessage.value = 'No namespaces or computes found!';
             return;
           }
 
@@ -162,14 +196,17 @@
       onMounted(async () => {
         loading.value = true;
         try {
-          await initializeExecutor();
-        } catch {}
+          await initialize();
+        } catch (err) {
+          console.error(err);
+        }
         loading.value = false;
       });
 
       return {
         aceOptions,
         activeExecutable,
+        errorMessage,
         executor,
         id,
         onActiveStatementChanged,
