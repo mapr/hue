@@ -19,6 +19,8 @@
 
 # May require download from PyPI or whereever
 DEVTOOLS += \
+	decorator[4.4.2] \
+	traitlets[4.3.3] \
 	ipython[5.2.0] \
 	ipdb[0.10.3] \
 	nose[1.3.7] \
