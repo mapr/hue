@@ -63,6 +63,9 @@ WARDEN_RUNSTATE_KEY="service.runstate"
 HUE_LOG_DIR="${HUE_HOME}/logs"
 HUE_LOG_INITIAL_DB_MIGRATION="${HUE_LOG_DIR}/initial-db-migration.log"
 
+HUE_METRICS_FILE=$(grep -R '^[[:space:]]*location=' --include "*.ini" "${HUE_HOME}/desktop/conf" | tail -n1 | sed -E 's/^\s*location=(.*)\s*$/\1/')
+HUE_METRICS_FILE=${HUE_METRICS_FILE:-"/tmp/hue_metrics_report.json"}
+
 
 
 # Parse options
@@ -187,6 +190,9 @@ EOF
 
 chown_component() {
   chown -R $MAPR_USER:$MAPR_GROUP "$HUE_HOME"
+  if [ -e "$HUE_METRICS_FILE" ]; then
+    chown $MAPR_USER:$MAPR_GROUP "$HUE_METRICS_FILE"
+  fi
 }
 
 
