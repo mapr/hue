@@ -136,9 +136,11 @@
   window.JB_SINGLE_CHECK_INTERVAL_IN_MILLIS = 5000;
   window.JB_MULTI_CHECK_INTERVAL_IN_MILLIS = 20000;
   window.CLOSE_SESSIONS = {'hive': '${ CLOSE_SESSIONS.get() }' === 'True'};
+  window.sourceType_phoenix = '${[interpreter['type'] for interpreter in get_ordered_interpreters(request.user) if interpreter['dialect'] == 'phoenix'][0]}';
 
   window.HUE_URLS = {
     IMPORTER_CREATE_TABLE: '${ 'indexer' in apps and url('indexer:importer_prefill', source_type = 'all', target_type = 'table')}',
+    IMPORTER_CREATE_PHOENIX_TABLE: '${ 'indexer' in apps and url('indexer:importer_prefill', source_type = 'all', target_type = 'big-table')}',
     IMPORTER_CREATE_DATABASE: '${ 'indexer' in apps and url('indexer:importer_prefill', source_type = 'manual', target_type = 'database')}',
     NOTEBOOK_INDEX: '${url('notebook:index')}',
     % if 'pig' in apps:

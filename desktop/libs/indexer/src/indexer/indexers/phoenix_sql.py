@@ -73,10 +73,14 @@ CONSTRAINT my_pk PRIMARY KEY (%(primary_keys)s)
       }
 
     source_path = urllib_unquote(source['path'])
-    file_obj = request.fs.open(source_path)
-    content = file_obj.read().decode("utf-8")
-    csvfile = string_io(content)
-    reader = csv.reader(csvfile)
+    if source['inputFormat'] == 'file':
+      file_obj = request.fs.open(source_path)
+      content = file_obj.read().decode("utf-8")
+      csvfile = string_io(content)
+      reader = csv.reader(csvfile)
+    else:
+      local_file = open(source_path, 'r')
+      reader = csv.reader(local_file)
 
     if destination['indexerRunJob']:
       for count, csv_row in enumerate(reader):
