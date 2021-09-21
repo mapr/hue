@@ -1,12 +1,25 @@
 #!/bin/sh
 
 MAPR_HOME=${MAPR_HOME:-"/opt/mapr"}
-SSL_SERVER_CONFIG_FILE="${MAPR_HOME}/conf/ssl-server.xml"
-SSL_KEYSTORE_PASSWORD_PROP="ssl.server.keystore.password"
 
-get_property_value() {
-  property_name="$1"
-  sed -n '/'${property_name}'/{:a;N;/<\/value>/!ba {s|.*<value>\(.*\)</value>|\1|p}}' "$SSL_SERVER_CONFIG_FILE"
-}
+PASSWORD_PROP="ssl.server.keystore.password"
+MAPRKEYCREDS_CONF="${MAPR_HOME}/conf/maprkeycreds.conf"
+SSL_SERVER_CONF="${MAPR_HOME}/conf/ssl-server.xml"
 
-get_property_value "ssl.server.keystore.password"
+if [ -e "$MAPRKEYCREDS_CONF" ]; then
+    . "${MAPR_HOME}/server/common-ecosystem.sh" >/dev/null 2>&1
+    keystorePass=$(getStorePw "$PASSWORD_PROP" "$MAPRKEYCREDS_CONF")
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "Failed to extract keystore password from maprkeycreds.conf: '${keystorePass}'"
+        exit 1
+    fi
+else
+    keystorePass="$(fgrep -A 1 "$PASSWORD_PROP" "$SSL_SERVER_CONF" | tail -1 | sed 's/ *<value>//;s/<\/value>//')"
+    if [ -z "$keystorePass" ]; then
+        echo "Failed to extract keystore password from ssl-server.xml."
+        exit 1
+    fi
+fi
+
+echo "$keystorePass"
