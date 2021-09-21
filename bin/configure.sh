@@ -178,10 +178,18 @@ create_restart_file(){
 #!/bin/bash
 MAPR_HOME="${MAPR_HOME:-/opt/mapr}"
 MAPR_USER="${MAPR_USER:-mapr}"
-if [ -z "${MAPR_TICKETFILE_LOCATION}" ] && [ -e "${MAPR_HOME}/conf/mapruserticket" ]; then
+
+if [ -z "$MAPR_TICKETFILE_LOCATION" ]; then
+  isSecured="false"
+  if [ -e "${MAPR_HOME}/conf/mapr-clusters.conf" ]; then
+    isSecured=$(head -n1 "${MAPR_HOME}/conf/mapr-clusters.conf" | grep -o 'secure=\w*' | cut -d '=' -f 2)
+  fi
+  if [ "$isSecured" = "true" ] && [ -e "${MAPR_HOME}/conf/mapruserticket" ]; then
     export MAPR_TICKETFILE_LOCATION="${MAPR_HOME}/conf/mapruserticket"
+  fi
 fi
-sudo -u $MAPR_USER -E maprcli node services -action restart -name hue -nodes $(hostname)
+
+maprcli node services -action restart -name hue -nodes $(hostname)
 EOF
   chmod +x "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
   chown -R $MAPR_USER:$MAPR_GROUP "${MAPR_CONF_DIR}/restart/hue-${HUE_VERSION}.restart"
