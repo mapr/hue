@@ -25,7 +25,7 @@ ${ commonheader(None, "hbase", user, request) | n,unicode }
 %endif
 <div id="hbaseComponents">
 <link href="${ static('hbase/css/hbase.css') }" rel="stylesheet" type="text/css" />
-<link href="${ static('hbase/css/maprtables.css') }" rel="stylesheet" type="text/css" />
+<link href="${ static('hbase/css/jstree.css') }" rel="stylesheet" type="text/css" />
 
 <div class="navbar hue-title-bar nokids">
     <div class="navbar-inner">
