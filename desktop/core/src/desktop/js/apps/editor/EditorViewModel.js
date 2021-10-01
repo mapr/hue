@@ -91,6 +91,9 @@ export default class EditorViewModel {
     this.editorTitle = ko.pureComputed(
       () => this.activeConnector() && this.activeConnector().displayName
     );
+    this._editorTitle = ko.pureComputed(() =>
+      window.HPLSQL && this.editorTitle() === 'Hive' ? 'Hive HPL/SQL' : this.editorTitle()
+    );
 
     this.editorIcon = ko.pureComputed(() => {
       const dialect = this.activeConnector()?.dialect;

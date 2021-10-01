@@ -784,7 +784,7 @@
               <!-- ko if: editorMode -->
               <a data-bind="hueLink: '${ url('notebook:editor') }?type=' + editorType(), attr: { 'title': editorTitle() + '${ _(' Editor') }'}" style="cursor: pointer">
                 <!-- ko template: { name: 'app-icon-template', data: { icon: editorIcon() } } --><!-- /ko -->
-                <span data-bind="text: editorTitle()"></span>
+                <span data-bind="text: _editorTitle()"></span>
                 <!-- ko component: { name: 'hue-favorite-app', params: { app: 'editor', interpreter: editorType() }} --><!-- /ko -->
               </a>
               <!-- /ko -->
