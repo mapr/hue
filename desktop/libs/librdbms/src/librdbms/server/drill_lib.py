@@ -73,13 +73,8 @@ class DrillClient(BaseRDMSClient):
     impersonation = query_server['options'].get('impersonation', DEFAULT_IMPERSONATION)
     principal = query_server['options'].get('principal', DEFAULT_PRINCIPAL)
 
-    classpath = ':'.join([
-      query_server['options'].get('classpath', DEFAULT_CLASSPATH),
-      os.environ.get('CLASSPATH', ''),
-    ])
-
+    classpath = query_server['options'].get('classpath', DEFAULT_CLASSPATH)
     java_opts = query_server['options'].get('java_opts', DEFAULT_JAVA_OPTS)
-
     jdbc_driver = query_server['options'].get('jdbc_driver', DEFAULT_JDBC_DRIVER)
 
     if connection_type == 'direct':
@@ -105,6 +100,13 @@ class DrillClient(BaseRDMSClient):
     self.jdbc_driver = jdbc_driver
 
     javaopts = shlex.split(java_opts)
+
+    LOG.debug(("Connecting to Drill with JDBC client."
+               " Connection string: '{}'."
+               " Classpath: '{}'."
+               " Java options: '{}'."
+              ).format(connection_string, classpath, javaopts))
+
     self.gateway = get_java_gateway(classpath=classpath, javaopts=javaopts)
 
     self.connect()
