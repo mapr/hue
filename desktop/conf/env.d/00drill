@@ -1,3 +1,5 @@
+#!/bin/sh
+
 DRILL_VERSION_FILE="${MAPR_HOME}/drill/drillversion"
 
 if [ -e "$DRILL_VERSION_FILE" ]; then

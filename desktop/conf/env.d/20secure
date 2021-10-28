@@ -1,3 +1,5 @@
+#!/bin/sh
+
 HUE_SECURE_FILE="${HUE_HOME}/desktop/conf/.isSecure"
 
 if [ -e "$HUE_SECURE_FILE" ] && [ $(cat "$HUE_SECURE_FILE") = "true" ] ; then

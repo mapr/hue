@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . "${MAPR_HOME}/conf/env.sh"
 
 # Add path to libjvm.so into LD_LIBRARY_PATH

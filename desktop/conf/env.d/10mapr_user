@@ -1,3 +1,5 @@
+#!/bin/sh
+
 DAEMON_CONF="${MAPR_HOME}/conf/daemon.conf"
 
 MAPR_USER=${MAPR_USER:-$( [ -f "$DAEMON_CONF" ] && awk -F = '$1 == "mapr.daemon.user" { print $2 }' "$DAEMON_CONF" )}
