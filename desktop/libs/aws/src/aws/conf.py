@@ -207,6 +207,12 @@ AWS_ACCOUNTS = UnspecifiedConfigSection(
         default=None,
         type=str
       ),
+      PORT=Config(
+        help=_('Alternate port for the S3 endpoint.'),
+        key='port',
+        default=None,
+        type=int
+      ),
       PROXY_ADDRESS=Config(
         help=_('Proxy address to use for the S3 connection.'),
         key='proxy_address',
