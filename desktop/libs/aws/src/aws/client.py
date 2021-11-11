@@ -98,7 +98,7 @@ class CredentialProviderIDBroker(object):
 
 class Client(object):
   def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, aws_security_token=None, region=None,
-               timeout=HTTP_SOCKET_TIMEOUT_S, host=None, proxy_address=None, proxy_port=None, proxy_user=None,
+               timeout=HTTP_SOCKET_TIMEOUT_S, host=None, port=None, proxy_address=None, proxy_port=None, proxy_user=None,
                proxy_pass=None, calling_format=None, is_secure=True, expiration=None):
     self._access_key_id = aws_access_key_id
     self._secret_access_key = aws_secret_access_key
@@ -106,6 +106,7 @@ class Client(object):
     self._region = region.lower() if region else region
     self._timeout = timeout
     self._host = host
+    self._port = port
     self._proxy_address = proxy_address
     self._proxy_port = proxy_port
     self._proxy_user = proxy_user
@@ -132,6 +133,7 @@ class Client(object):
         aws_security_token=credentials.get('SessionToken'),
         region=aws_conf.get_region(conf=conf),
         host=conf.HOST.get(),
+        port=conf.PORT.get(),
         proxy_address=conf.PROXY_ADDRESS.get(),
         proxy_port=conf.PROXY_PORT.get(),
         proxy_user=conf.PROXY_USER.get(),
@@ -175,6 +177,10 @@ class Client(object):
       os.environ['S3_USE_SIGV4'] = 'True'
       if self._host is not None and not aws_conf.IS_SELF_SIGNING_ENABLED.get():
         kwargs.update({'host': self._host})
+
+        if self._port is not None:
+          kwargs.update({'port': self._port})
+
         connection = boto.s3.connection.S3Connection(**kwargs)
       elif self._region:
         if aws_conf.IS_SELF_SIGNING_ENABLED.get():
