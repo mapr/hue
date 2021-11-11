@@ -178,6 +178,20 @@ def patch_lib_conf():
 
   notebook_conf.INTERPRETERS.each.members['OPTIONS'].preserve_subs = ['USER', 'PASSWORD']
 
+  #
+  # aws.conf
+  #
+  from aws import conf as aws_conf
+
+  aws_conf.AWS_ACCOUNTS.each.update_members({
+    'PORT': conf_lib.Config(
+      key='port',
+      help="Alternate port for the S3 endpoint.",
+      type=int,
+      default=None,
+    ),
+  })
+
 @synchronized
 @run_once
 def patch_app_conf():
