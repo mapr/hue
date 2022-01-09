@@ -98,7 +98,7 @@ SQLAlchemy==1.3.16
 sqlparse==0.2.0
 tablib==0.13.0
 thrift==0.13.0
-urllib3==1.22
+urllib3==1.26.8
 vine==1.2.0
 wheel==0.31.0
 xlrd==1.2.0
