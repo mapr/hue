@@ -84,7 +84,7 @@ python-pam==1.8.4
 python-snappy==0.5.4
 pytidylib==0.3.2
 pytz==2015.2
-PyYAML==3.12
+PyYAML==5.4.1
 repoze.who==2.3
 requests==2.18.4
 requests-kerberos==0.12.0
