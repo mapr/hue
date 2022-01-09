@@ -41,7 +41,7 @@ future==0.18.2
 gcs-oauth2-boto-plugin==2.5
 greenlet==0.4.15
 gunicorn==19.9.0
-httplib2==0.8
+httplib2==0.20.2
 idna==2.6
 importlib2==3.5.0.2
 ipaddress==1.0.19
