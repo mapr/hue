@@ -250,6 +250,12 @@ AWS_ACCOUNTS = UnspecifiedConfigSection(
         default=True,
         type=coerce_bool
       ),
+      TRUST_SELF_SIGNED=Config(
+        help=_('Disable certificate verification of the server. Useful with Minio instance signed with self-signed certificates.'),
+        key='trust_self_signed',
+        default=False,
+        type=coerce_bool
+      ),
       KEY_EXPIRY=Config(
         help=_('The time in seconds before a delegate key is expired. Used when filebrowser/redirect_download is used. Default to 4 Hours.'),
         key='key_expiry',

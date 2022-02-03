@@ -17,8 +17,10 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import object
+import httplib
 import logging
 import os
+import ssl
 
 import boto.s3.connection
 
@@ -88,7 +90,7 @@ class CredentialProviderIDBroker(object):
 class Client(object):
   def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, aws_security_token=None, region=None,
                timeout=HTTP_SOCKET_TIMEOUT_S, host=None, port=None, proxy_address=None, proxy_port=None, proxy_user=None,
-               proxy_pass=None, calling_format=None, is_secure=True, expiration=None):
+               proxy_pass=None, calling_format=None, is_secure=True, expiration=None, trust_self_signed=False):
     self._access_key_id = aws_access_key_id
     self._secret_access_key = aws_secret_access_key
     self._security_token = aws_security_token
@@ -103,6 +105,7 @@ class Client(object):
     self._calling_format = aws_conf.DEFAULT_CALLING_FORMAT if calling_format is None else calling_format
     self._is_secure = is_secure
     self.expiration = expiration
+    self._trust_self_signed=trust_self_signed
 
     if not boto.config.has_section('Boto'):
       boto.config.add_section('Boto')
@@ -129,7 +132,8 @@ class Client(object):
         proxy_pass=conf.PROXY_PASS.get(),
         calling_format=conf.CALLING_FORMAT.get(),
         is_secure=conf.IS_SECURE.get(),
-        expiration=credentials.get('Expiration')
+        expiration=credentials.get('Expiration'),
+        trust_self_signed=conf.TRUST_SELF_SIGNED.get()
       )
     else:
       return cls(
@@ -149,6 +153,15 @@ class Client(object):
       'is_secure': self._is_secure,
       'calling_format': self._calling_format
     }
+
+    if self._is_secure and self._trust_self_signed:
+
+      # https://github.com/boto/boto/issues/3468#issuecomment-978836316
+      def create_https_unsafe_connection_factory(host):
+        return httplib.HTTPSConnection(host=host, port=self._port, context=ssl._create_unverified_context())
+      https_unsafe_connection_factory = (create_https_unsafe_connection_factory, ())
+
+      kwargs.update({'https_connection_factory': https_unsafe_connection_factory})
 
     # Add proxy if configured
     if self._proxy_address is not None:
