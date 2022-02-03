@@ -190,6 +190,12 @@ def patch_lib_conf():
       type=int,
       default=None,
     ),
+    'TRUST_SELF_SIGNED': conf_lib.Config(
+      key='trust_self_signed',
+      help="Disable certificate verification of the server. Useful with Minio instance signed with self-signed certificates.",
+      type=conf_lib.coerce_bool,
+      default=False,
+    ),
   })
 
 @synchronized
