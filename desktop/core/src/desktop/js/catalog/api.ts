@@ -158,7 +158,7 @@ export const fetchDescribe = ({
       {
         format: 'json',
         cluster: JSON.stringify(entry.compute),
-        source_type: entry.getConnector().id,
+        source_type: entry.getConnector().id === 'hplsql' ? 'hive' : entry.getConnector().id,
         connector: JSON.stringify(entry.getConnector())
       },
       {
@@ -432,7 +432,7 @@ export const fetchSample = ({
       {
         notebook: {},
         snippet: JSON.stringify({
-          type: entry.getConnector().id,
+          type: entry.getConnector().id === 'hplsql' ? 'hive' : entry.getConnector().id,
           compute: entry.compute
         }),
         async: true,
@@ -551,7 +551,7 @@ export const fetchSourceMetadata = ({
     {
       notebook: {},
       snippet: JSON.stringify({
-        type: entry.getConnector().id,
+        type: entry.getConnector().id === 'hplsql' ? 'hive' : entry.getConnector().id,
         source: 'data'
       }),
       operation: entry.isModel() ? 'model' : 'default',
