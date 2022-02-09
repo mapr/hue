@@ -64,6 +64,7 @@ const ADD_TAGS_URL = '/metadata/api/catalog/add_tags';
 const AUTOCOMPLETE_URL_PREFIX = '/api/editor/autocomplete/';
 const CANCEL_STATEMENT_URL = '/api/editor/cancel_statement';
 const CHECK_STATUS_URL = '/api/editor/check_status';
+const CLOSE_STATEMENT_URL = '/api/editor/close_statement';
 const DELETE_TAGS_URL = '/metadata/api/catalog/delete_tags';
 const DESCRIBE_URL = '/api/editor/describe/';
 const FETCH_RESULT_DATA_URL = '/api/editor/fetch_result_data';
@@ -517,6 +518,20 @@ export const fetchSample = ({
 
         resolve(sample);
         cancellablePromises.pop();
+
+        const closeStatement = post<{
+          status: number;
+          result?: { status?: string };
+          message: string;
+        }>(CLOSE_STATEMENT_URL, {
+          notebook: notebookJson,
+          snippet: snippetJson
+        });
+        try {
+          await closeStatement;
+        } catch (err) {
+          console.warn('Failed closing statement');
+        }
 
         const closeSessions = (<hueWindow>window).CLOSE_SESSIONS;
         if (
