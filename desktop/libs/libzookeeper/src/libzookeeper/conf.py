@@ -66,9 +66,32 @@ ENSEMBLE=Config(
     type=coerce_string,
 )
 
+MECHANISM=Config(
+    "mechanism",
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY",
+    default='none',
+    type=str
+)
+
 PRINCIPAL_NAME=Config(
     "principal_name",
     help="Name of Kerberos principal when using security",
     default="zookeeper",
     type=str,
 )
+
+def get_sasl_options():
+  sasl_options = None
+
+  _mechanism = MECHANISM.get()
+  _principal = PRINCIPAL_NAME.get()
+
+  if _mechanism == "MAPR-SECURITY":
+    sasl_options = {"mechanism": "MAPRSASL"}
+  elif _mechanism == "GSSAPI":
+    sasl_options = {
+      "mechanism": "GSSAPI",
+      "principal": _principal,
+    }
+
+  return sasl_options

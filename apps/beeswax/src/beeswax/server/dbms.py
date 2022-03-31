@@ -31,6 +31,7 @@ from kazoo.client import KazooClient
 from desktop.conf import CLUSTER_ID, has_connectors
 from desktop.lib.django_util import format_preserving_redirect
 from desktop.lib.exceptions_renderable import PopupException
+from desktop.lib import maprsasl_puresasl
 from desktop.lib.parameterization import substitute_variables
 from desktop.lib.view_util import location_to_url
 from desktop.models import Cluster
@@ -107,7 +108,7 @@ def get_query_server_config(name='beeswax', connector=None):
       if activeEndpoint is None:
         if HIVE_DISCOVERY_LLAP.get():
           LOG.debug("Checking zookeeper for Hive Server Interactive endpoint")
-          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True)
+          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), sasl_options=libzookeeper_conf.get_sasl_options(), read_only=True)
           zk.start()
           if HIVE_DISCOVERY_LLAP_HA.get():
             znode = "{0}/instances".format(HIVE_DISCOVERY_LLAP_ZNODE.get())
@@ -137,7 +138,7 @@ def get_query_server_config(name='beeswax', connector=None):
       activeEndpoint = cache.get("hiveserver2")
       if activeEndpoint is None:
         if HIVE_DISCOVERY_HS2.get():
-          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True)
+          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), sasl_options=libzookeeper_conf.get_sasl_options(), read_only=True)
           zk.start()
           znode = HIVE_DISCOVERY_HIVESERVER2_ZNODE.get()
           LOG.info("Setting up Hive with the following node {0}".format(znode))
