@@ -198,6 +198,26 @@ def patch_lib_conf():
     ),
   })
 
+  #
+  # libzookeeper.conf
+  #
+  from libzookeeper import conf as libzookeeper_conf
+
+  libzookeeper_conf.ENSEMBLE.help = "ZooKeeper ensemble. Comma separated list of Host/Port, e.g. localhost:5181,localhost:5182,localhost:5183"
+
+  def _ensamble_dynamic_default():
+    res = libzookeeper_conf.zkensemble()
+    if res == 'localhost:2181':
+      return 'localhost:5181'
+    return res
+  libzookeeper_conf.ENSEMBLE.dynamic_default = _ensamble_dynamic_default
+
+  libzookeeper_conf.MECHANISM = conf_lib.Config(
+    key='mechanism',
+    help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
+    default='none',
+  )
+
 @synchronized
 @run_once
 def patch_app_conf():
@@ -233,3 +253,11 @@ def patch_app_conf():
     help="Security mechanism of authentication none/GSSAPI/MAPR-SECURITY.",
     default='none',
   )
+
+  #
+  # zookeeper.conf
+  #
+  from zookeeper import conf as zookeeper_conf
+
+  zookeeper_conf.CLUSTERS.each.members['HOST_PORTS'].default_value = 'localhost:5181'
+  zookeeper_conf.CLUSTERS.each.members['HOST_PORTS'].help = "Zookeeper ensemble. Comma separated list of Host/Port, e.g. localhost:5181,localhost:5182,localhost:5183"

@@ -14,3 +14,20 @@ def get_hive_mechanism():
   }
 
   return HUE_INI_TO_HS2_MECHANISM.get(mechanism, mechanism)
+
+def get_libzookeeper_sasl_options():
+  from libzookeeper import conf as libzookeeper_conf
+  sasl_options = None
+
+  _mechanism = libzookeeper_conf.MECHANISM.get()
+  _principal = libzookeeper_conf.PRINCIPAL_NAME.get()
+
+  if _mechanism == "MAPR-SECURITY":
+    sasl_options = {"mechanism": "MAPRSASL"}
+  elif _mechanism == "GSSAPI":
+    sasl_options = {
+      "mechanism": "GSSAPI",
+      "principal": _principal,
+    }
+
+  return sasl_options
