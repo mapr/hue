@@ -61,6 +61,10 @@ if sys.version_info[0] > 2:
 else:
   from django.utils.translation import ugettext as _
 
+# MAPR IMPORTS
+from desktop.mapr import utils as mapr_utils
+from desktop.mapr.security import maprsasl_puresasl  # Register MaprSaslMechanism in available puresasl mechanisms
+
 LOG = logging.getLogger(__name__)
 
 
@@ -82,7 +86,7 @@ reset_ha()
 
 def get_zk_hs2():
   hiveservers = None
-  zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True)
+  zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True, sasl_options=mapr_utils.get_libzookeeper_sasl_options())
   zk.start()
   znode = HIVE_DISCOVERY_HIVESERVER2_ZNODE.get()
   if zk.exists(znode):
@@ -152,7 +156,7 @@ def get_query_server_config(name='beeswax', connector=None):
       if activeEndpoint is None:
         if HIVE_DISCOVERY_LLAP.get():
           LOG.debug("Checking zookeeper for discovering Hive LLAP server endpoint")
-          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True)
+          zk = KazooClient(hosts=libzookeeper_conf.ENSEMBLE.get(), read_only=True, sasl_options=mapr_utils.get_libzookeeper_sasl_options())
           zk.start()
           if HIVE_DISCOVERY_LLAP_HA.get():
             znode = "{0}/instances".format(HIVE_DISCOVERY_LLAP_ZNODE.get())

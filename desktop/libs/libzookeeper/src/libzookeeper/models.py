@@ -23,6 +23,10 @@ from kazoo.client import KazooClient
 from hadoop import cluster
 from libzookeeper.conf import ENSEMBLE, PRINCIPAL_NAME
 
+# MAPR IMPORTS
+from desktop.mapr import utils as mapr_utils
+from desktop.mapr.security import maprsasl_puresasl  # Register MaprSaslMechanism in available puresasl mechanisms
+
 
 LOG = logging.getLogger(__name__)
 
@@ -41,19 +45,14 @@ class ZookeeperClient(object):
     self.hosts = hosts if hosts else ENSEMBLE.get()
     self.read_only = read_only
 
-    hdfs = cluster.get_hdfs()
+    # hdfs = cluster.get_hdfs()
 
-    if hdfs is None:
-      raise ZookeeperConfigurationException('No [hdfs] configured in hue.ini.')
-
-    if hdfs.security_enabled:
-      self.sasl_server_principal = PRINCIPAL_NAME.get()
-    else:
-      self.sasl_server_principal = None
+    # if hdfs is None:
+    #   raise ZookeeperConfigurationException('No [hdfs] configured in hue.ini.')
 
     self.zk = KazooClient(hosts=self.hosts,
                           read_only=self.read_only,
-                          sasl_server_principal=self.sasl_server_principal)
+                          sasl_options=mapr_utils.get_libzookeeper_sasl_options())
 
 
   def start(self):
