@@ -878,6 +878,7 @@ class OIDCBackend(OIDCAuthenticationBackend):
         email=email,
         first_name=first_name,
         last_name=last_name,
+        groups=ensure_has_a_group(username),
         is_superuser=self.is_hue_superuser(claims)
     )
 
