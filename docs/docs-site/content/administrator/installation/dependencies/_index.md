@@ -172,10 +172,8 @@ This is a verified step-by-step guide on how to get Hue up and running on a fres
 
    `brew install gmp openssl libffi`
 
-7. Install python, tested with the **macOS 64-bit installer 3.7.9** direct download from python.org
-`https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg`
-
-   - For **M1 Macs, 3.7.9 from python.org is the only Python version that works** and none of the homebrew versions work at the time of writing. Hue M1 support for Python >= 3.8 will be improved soon.
+7. Install python, tested with the **macOS 64-bit installer 3.8.10** direct download from python.org
+`https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg`
 
    - For Intel Macs, other 3.x Python versions as well as Homebrew ones might work. However, direct download from python.org is preferred and tested.
 
@@ -190,7 +188,7 @@ This is a verified step-by-step guide on how to get Hue up and running on a fres
 10. In the cloned hue folder run:
 
     ```
-    export PYTHON_VER=python3.7
+    export PYTHON_VER=python3.8
     export SKIP_PYTHONDEV_CHECK=true
     export CFLAGS="-I$(xcrun --show-sdk-path)/usr/include/sasl"
     export LDFLAGS="-L/usr/local/opt/libffi/lib -L/usr/local/opt/openssl@1.1/lib"
@@ -217,9 +215,9 @@ This is a verified step-by-step guide on how to get Hue up and running on a fres
 12. For **M1 Macs**, if `make apps` fails with `virtualenv is not compatible with this system or executable` error
 
     ```
-    pip3.7 install virtualenv
+    pip3.8 install virtualenv
     virtualenv ./build/env
-    rm ./build/env/bin/python3.7
+    rm ./build/env/bin/python3.8
     
     make apps
     ```
@@ -246,9 +244,16 @@ Fix openssl errors (required for MacOS 10.11+)
 
     export LDFLAGS=-L/usr/local/opt/openssl/lib && export CPPFLAGS=-I/usr/local/opt/openssl/include
 
-If `runserver` stops abruptly with a  `"zsh: abort"` message
+If `runserver` stops abruptly with a `"zsh: abort"` message
 
     export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/opt/openssl/lib
+
+If `runserver` stops abruptly with a `loading libcrypto in an unsafe way` message
+
+    sudo mkdir /usr/local/lib
+    # depends on your openssl version, link the following files to /usr/local/lib
+    sudo ln -s /opt/homebrew/Cellar/openssl@3/3.0.2/lib/libcrypto.3.dylib /usr/local/lib/libcrypto.dylib
+    sudo ln -s /opt/homebrew/Cellar/openssl@3/3.0.2/lib/libssl.3.dylib /usr/local/lib/libssl.dylib
 
 If you are getting `Could not find Python.h` message
 
