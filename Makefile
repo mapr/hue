@@ -255,6 +255,7 @@ install-env:
 npm-install:
 	npm --version
 	node --version
+	pushd tools/jison && npm install && node generateParsers.js && popd	
 	npm install
 	npm run webpack
 	npm run webpack-login
