@@ -23,6 +23,8 @@ import re
 import sys
 import time
 from datetime import datetime
+import pytz
+from babel import localtime
 
 from desktop.lib import export_csvxls
 from libanalyze import analyze as analyzer, rules
@@ -90,7 +92,7 @@ class QueryApi(Api):
             job['duration'],
             re.MULTILINE
         ).groups()),
-        'submitted': job['start_time'],
+        'submitted': datetime.strptime(job['start_time'][:-3], "%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=pytz.utc).astimezone(localtime._get_localzone()),
         # Extra specific
         'rows_fetched': job['rows_fetched'],
         'waiting': job['waiting'],
