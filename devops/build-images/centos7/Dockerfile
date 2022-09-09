@@ -23,8 +23,9 @@ ENV JAVA_HOME /opt/jdk-1.8.0
 ENV JAVA_BIN $JAVA_HOME/bin
 ENV M2_HOME /opt/maven
 ENV M2_BIN $M2_HOME/bin
+ENV NODE_BIN /opt/node/bin
 
-ENV PATH $PATH:$ANT_BIN:$JAVA_BIN:$M2_BIN
+ENV PATH $ANT_BIN:$JAVA_BIN:$M2_BIN:$NODE_BIN:$PATH
 
 
 RUN mkdir /var/run/sshd

@@ -66,5 +66,7 @@ yum install -y \
 
 # MHUE-459 Add packages to build Hue 4.6
 yum install -y \
-    nodejs \
     unixODBC-devel
+
+mkdir /opt/node
+curl -sL https://nodejs.org/dist/v12.22.12/node-v12.22.12-linux-x64.tar.xz | tar xJ -C /opt/node --strip-components=1

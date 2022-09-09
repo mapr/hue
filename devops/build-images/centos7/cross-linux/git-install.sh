@@ -7,7 +7,7 @@ GIT_VERSION=2.9.3
 
 mkdir -pv /usr/share/info
 
-wget http://artifactory.devops.lab/artifactory/buildmachine-files/cross-linux/git-${GIT_VERSION}.tar.gz
+wget http://dfaf.mip.storage.hpecorp.net/artifactory/buildmachine-files/cross-linux/git-${GIT_VERSION}.tar.gz
 tar zxvf git-${GIT_VERSION}.tar.gz -C /opt
 ln -sv /opt/git-${GIT_VERSION} /opt/git
 
