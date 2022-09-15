@@ -1235,7 +1235,7 @@
 
   # Thrift version to use when communicating with HiveServer2.
   # Version 11 comes with Hive 3.0. If issues, try 7.
-  thrift_version=7
+  thrift_version=11
 
   # A comma-separated list of white-listed Hive configuration properties that users are authorized to set.
   ## config_whitelist=hive.map.aggr,hive.exec.compress.output,hive.exec.parallel,hive.execution.engine,mapreduce.job.queuename
@@ -1246,7 +1246,7 @@
   ## auth_password=
 
   # Use SASL framework to establish connection to host.
-  ## use_sasl=false
+  use_sasl=${security_enabled}
 
   [[ssl]]
     # Path to Certificate Authority certificates.
