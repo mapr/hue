@@ -76,3 +76,10 @@ REMOTE_STORAGE_HOME = Config(
   type=str,
   default=None,
   help="Optionally set this if you want a different home directory path. e.g. s3a://gethue.")
+
+MAX_FILE_SIZE_UPLOAD_LIMIT = Config(
+  key="max_file_size_upload_limit",
+  default=-1,
+  type=int,
+  help=_('A limit on a file size (bytes) that can be uploaded to a filesystem. '
+          'A value of -1 means there will be no limit.'))
