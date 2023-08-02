@@ -1,0 +1,12 @@
+Package: mapr-hue
+Version: __RELEASE_VERSION__
+Section: base
+Priority: optional
+Architecture: all
+Replaces: mapr-hue (<< 3.10.0), mapr-hue-base (<< 3.10.0)
+Depends: mapr-client, mapr-hadoop-util, debianutils, bash, libc6 (>= 2.3.2), libcomerr2 (>= 1.01), libgcc1 (>= 1:4.1.1), libgssapi-krb5-2 (>= 1.8+dfsg), libk5crypto3 (>= 1.6.dfsg.2), libkrb5-3 (>= 1.6.dfsg.2), libldap-2.4-2 (>= 2.4.7), libsasl2-dev, libsqlite3-0 (>= 3.7.3), libssl1.1, libstdc++6 (>= 4.2.1), libxml2 (>= 2.7.4), libxslt1.1 (>= 1.1.26), zlib1g (>= 1:1.2.0), libsasl2-modules-gssapi-mit, libffi6 | libffi7
+Suggests: mapr-hive, mapr-oozie, mapr-httpfs
+Maintainer: Hewlett Packard Enterprise <ezmeral_software_support@hpe.com>
+Description: Ezmeral Ecosystem Pack - Hue package
+  Tag: __RELEASE_BRANCH__
+  Commit: __GIT_COMMIT__
