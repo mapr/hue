@@ -1,0 +1,257 @@
+#!/usr/bin/env python
+
+import argparse
+import logging
+import os
+import re
+import sys
+
+
+MAPR_HOME = os.environ.get("MAPR_HOME", "/opt/mapr")
+
+HUE_HOME = os.environ.get("HUE_HOME")
+if not HUE_HOME:
+    HUE_VERSION = os.environ.get("HUE_VERSION")
+    if not HUE_VERSION:
+        version_file_location = os.path.join(MAPR_HOME, "hue/hueversion")
+        try:
+            with open(version_file_location, "r") as version_file:
+                HUE_VERSION = version_file.read().strip()
+        except OSError as ex:
+            logging.exception(ex)
+            sys.exit(ex.errno)
+
+    HUE_HOME = os.path.join(MAPR_HOME, "hue", "hue-" + HUE_VERSION)
+
+HUE_CONF = os.environ.get("HUE_CONF", os.path.join(HUE_HOME, "desktop/conf/hue.ini"))
+
+
+class IniConf(object):
+    lines = None
+
+    def __init__(self, lines):
+        self.set_lines(lines)
+
+    def set_lines(self, lines):
+        self.lines = list(enumerate(lines))
+
+    def set_line(self, num, line):
+        self.lines[num] = (num, line)
+
+    def get_lines(self):
+        return [line for num, line in self.lines]
+
+    def get_line(self, num):
+        return self.lines[num][1]
+
+    def insert(self, num, line):
+        new_lines = self.get_lines()
+        new_lines.insert(num, line)
+        self.set_lines(new_lines)
+
+    def uncomment(self, num):
+        indent_pattern = r'(?P<indent>\s*)'
+        comment_pattern = r'(#+\s*)*'
+        content_pattern = r'(?P<content>.*)'
+        line = self.get_line(num)
+        line = re.sub(r'^' + indent_pattern + comment_pattern + content_pattern + r'$', r'\g<indent>\g<content>', line)
+        self.set_line(num, line)
+
+    def find_section_internal(self, name, depth=0, search_from=0, search_to=None, is_comment=False):
+        effective_depth = depth + 1
+        prefix_pattern = r'[\s#]*' if is_comment else r'\s*'
+        section_pattern = re.compile(r'^' + prefix_pattern + r'\[' * effective_depth + r'(?P<name>\w+)' + r'\]' * effective_depth)
+        next_section_pattern = re.compile(r'^[\s#]*\[{{1,{effective_depth}}}\w+\]+\s*(#|$)'.format(effective_depth=effective_depth))
+
+        if not search_to:
+            search_to = len(self.lines) - 1
+
+        begin = None
+        end = search_to
+
+        for num, line in self.lines[search_from:search_to+1]:
+            match = section_pattern.match(line)
+            if match and match.group("name") == name:
+                begin = num
+                break
+
+        if begin is None:
+            raise LookupError("Section '{}' not found".format(name))
+
+        for num, line in self.lines[begin+1:search_to+1]:
+            if next_section_pattern.match(line):
+                end = num - 1
+                break
+
+        return begin, end
+
+    def find_section(self, name):
+        path = name.split('.')
+
+        begin = 0
+        end = len(self.lines) - 1
+
+        for depth, section in enumerate(path):
+            begin, end = self.find_section_internal(section, depth, begin, end)
+
+        return begin, end
+
+    def find_property(self, name, section_begin, section_end, is_comment=False):
+        prefix_pattern = r'[\s#]*' if is_comment else r'\s*'
+        property_pattern = re.compile(r'^' + prefix_pattern + r'(?P<name>\w+)' + r'\s*=')
+        next_section_pattern = re.compile(r'^[\s#]*\[+\w+\]+\s*(#|$)')
+
+        for num, line in self.lines[section_begin:section_end+1]:
+            if next_section_pattern.match(line):
+                break
+            match = property_pattern.match(line)
+            if match and match.group("name") == name:
+                return num
+
+        raise LookupError("Property '{}' not found".format(name))
+
+    def get_section(self, name, indent=''):
+        path = name.split('.')
+
+        begin = 0
+        end = len(self.lines) - 1
+
+        for depth, section in enumerate(path):
+            try:
+                begin, end = self.find_section_internal(section, depth, begin, end)
+                continue
+            except LookupError:
+                pass
+
+            try:
+                begin, end = self.find_section_internal(section, depth, begin, end, is_comment=True)
+                self.uncomment(begin)
+                continue
+            except LookupError:
+                pass
+
+            effective_depth = depth + 1
+            new_section_line = indent * depth + '[' * effective_depth + section + ']' * effective_depth + '\n'
+
+            new_section_num = end + 1
+            self.insert(new_section_num, new_section_line)
+            begin = end = new_section_num
+
+        return begin, end
+
+    def get_property(self, name, section_begin, section_end, indent='', indent_depth=0):
+        try:
+            return self.find_property(name, section_begin, section_end)
+        except LookupError:
+            pass
+
+        try:
+            return self.find_property(name, section_begin, section_end, is_comment=True)
+        except LookupError:
+            pass
+
+        new_line_num = section_end + 1
+
+        next_section_pattern = re.compile(r'^[\s#]*\[')
+        for num, line in self.lines[section_begin:section_end+1]:
+            if next_section_pattern.match(line):
+                new_line_num = num
+                break
+
+        new_line = "{}{}=\n\n".format(indent * indent_depth, name)
+        self.insert(new_line_num, new_line)
+        return new_line_num
+
+def _input(filename):
+    try:
+        if filename == '-':
+            return sys.stdin.readlines()
+        else:
+            with open(filename, 'r') as infile:
+                return infile.readlines()
+    except OSError as ex:
+        logging.exception(ex)
+        sys.exit(ex.errno)
+
+def _output(filename, lines):
+    try:
+        if filename == '-':
+            sys.stdout.writelines(lines)
+        else:
+            with open(filename, 'w') as outfile:
+                outfile.writelines(lines)
+    except OSError as ex:
+        logging.exception(ex)
+        sys.exit(ex.errno)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Tool to change properties in INI file. Defaults to hue.ini.')
+    parser.add_argument("-i", "--in", dest="conf_in", default=HUE_CONF,
+                        help="Path of INI file to read. Use '-' to read from stdin. Defaults to stdout for read operations and to hue.ini for write operations.")
+    parser.add_argument("-o", "--out", dest="conf_out", default=None,
+                        help="Path of INI file to write. Use '-' to write to stdout.")
+    parser.add_argument("--indent", default='',
+                        help="Indentation to use for insertion of new sections and properties. Example: '  ' or $'\\t'.")
+    parser.add_argument("section",
+                        help="FQDN of the section. Example: hadoop.hdfs_clusters.default.")
+    parser.add_argument("name", nargs="?",
+                        help="Name of the property to set. Example: webhdfs_url.")
+    parser.add_argument("value", nargs="?",
+                        help="New value for the property.")
+
+    args = parser.parse_args()
+    filename_in = args.conf_in
+    filename_out = args.conf_out
+    indent = args.indent
+    section = args.section
+    name = args.name
+    value = args.value
+
+    readonly = value is None
+    only_read_section = not name
+
+    if filename_out is None:
+        if readonly:
+            filename_out = '-'
+        else:
+            filename_out = HUE_CONF
+
+    conf = IniConf(_input(filename_in))
+
+    if readonly:
+        try:
+            section_begin, section_end = conf.find_section(section)
+        except LookupError as ex:
+            logging.exception(ex)
+            sys.exit(1)
+    else:
+        section_begin, section_end = conf.get_section(section, indent)
+
+    if only_read_section:
+        lines = conf.get_lines()[section_begin:section_end+1]
+        _output(filename_out, lines)
+        sys.exit(0)
+
+    if readonly:
+        try:
+            num = conf.find_property(name, section_begin + 1, section_end)
+            line = conf.get_line(num)
+            value = re.sub(r'^\s*{}\s*=\s*(?P<value>.*)\s*$'.format(name), r'\g<value>', line)
+            _output(filename_out, ["{}\n".format(value)])
+        except LookupError as ex:
+            logging.exception(ex)
+            sys.exit(1)
+    else:
+        indent_depth = section.count('.') + 1
+        num = conf.get_property(name, section_begin + 1, section_end, indent, indent_depth)
+
+        conf.uncomment(num)
+        line = conf.get_line(num)
+
+        new_line = re.sub(r'^(?P<indent>\s*).*\n$', r'\g<indent>{}={}\n'.format(name, value), line)
+        conf.set_line(num, new_line)
+
+        _output(filename_out, conf.get_lines())
+
+    sys.exit(0)
