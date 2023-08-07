@@ -120,3 +120,7 @@ docs/docs-site/public/
 
 # VSCode settings
 .vscode
+
+# Files specific to MapR distribution
+desktop/conf/.isSecure
+desktop/conf/.not_configured_yet

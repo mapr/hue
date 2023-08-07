@@ -200,6 +200,12 @@ INSTALL_CORE_FILES = \
 	tools/relocatable.sh \
 	VERS* LICENSE* README*
 
+INSTALL_CORE_FILES += \
+	bin \
+	desktop/conf.dist \
+	tools/ops \
+	NOTICE*
+
 .PHONY: install
 install: virtual-env install-core-structure install-desktop install-apps install-env
 
