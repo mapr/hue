@@ -200,7 +200,7 @@ class BoundConfig(object):
 
 class Config(object):
   def __init__(self, key=_ANONYMOUS, default=None, dynamic_default=None,
-               required=False, help=None, type=str, private=False):
+               required=False, help=None, type=str, private=False, preserve_subs=[]):
     """
     Initialize a new Configurable variable.
 
@@ -213,6 +213,9 @@ class Config(object):
                     str is the default. Should raise an exception in the case
                     that it cannot be coerced.
     @param private  if True, does not emit help text
+    @param preserve_subs list of identifiers to preserve on substitution of
+                    patterns like ${env_var_name} during config initialization,
+                    so they can be handled later.
     """
     if not callable(type):
       raise ValueError("%s: The type argument '%s()' is not callable" % (key, type))
@@ -240,6 +243,7 @@ class Config(object):
     self.help = help
     self.type = type
     self.private = private
+    self.preserve_subs = preserve_subs
 
     # It makes no sense to be required if you have a default,
     # since you'll never throw the "not set" error.
@@ -258,6 +262,23 @@ class Config(object):
     """
     return BoundConfig(config=self, bind_to=conf, grab_key=self.key, prefix=prefix)
 
+  _substitute_pattern = re.compile(r'\$\{(\w+?)\}')
+
+  def _substitute(self, mo):
+    key = mo.group(1)
+    if key in self.preserve_subs:
+      return mo.group()
+    if key in os.environ:
+      # We use this idiom instead of str() because the latter
+      # will fail if val is a Unicode containing non-ASCII.
+      # Idea taken from string.Template.safe_substitute.
+      # TODO: replace with str(os.environ[key]) after migration to Python 3
+      return u"{}".format(os.environ[key])
+    else:
+      LOG.debug("Failed to replace the '{}' identifier from environment in the '{}' config. "
+                "Falling back to empty value.".format(key, self.get_presentable_key()))
+      return ""
+
   def get_value(self, val, present, prefix=None, coerce_type=True):
     """
     Return the value for this configuration variable from the
@@ -272,6 +293,10 @@ class Config(object):
       raw_val = val
     else:
       raw_val = self.default
+
+    # Substitute environment variables in string values like ${env_var_name}
+    if isinstance(raw_val, string_types):
+      raw_val = self._substitute_pattern.sub(self._substitute, raw_val)
 
     if coerce_type:
       return self._coerce_type(raw_val, prefix)
