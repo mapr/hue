@@ -44,6 +44,19 @@ def patch_desktop_conf():
 
   desktop_conf.DATABASE.members['ENGINE'].type = patched_coerce_database
 
+  # multiple desktop.auth.pam_service
+  desktop_conf.AUTH.members['PAM_SERVICE'].default_value = 'sudo sshd login'
+
+  # Default user
+  desktop_conf.LDAP_USERNAME.devault_value = MAPR_USER
+  desktop_conf.SERVER_USER.devault_value = MAPR_USER
+  desktop_conf.SERVER_GROUP.devault_value = MAPR_USER
+  desktop_conf.DEFAULT_USER.devault_value = MAPR_USER
+  desktop_conf.DEFAULT_HDFS_SUPERUSER.devault_value = MAPR_USER
+
+  # desktop.kerberos.ccache_path
+  desktop_conf.KERBEROS.members['CCACHE_PATH'].default_value = '/tmp/hue_krb5_ccache'
+
 @synchronized
 @run_once
 def patch_lib_conf():
