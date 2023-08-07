@@ -171,6 +171,13 @@ def patch_lib_conf():
     ),
   })
 
+  #
+  # notebook.conf
+  #
+  from notebook import conf as notebook_conf
+
+  notebook_conf.INTERPRETERS.each.members['OPTIONS'].preserve_subs = ['USER', 'PASSWORD']
+
 @synchronized
 @run_once
 def patch_app_conf():
