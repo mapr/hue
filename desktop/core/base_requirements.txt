@@ -60,7 +60,7 @@ requests-kerberos==0.12.0
 rsa==4.7
 sasl==0.2.1  # Move to https://pypi.org/project/sasl3/ ?
 slack-sdk==3.2.0
-SQLAlchemy==1.3.8
+SQLAlchemy==1.3.16
 sqlparse==0.4.2
 tablib==0.13.0
 tabulate==0.8.9
