@@ -40,6 +40,9 @@ else:
   from urllib import quote as urllib_quote
   from urlparse import urlparse as lib_urlparse
 
+# MAPR IMPORTS
+from desktop.mapr.security import maprsasl
+
 
 pyopenssl.DEFAULT_SSL_CIPHER_LIST = conf.SSL_CIPHER_LIST.get()
 
@@ -149,6 +152,10 @@ class HttpClient(object):
 
   def set_digest_auth(self, username, password):
     self._session.auth = HTTPDigestAuth(username, password)
+    return self
+
+  def set_mapr_auth(self):
+    self._session.auth = maprsasl.HttpMaprAuth()
     return self
 
   def set_bearer_auth(self, token):
