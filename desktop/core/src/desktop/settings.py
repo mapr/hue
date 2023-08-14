@@ -277,6 +277,13 @@ PYLINTRC = get_run_root('.pylintrc')
 CSRF_FAILURE_VIEW = 'desktop.views.csrf_failure'
 
 ############################################################
+# MapR Monkey Patches: patch conf
+############################################################
+from desktop.mapr.monkey_patches import patch_desktop_conf, patch_lib_conf, patch_app_conf
+patch_desktop_conf()
+patch_lib_conf()
+
+############################################################
 # Part 4: Installation of apps
 ############################################################
 
@@ -309,6 +316,7 @@ logging.debug("Installed Django modules: %s" % ",".join(map(str, appmanager.DESK
 _app_conf_modules = [dict(module=app.conf, config_key=app.config_key) for app in appmanager.DESKTOP_APPS if app.conf is not None]
 
 conf.initialize(_lib_conf_modules, _config_dir)
+patch_app_conf()  # apps confs need to be patched after desktop and libs confs have been initialized
 conf.initialize(_app_conf_modules, _config_dir)
 
 # Now that we've loaded the desktop conf, set the django DEBUG mode based on the conf.
