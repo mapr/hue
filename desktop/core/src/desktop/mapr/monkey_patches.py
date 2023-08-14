@@ -28,7 +28,21 @@ def synchronized(func):
 @synchronized
 @run_once
 def patch_desktop_conf():
-  pass
+  #
+  # desktop.conf
+  #
+  from desktop import conf as desktop_conf
+
+  # MySQL connector fix
+  desktop_conf_coerce_database = desktop_conf.coerce_database
+
+  def patched_coerce_database(database):
+    if database == 'mysql':
+      return 'mysql.connector.django'
+    else:
+      return desktop_conf_coerce_database(database)
+
+  desktop_conf.DATABASE.members['ENGINE'].type = patched_coerce_database
 
 @synchronized
 @run_once
