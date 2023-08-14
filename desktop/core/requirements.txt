@@ -79,3 +79,6 @@ six==1.16.0
 -e file:///${ROOT}/desktop/core/ext-py3/django-axes-5.13.0
 -e file:///${ROOT}/desktop/core/ext-py3/djangosaml2-0.18.0
 -e file:///${ROOT}/desktop/core/ext-py3/pysaml2-5.0.0
+
+# ADDED BY MAPR
+mysql-connector-python==8.0.33
