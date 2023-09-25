@@ -60,6 +60,21 @@ def app(request):
 
 # action/cluster/arg1/arg2/arg3...
 def api_router(request, url): # On split, deserialize anything
+  # Gunicorn WSGI unquotes everything in URL, while CherryPyServer preserves '%2F'.
+  # So since migration to Gunicorn Server we get something like: 'createTable/Cluster//directory/tablename/[{"properties":{"name":"cf"}}]'
+  # Instead of: 'createTable/Cluster/%2Fdirectory%2Ftablename/[{"properties":{"name":"cf"}}]'.
+  # Which breaks parsing of table name for MapR-DB tables.
+
+  raw_uri = request.META['RAW_URI']
+  path = urllib.parse.urlparse(raw_uri).path
+
+  # The following piece copied from desktop.lib.wsgiserver.HTTPRequest._parse_request
+  quoted_slash = re.compile("(?i)%2F")
+  atoms = [urllib.parse.unquote(x) for x in quoted_slash.split(path)]
+  path = "%2F".join(atoms)
+
+  route = request.resolver_match.route
+  url = re.match(route, path[1:]).group('url')
 
   def safe_json_load(raw):
     try:
