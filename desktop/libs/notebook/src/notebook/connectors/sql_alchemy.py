@@ -89,7 +89,7 @@ else:
 ENGINES = {}
 CONNECTIONS = {}
 ENGINE_KEY = '%(username)s-%(connector_name)s'
-URL_PATTERN = '(?P<driver_name>.+?://)(?P<host>[^:/ ]+):(?P<port>[0-9]*).*'
+URL_PATTERN = '(?P<driver_name>.+?://).*'
 
 LOG = logging.getLogger(__name__)
 
