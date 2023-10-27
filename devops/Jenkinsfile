@@ -16,7 +16,6 @@ env.BUILD_BY_TAG=false
 
 env.ARTIFACTORY_PATH=''
 env.ID=''
-env.BUILD_ENV_VARS=''
 env.PROJECT=''
 
 pipeline {
@@ -124,7 +123,7 @@ pipeline {
 
 def build(yamlCurrentBuildItem) {
   def image = yamlCurrentBuildItem.image.replace("_DOCKER_REGISTRY_", DOCKER_REGISTRY)
-  def buildCommand = yamlCurrentBuildItem.basicBuildCommands.replace("_BUILD_ENV_VARS_","TIMESTAMP=${ID} ${BUILD_ENV_VARS}")
+  def buildCommand = yamlCurrentBuildItem.basicBuildCommands.replace("_BUILD_ENV_VARS_","TIMESTAMP=${ID} ${params.BUILD_ENV_VARS}")
 
   configFileProvider([configFile(fileId: 'maven_settings', variable: 'mvn_settings')]) {
     sh "cat ${env.mvn_settings} > settings.xml"
