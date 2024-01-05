@@ -61,10 +61,21 @@ case $1 in
             exitval=1
         else
             pid=$(cat "$HUE_PID_SERVER")
-            kill $pid
+            kill -2 $pid
             rm "$HUE_PID_SERVER"
             echo "$(date) Stopping Hue, pid $pid" >> "$HUE_LOG_SERVER"
             echo "Stopping Hue, pid $pid"
+
+            # MHUE-540: Check for Hue processes that weren't stopped succesfully
+            if kill -0 $pid; then
+                sleep 2
+            fi
+            ghost_pids=$(ps ax -o pid:1,command | grep '/[o]pt/mapr/hue.*run.*server' | cut -d ' ' -f 1)
+            for pid in $ghost_pids; do
+                echo "Unable to stop hue runcpserver, pid ${pid}, forcefully stopping!" >> "$HUE_LOG_SERVER"
+                echo "Unable to stop hue runcpserver, pid ${pid}, forcefully stopping!"
+                kill -9 "$pid"
+            done
         fi
         if kerberos_enabled; then
             if ! [ -e "$HUE_PID_KT_RENEWER" ] || ! kill -0 $(cat "$HUE_PID_KT_RENEWER"); then

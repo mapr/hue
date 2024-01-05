@@ -36,12 +36,6 @@ __PREFIX__/
 %pretrans
 # Ensure there is no running Hue before upgrade
 if [ -e "__PREFIX__/hue" ]; then
-    if [ -e "__PREFIX__/hue/hueversion" ] && [ "4" = "$(cut -d '.' -f 1 __PREFIX__/hue/hueversion)" ]; then
-        IS_HUE_4=true
-    else
-        IS_HUE_4=false
-    fi
-
     if [ -z "${MAPR_TICKETFILE_LOCATION}" ] && [ -e "__PREFIX__/conf/mapruserticket" ]; then
         export MAPR_TICKETFILE_LOCATION="__PREFIX__/conf/mapruserticket"
     fi
@@ -50,28 +44,31 @@ if [ -e "__PREFIX__/hue" ]; then
     MAPR_USER=${MAPR_USER:-$([ -f "$DAEMON_CONF" ] && grep "mapr.daemon.user" "$DAEMON_CONF" | cut -d '=' -f 2)}
     MAPR_USER=${MAPR_USER:-"mapr"}
 
-    if [ "$IS_HUE_4" = "true" ] ; then
-        HUE_VERSION=$(cat "__PREFIX__/hue/hueversion")
-        HUE_HOME="__PREFIX__/hue/hue-${HUE_VERSION}"
+    HUE_VERSION=$(cat "__PREFIX__/hue/hueversion")
+    HUE_HOME="__PREFIX__/hue/hue-${HUE_VERSION}"
 
-        if sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue-server" status &>/dev/null ; then
-            RESULT=$(sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue-server" stop 2>&1)
-            STATUS=$?
-            if [ $STATUS -ne 0 ] ; then
-                echo "$RESULT"
-            fi
-        fi
-    else
-        HUE_HOME=$(find __PREFIX__/hue/ -maxdepth 1 -type d | grep -E 'hue-[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1)
-
-        if [ -e "${HUE_HOME}/bin/hue.sh" ] && sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue.sh" runcpserver status &>/dev/null ; then
-            RESULT=$(sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue.sh" runcpserver stop 2>&1)
-            STATUS=$?
-            if [ $STATUS -ne 0 ]; then
-                echo "$RESULTS"
-            fi
+    if sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue-server" status >/dev/null 2>&1; then
+        RESULT=$(sudo -u $MAPR_USER -E "${HUE_HOME}/bin/hue-server" stop 2>&1)
+        STATUS=$?
+        if [ $STATUS -ne 0 ] ; then
+            echo "$RESULT"
         fi
     fi
+
+    #
+    # MHUE-550: Check for Hue processes that weren't stopped succesfully / affects mapr-hue-4.11.0.0
+    #
+    # Wait for graceful stop first
+    ghost_pid=$(ps ax -o pid:1,command | grep '/[o]pt/mapr/hue.*run.*server' | cut -d ' ' -f 1 | head -n1)
+    if [ -n "$ghost_pid" ]; then
+        kill -2 "$ghost_pid"
+        sleep 2
+    fi
+    ghost_pids=$(ps ax -o pid:1,command | grep '/[o]pt/mapr/hue.*run.*server' | cut -d ' ' -f 1)
+    for pid in $ghost_pids; do
+        echo "Unable to stop hue runcpserver, pid ${pid}, forcefully stopping!"
+        kill -9 "$pid"
+    done
 fi
 
 
