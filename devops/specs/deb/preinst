@@ -28,6 +28,21 @@ ${OLD_DIR}/bin/env.d/ ${BCK_DIR}/bin/"
             cp -r "$CONF_SRC" "$CONF_DST"
         fi
     done
+
+    #
+    # MHUE-550: Check for Hue processes that weren't stopped succesfully / affects mapr-hue-4.11.0.0
+    #
+    # Wait for graceful stop first
+    ghost_pid=$(ps ax -o pid:1,command | grep '/[o]pt/mapr/hue.*run.*server' | cut -d ' ' -f 1 | head -n1)
+    if [ -n "$ghost_pid" ]; then
+        kill -2 "$ghost_pid"
+        sleep 2
+    fi
+    ghost_pids=$(ps ax -o pid:1,command | grep '/[o]pt/mapr/hue.*run.*server' | cut -d ' ' -f 1)
+    for pid in $ghost_pids; do
+        echo "Unable to stop hue runcpserver, pid ${pid}, forcefully stopping!"
+        kill -9 "$pid"
+    done
 }
 
 before_install() {
