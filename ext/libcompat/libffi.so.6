@@ -1,4 +1,8 @@
-# This file provides compatibility to Hue build on Ubuntu 18.04 on Ubuntu 20.04
+# This file provides compatibility for Hue built on Ubuntu 18.04 to run on other Ubuntus
+# and for Hue built on CentOS 8 to run on other compatible distros
 
 # Ubuntu 20.04
 LIB_LOOKUP_PATH="/usr/lib/x86_64-linux-gnu/libffi.so.7"
+
+# RHEL 9
+LIB_LOOKUP_PATH="$LIB_LOOKUP_PATH /lib64/libffi.so.8"
