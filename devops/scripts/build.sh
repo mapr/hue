@@ -5,18 +5,6 @@ SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . "${SCRIPT_DIR}/_initialize_package_variables.sh"
 . "${SCRIPT_DIR}/_utils.sh"
 
-# Override "build_package" function from "_utils.sh" to make separate package for older el8
-build_package() {
-  if [ "$OS" = "debian" ]; then
-    _build_deb $@
-  elif [ "$OS" = "redhat" ] && echo "$PLATFORM_ID" | grep "el8"; then
-    export TIMESTAMP=$(expr "$TIMESTAMP" - 1)
-    _build_rpm $@ "${BUILD_ROOT}/package/${package_name}/rpm-el8"
-  else
-    _build_rpm $@
-  fi
-}
-
 build_hue() {
   rm -rf "$PKG_INSTALL_ROOT"
 
@@ -63,6 +51,10 @@ main() {
   setup_package "mapr-hue"
 
   echo "Building packages..."
+
+  if [ "$OS" = "redhat" ] && echo "$PLATFORM_ID" | grep -q "el8"; then
+    export TIMESTAMP=$(expr "$TIMESTAMP" - 1)
+  fi
   build_package "mapr-hue"
 
   echo "Resulting packages:"
