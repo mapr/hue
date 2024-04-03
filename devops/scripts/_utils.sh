@@ -3,10 +3,14 @@
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 . "${SCRIPT_DIR}/_initialize_package_variables.sh"
 
+# I don't want to import all variables from /etc/os-release, so here I import specific ones:
+ID_LIKE=$(. /etc/os-release; echo "$ID_LIKE")
+PLATFORM_ID=$(. /etc/os-release; echo "$PLATFORM_ID")
+
 OS="redhat"
-if [ -e "/etc/debian_version" ]; then
+if [ "$ID_LIKE" = "debian" ]; then
   OS="debian"
-elif [ -e "/etc/SuSE-release" ] || grep -q "ID_LIKE.*suse" "/etc/os-release" 2>/dev/null; then
+elif echo "$ID_LIKE" | grep -q "suse"; then
   OS="suse"
 fi
 
@@ -44,8 +48,8 @@ build_package() {
 
 _build_rpm() {
   package_name="$1"
-
-  rpm_root="${BUILD_ROOT}/package/${package_name}/rpm"
+  rpm_root="$2"
+  rpm_root=${rpm_root:-"${BUILD_ROOT}/package/${package_name}/rpm"}
 
   mkdir -p "${rpm_root}/SOURCES"
   mv -T "${BUILD_ROOT}/root/${package_name}" "${rpm_root}/SOURCES"
@@ -61,8 +65,8 @@ _build_rpm() {
 
 _build_deb() {
   package_name="$1"
-
-  deb_root="${BUILD_ROOT}/package/${package_name}/deb"
+  deb_root="$2"
+  deb_root=${deb_root:-"${BUILD_ROOT}/package/${package_name}/deb"}
 
   mkdir -p "$deb_root"
   mv -T "${BUILD_ROOT}/root/${package_name}" "${deb_root}"
