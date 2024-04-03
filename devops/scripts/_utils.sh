@@ -48,8 +48,8 @@ build_package() {
 
 _build_rpm() {
   package_name="$1"
-  rpm_root="$2"
-  rpm_root=${rpm_root:-"${BUILD_ROOT}/package/${package_name}/rpm"}
+
+  rpm_root="${BUILD_ROOT}/package/${package_name}/rpm"
 
   mkdir -p "${rpm_root}/SOURCES"
   mv -T "${BUILD_ROOT}/root/${package_name}" "${rpm_root}/SOURCES"
@@ -65,8 +65,8 @@ _build_rpm() {
 
 _build_deb() {
   package_name="$1"
-  deb_root="$2"
-  deb_root=${deb_root:-"${BUILD_ROOT}/package/${package_name}/deb"}
+
+  deb_root="${BUILD_ROOT}/package/${package_name}/deb"
 
   mkdir -p "$deb_root"
   mv -T "${BUILD_ROOT}/root/${package_name}" "${deb_root}"
