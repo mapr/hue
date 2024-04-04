@@ -14,12 +14,8 @@ group:       MapR
 buildarch:   noarch
 obsoletes:   mapr-hue < 3.10.0 , mapr-hue-base < 3.10.0
 
-%if 0%{?rhel} >= 9
-requires: mapr-client, mapr-hadoop-util, libffi.so.8, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib
-%else
-requires: mapr-client, mapr-hadoop-util, redhat-lsb-core, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib
+requires: mapr-client, mapr-hadoop-util, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib
 # requires: mapr-client, mapr-hadoop-util, redhat-lsb-core, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib, (openssl-libs or libopenssl1_1)
-%endif
 
 AutoReqProv: no
 
