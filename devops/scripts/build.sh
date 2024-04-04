@@ -24,6 +24,10 @@ build_hue() {
   export PYTHON_H="${PYTHON_PREFIX}/include/${PYTHON_VER}/Python.h"
   make install
 
+  if [ "$OS" = "redhat" ] && echo "$PLATFORM_ID" | grep -q "el8"; then
+    cp /lib64/libffi.so.6 "${PKG_INSTALL_ROOT}/build/env/lib"
+  fi
+
   pushd "$PKG_INSTALL_ROOT"
     python3 -m pip install virtualenv-make-relocatable==0.0.1
     bash tools/relocatable.sh
@@ -52,9 +56,6 @@ main() {
 
   echo "Building packages..."
 
-  if [ "$OS" = "redhat" ] && echo "$PLATFORM_ID" | grep -q "el8"; then
-    export TIMESTAMP=$(expr "$TIMESTAMP" - 1)
-  fi
   build_package "mapr-hue"
 
   echo "Resulting packages:"
