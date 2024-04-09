@@ -14,7 +14,7 @@ group:       MapR
 buildarch:   noarch
 obsoletes:   mapr-hue < 3.10.0 , mapr-hue-base < 3.10.0
 
-requires: mapr-client, mapr-hadoop-util, redhat-lsb-core, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib, libcrypto.so.1.1, libssl.so.1.1
+requires: mapr-client, mapr-hadoop-util, cyrus-sasl-gssapi, cyrus-sasl-plain, libxml2, libxslt, sqlite, zlib, libcrypto.so.1.1, libssl.so.1.1
 
 AutoReqProv: no
 
