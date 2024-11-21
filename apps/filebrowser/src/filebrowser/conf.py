@@ -18,7 +18,7 @@
 import sys
 
 from desktop.conf import ENABLE_DOWNLOAD
-from desktop.lib.conf import Config, coerce_bool
+from desktop.lib.conf import Config, coerce_bool, coerce_csv
 from desktop.conf import is_oozie_enabled
 
 if sys.version_info[0] > 2:
@@ -83,3 +83,12 @@ MAX_FILE_SIZE_UPLOAD_LIMIT = Config(
   type=int,
   help=_('A limit on a file size (bytes) that can be uploaded to a filesystem. '
           'A value of -1 means there will be no limit.'))
+
+RESTRICT_FILE_EXTENSIONS = Config(
+  key='restrict_file_extensions',
+  default='',
+  type=coerce_csv,
+  help=_(
+    'Specify file extensions that are not allowed, separated by commas. For example: .exe, .zip, .rar, .tar, .gz'
+  ),
+)

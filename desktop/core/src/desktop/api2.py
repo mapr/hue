@@ -55,6 +55,7 @@ from desktop.lib.paths import get_desktop_root
 from desktop.models import Document2, Document, Directory, FilesystemException, uuid_default, \
   UserPreferences, get_user_preferences, set_user_preferences, get_cluster_config, __paginate, _get_gist_document
 from desktop.views import get_banner_message, serve_403_error
+from filebrowser.conf import RESTRICT_FILE_EXTENSIONS
 
 from hadoop.cluster import is_yarn
 
@@ -97,6 +98,7 @@ def get_config(request):
   config = get_cluster_config(request.user)
   config['hue_config']['is_admin'] = is_admin(request.user)
   config['hue_config']['is_yarn_enabled'] = is_yarn()
+  config['hue_config']['restrict_file_extensions'] = RESTRICT_FILE_EXTENSIONS.get()
   config['clusters'] = list(get_clusters(request.user).values())
   config['documents'] = {
     'types': list(Document2.objects.documents(user=request.user).order_by().values_list('type', flat=True).distinct())

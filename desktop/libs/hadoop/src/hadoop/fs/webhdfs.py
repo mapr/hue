@@ -32,6 +32,7 @@ import threading
 import time
 import urllib.request, urllib.error
 
+from django.http.multipartparser import MultiPartParser
 from django.utils.encoding import smart_str
 
 import hadoop.conf
@@ -972,6 +973,7 @@ class WebHdfs(Hdfs):
       except Exception:
         pass
 
+  # Deprecated
   def upload(self, file, path, *args, **kwargs):
     username = kwargs.get('username')
     if not username:
@@ -981,6 +983,14 @@ class WebHdfs(Hdfs):
     tmp_file = file.get_temp_path()
 
     self.do_as_user(username, self.rename, tmp_file, dst)
+
+  def upload_v1(self, META, input_data, destination, username):
+    from hadoop.fs.upload import HDFSNewFileUploadHandler  # Circular dependency
+
+    hdfs_upload_handler = HDFSNewFileUploadHandler(destination, username)
+
+    parser = MultiPartParser(META, input_data, [hdfs_upload_handler])
+    return parser.parse()
 
   def filebrowser_action(self):
     return None
