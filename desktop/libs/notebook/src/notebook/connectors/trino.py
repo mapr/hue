@@ -219,10 +219,10 @@ class TrinoApi(Api):
     data = []
     columns = []
     next_uri = snippet['result']['handle']['next_uri']
-    processed_rows = snippet['result']['handle'].get('row_count', 0)
+    rows_left = snippet['result']['handle'].get('row_count', 0)
     status = False
 
-    if processed_rows == 0:
+    if rows_left == 0:
       data = snippet['result']['handle']['result']['data']
 
     while next_uri:
@@ -235,25 +235,24 @@ class TrinoApi(Api):
       data += status.rows
       columns = status.columns
 
-      if len(data) >= processed_rows + 100:
-        if processed_rows < 0:
-          data = data[:100]
-        else:
-          data = data[processed_rows:processed_rows + 100]
+      if rows_left:
+        data = data[-rows_left:] # Trim the data to only include the expected rows
+        rows_left = 0 # Reset rows_left since we've handled the trimming
+
+      if len(data) >= 100:
+        rows_left = len(data) - 100
         break
+      rows_left = 0
 
       next_uri = status.next_uri
-      current_length = len(data)
-      if processed_rows < 0:
-        processed_rows = 0
-      data = data[processed_rows:processed_rows + 100]
-      processed_rows -= current_length
+    
+    data = data[:100]
 
     properties = self.trino_session.properties
     self._set_session_info_to_user(properties)
 
     return {
-      'row_count': 100 + processed_rows,
+      'row_count': rows_left,
       'next_uri': next_uri,
       'has_more': bool(status.next_uri) if status else False,
       'data': data or [],
