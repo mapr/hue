@@ -190,7 +190,7 @@ def dt_login(request, from_modal=False):
     if hasattr(request, 'fs') and (
         'KnoxSpnegoDjangoBackend' in backend_names or 'SpnegoDjangoBackend' in backend_names or 'OIDCBackend' in backend_names or
         'SAML2Backend' in backend_names
-      ) and request.user.is_authenticated and auth_confg.ENSURE_HOME_DIRECTORY.get():
+      ) and request.user.is_authenticated and auth_conf.ENSURE_HOME_DIRECTORY.get():
       if request.fs is None:
         request.fs = fsmanager.get_filesystem(request.fs_ref)
       try:
