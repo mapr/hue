@@ -63,13 +63,13 @@ WARDEN_RUNSTATE_KEY="service.runstate"
 HUE_LOG_DIR="${HUE_HOME}/logs"
 HUE_LOG_INITIAL_DB_MIGRATION="${HUE_LOG_DIR}/initial-db-migration.log"
 
-HUE_METRICS_FILE=$(grep -Rh '^[[:space:]]*location=' --include "*.ini" "${HUE_HOME}/desktop/conf" | tail -n1 | sed -E 's/^\s*location=(.*)\s*$/\1/')
+HUE_METRICS_FILE=$("${HUE_HOME}/tools/ops/hueinitool" desktop.metrics location 2>/dev/null)
 HUE_METRICS_FILE=${HUE_METRICS_FILE:-"/tmp/hue_metrics_report.json"}
 
 
-
+#
 # Parse options
-
+#
 USAGE="usage: $0 [-h] [-R] [--secure|--unsecure|--customSecure] [-EC <options>]"
 
 while [ ${#} -gt 0 ]; do
@@ -106,14 +106,12 @@ while [ ${#} -gt 0 ]; do
 done
 
 
-
+#
 # Functions
-
-perm_scripts() {
-  chmod 0700 "${HUE_HOME}/desktop/conf/env.d/10-secure.sh"
-}
-
+#
 perm_confs() {
+  chmod 0600 "${HUE_HOME}/desktop/conf/env.d/10-secure.sh"
+
   if [ -e "${HUE_HOME}/desktop/conf/hue.ini" ]; then
     logInfo "Setting permissions of Hue confs to 0600, since there are can be database/LDAP/etc. passwords."
     chmod 0600 "${HUE_HOME}/desktop/conf/hue.ini"
@@ -239,9 +237,9 @@ EOF
 }
 
 
-
+#
 # Main part
-
+#
 if [ "$isOnlyRoles" == 1 ]; then
   # Configure security
   oldSecure=$(read_secure)
@@ -250,7 +248,6 @@ if [ "$isOnlyRoles" == 1 ]; then
     updSecure="true"
   fi
 
-  perm_scripts
   perm_confs
 
   if [ "$updSecure" = "true" ]; then
