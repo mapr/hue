@@ -92,3 +92,13 @@ RESTRICT_FILE_EXTENSIONS = Config(
     'Specify file extensions that are not allowed, separated by commas. For example: .exe, .zip, .rar, .tar, .gz'
   ),
 )
+
+ALLOW_FILE_EXTENSIONS = Config(
+  key="allow_file_extensions",
+  default=None,
+  type=coerce_csv,
+  help=_(
+    "Specify file extensions that are allowed, separated by commas. "
+    "When set, only these extensions will be permitted. For example: .tsv, .csv, .xlsx"
+  ),
+)

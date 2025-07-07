@@ -37,6 +37,7 @@ from django.core.files.uploadhandler import FileUploadHandler, SkipFile, StopFut
 from desktop.lib.fsmanager import get_client
 from aws.s3 import parse_uri
 from aws.s3.s3fs import S3FileSystemException
+from filebrowser.utils import is_file_upload_allowed
 
 if sys.version_info[0] > 2:
   from django.utils.translation import gettext as _
@@ -68,6 +69,7 @@ class S3FileUploadHandler(FileUploadHandler):
     self._request = request
     self._mp = None
     self._part_num = 1
+    self._upload_rejected = False
 
     if self._is_s3_upload():
       self._fs = get_client(fs='s3a', user=request.user.username)
@@ -79,6 +81,14 @@ class S3FileUploadHandler(FileUploadHandler):
 
   def new_file(self, field_name, file_name, *args, **kwargs):
     if self._is_s3_upload():
+      # Check file extension restrictions
+      is_allowed, err_message = is_file_upload_allowed(file_name)
+      if not is_allowed:
+        LOG.error(err_message)
+        self._request.META['upload_failed'] = err_message
+        self._upload_rejected = True
+        return None
+
       super(S3FileUploadHandler, self).new_file(field_name, file_name, *args, **kwargs)
 
       LOG.info('Using S3FileUploadHandler to handle file upload.')
@@ -99,6 +109,9 @@ class S3FileUploadHandler(FileUploadHandler):
 
 
   def receive_data_chunk(self, raw_data, start):
+    if self._upload_rejected:
+      return None
+
     if self._is_s3_upload():
       try:
         LOG.debug("S3FileUploadHandler uploading file part: %d" % self._part_num)
@@ -115,6 +128,9 @@ class S3FileUploadHandler(FileUploadHandler):
 
 
   def file_complete(self, file_size):
+    if self._upload_rejected:
+      return None
+
     if self._is_s3_upload():
       # Finish the upload
       LOG.info("S3FileUploadHandler has completed file upload to S3, total file size is: %d." % file_size)

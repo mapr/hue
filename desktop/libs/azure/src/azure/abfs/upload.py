@@ -24,6 +24,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.uploadhandler import FileUploadHandler, SkipFile, StopFutureHandlers, StopUpload, UploadFileException
 
 from desktop.lib.fsmanager import get_client
+from filebrowser.utils import is_file_upload_allowed
+
 from azure.abfs.__init__ import parse_uri
 from azure.abfs.abfs import ABFSFileSystemException
 
@@ -57,6 +59,7 @@ class ABFSFileUploadHandler(FileUploadHandler):
     self.file = None
     self._request = request
     self._part_size = DEFAULT_WRITE_SIZE
+    self._upload_rejected = False
 
     if self._is_abfs_upload():
       self._fs = self._get_abfs(request)
@@ -69,6 +72,14 @@ class ABFSFileUploadHandler(FileUploadHandler):
 
   def new_file(self, field_name, file_name, *args, **kwargs):
     if self._is_abfs_upload():
+      # Check file extension restrictions
+      is_allowed, err_message = is_file_upload_allowed(file_name)
+      if not is_allowed:
+        LOG.error(err_message)
+        self._request.META['upload_failed'] = err_message
+        self._upload_rejected = True
+        return None
+
       super(ABFSFileUploadHandler, self).new_file(field_name, file_name, *args, **kwargs)
 
       LOG.info('Using ABFSFileUploadHandler to handle file upload wit temp file%s.' % file_name)
@@ -88,6 +99,8 @@ class ABFSFileUploadHandler(FileUploadHandler):
 
 
   def receive_data_chunk(self, raw_data, start):
+    if self._upload_rejected:
+      return None
     if self._is_abfs_upload():
       try:
         LOG.debug("ABFSFileUploadHandler uploading file part with size: %s" % self._part_size)
@@ -101,6 +114,8 @@ class ABFSFileUploadHandler(FileUploadHandler):
       return raw_data
 
   def file_complete(self, file_size):
+    if self._upload_rejected:
+      return None
     if self._is_abfs_upload():
       #finish the upload
       self._fs.flush(self.target_path, {'position': int(file_size)})

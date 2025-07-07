@@ -29,7 +29,7 @@ from django.core.files.uploadhandler import FileUploadHandler, StopFutureHandler
 
 from desktop.lib import fsmanager
 from desktop.lib.fsmanager import get_client
-
+from filebrowser.utils import is_file_upload_allowed
 import hadoop.cluster
 from hadoop.conf import UPLOAD_CHUNK_SIZE
 from hadoop.fs.exceptions import WebHdfsException
@@ -144,6 +144,7 @@ class HDFSfileUploadHandler(FileUploadHandler):
     self._activated = False
     self._destination = request.GET.get('dest', None) # GET param avoids infinite looping
     self.request = request
+    self._upload_rejected = False
     fs = fsmanager.get_filesystem('default')
     if not fs:
       LOG.warning('No HDFS set for HDFS upload')
@@ -156,6 +157,15 @@ class HDFSfileUploadHandler(FileUploadHandler):
     # Detect "HDFS" in the field name.
     if field_name.upper().startswith('HDFS'):
       LOG.info('Using HDFSfileUploadHandler to handle file upload.')
+
+      # Check file extension restrictions
+      is_allowed, err_message = is_file_upload_allowed(file_name)
+      if not is_allowed:
+        LOG.error(err_message)
+        self.request.META['upload_failed'] = err_message
+        self._upload_rejected = True
+        return None
+
       try:
         fs_ref = self.request.GET.get('fs', 'default')
         self.request.fs = fsmanager.get_filesystem(fs_ref)
@@ -171,6 +181,9 @@ class HDFSfileUploadHandler(FileUploadHandler):
       raise StopFutureHandlers()
 
   def receive_data_chunk(self, raw_data, start):
+    if self._upload_rejected:
+      return None
+
     LOG.debug("HDFSfileUploadHandler receive_data_chunk")
 
     if not self._activated:
@@ -187,6 +200,9 @@ class HDFSfileUploadHandler(FileUploadHandler):
       raise StopUpload()
 
   def file_complete(self, file_size):
+    if self._upload_rejected:
+      return None
+
     if not self._activated:
       return None
 
