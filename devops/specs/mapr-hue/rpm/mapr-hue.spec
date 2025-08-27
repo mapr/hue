@@ -3,14 +3,14 @@
 %global __prelink_undo_cmd %{nil}
 
 
-summary:     MapR
+summary:     HPE DataFabric Ecosystem Pack: Hue
 license:     Hewlett Packard Enterprise, CopyRight
-Vendor:      Hewlett Packard Enterprise, <ezmeral_software_support@hpe.com>
+Vendor:      Hewlett Packard Enterprise
 name:        mapr-hue
 version:     __RELEASE_VERSION__
 release:     1
 prefix:      /
-group:       MapR
+group:       HPE
 buildarch:   noarch
 obsoletes:   mapr-hue < 3.10.0 , mapr-hue-base < 3.10.0
 
@@ -20,7 +20,7 @@ AutoReqProv: no
 
 
 %description
-Ezmeral Ecosystem Pack - Hue package
+Hue distribution included in HPE DataFabric Software Ecosystem Pack
 Tag: __RELEASE_BRANCH__
 Commit: __GIT_COMMIT__
 
